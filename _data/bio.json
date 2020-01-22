@@ -1,43 +1,33 @@
 {
   "basics": {
-    "name": "Japhet Ye",
+    "name": "Jake Castillo",
     "label": "Student",
     "picture": "Https://japhet-ye.github.io/images/japhetye_profile_pic.jpg",
-    "email": "japhetye@hawaii.edu",
-    "phone": "808-726-8774",
-    "website": "https://japhet-ye.github.io",
-    "summary": "I am studying for a B.S. in Computer Engineering in the Department of Engineering at the University of Hawaii. I expect to graduate in Fall, 2019.",
+    "email": "jakecast@hawaii.edu",
+    "phone": "(808) 216-2163",
+    "website": "https://jakecast.github.io",
+    "summary": "University of Hawaii at Manoa - College of Engineering (Computer Engineering/software development). Expected graduation: Fall 2020",
     "location": {
       "address": "",
-      "postalCode": "96786",
-      "city": "Wahiawa",
+      "postalCode": "96734",
+      "city": "Kailua",
       "countryCode": "USA",
       "region": "Hawaii"
     },
     "profiles": [
       {
         "network": "github",
-        "username": "japhet-ye",
-        "url": "http://github.com/japhet-ye"
+        "username": "jakecastillo",
+        "url": "http://github.com/jakecastillo"
       },
       {
         "network": "linkedin",
-        "username": "japhetye",
-        "url": "https://www.linkedin.com/in/japhet-ye-65681b149/"
+        "username": "jakecastillo",
+        "url": "https://www.linkedin.com/in/jake-castillo-00567819b/"
       }
     ]
   },
   "interests": [
-    {
-      "name": "internet of things",
-      "keywords": [
-        "Arduino",
-        "TI MSP430",
-        "ZigBee",
-        "802.11",
-        "RaspberryPi"
-      ]
-    },
     {
       "name": "Software Engineering",
       "keywords": [
@@ -73,7 +63,6 @@
       "keywords": [
         "C",
         "C++",
-        "Java",
         "JavaScript",
         "MatLab",
         "Python",
@@ -96,24 +85,24 @@
       "institution": "University of Hawaii, Honolulu, HI",
       "area": "Computer Engineering (expected Fall, 2019)",
       "studyType": "B.S.",
-      "startDate": "2016-09-03",
+      "startDate": "2014-09-03",
       "endDate": "Present",
-      "gpa": "3.20",
+      "gpa": "2.38",
       "courses": ["Object Oriented Programming","Computer Hardware Design","Discrete Mathematics","Electrical Signals and Systems"
       ]
     }
   ],
   "work": [
     {
-      "company": "University of Hawaii College of Engineering",
-      "position": "Teaching Assistant",
+      "company": "DataHouse",
+      "position": "Intern: TRUE innovation project",
       "startDate": "2019-01-15",
       "endDate": "Present",
-      "summary": "Teaching Assistant for a Object Oriented Programming course",
+      "summary": "Working together with a team of seven Computer Engineering students, with the guidance of Datahouse and support of other stakeholders, we are working to provide a deliverable solution to the Hawaii Department of Agriculture's problem with animal quarantine.",
       "highlights": [
-        "Lead labs teaching students the basic principles and foundations of Object Oriented Programming",
-        "Create lab material for the students to effectivly use the lesson in the lecture effectivly and efficiently",
-        "Grading Labs and Exams on set critera"
+        "Team oriented design",
+        "Deliver a solution to make a change in our community",
+        "Front and back end development"
       ]
     }
   ]
