@@ -3,7 +3,7 @@ layout: project
 type: project
 image: images/IM.png
 title: Infinite Movement (Flow Arts Team)
-permalink: projects/android
+permalink: projects/infinitemovement
 # All dates must be YYYY-MM-DD format!
 date: 2018-07-01
 labels:
