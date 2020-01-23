@@ -10,7 +10,7 @@ labels:
   - Internship
   - Community innovation
   - Front and back end design and development
-summary: Working together with a team of seven Computer Engineering students, with the guidance of Datahouse and support of other stakeholders, we are working to provide a deliverable solution to the Hawaii Department of Agriculture's problem with animal quarantine.
+summary: With the guidance of Datahouse and support of other stakeholders, we are working to provide a deliverable solution to the Hawaii Department of Agriculture's problem with animal quarantine.
 ---
 
 <div class="ui small rounded images">
