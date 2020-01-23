@@ -4,7 +4,6 @@ type: project
 image: images/datahouse.png
 title: TRUE: Community Innovation Mentorship
 permalink: projects/datahouse
-# All dates must be YYYY-MM-DD format!
 date: 2020-01-15
 labels:
   - Internship
