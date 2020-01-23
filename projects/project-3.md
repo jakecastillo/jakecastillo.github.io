@@ -25,5 +25,5 @@ My involvement in the gloving scene is that I am a member of a team named Infini
 <p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/7bsGM2AiA-I" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><blockquote> -Infinite Movement goes to an anime convention </blockquote></p>
 
-<p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/Y6UWwIreURM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></iframe></p>
+<p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/Y6UWwIreURM" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
 <p align="center"><blockquote> -Hawaii BoSS recap 2019 </blockquote></p>
