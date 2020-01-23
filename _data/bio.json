@@ -2,7 +2,7 @@
   "basics": {
     "name": "Jake Castillo",
     "label": "Student",
-    "picture": "https://github.com/jakecastillo/jakecastillo.github.io/blob/master/images/jakecastillo.png",
+    "picture": "../images/jakecastillo.png",
     "email": "jakecast@hawaii.edu",
     "phone": "(808) 216-2163",
     "website": "https://jakecast.github.io",
