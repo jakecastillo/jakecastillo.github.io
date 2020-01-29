@@ -20,4 +20,6 @@ Putting everything together, the rest was software. Taking the flood fill algori
 
 Sadly, we were unable to complete our goal as half of our team stopped showing up and were unable to deliver on their end. Hardware started failing, adjustments had to be made and everything ended up in a mess. This project taught the remaining two of the existing team important life lessons. We spent countless hours in the lab trying to provide a deliverable and in the end the only thing you can really ask of yourself is to put your best foot forward. We put the time into building and researching and although this may have not been our proudest production, we now understand that even if some people in a group are unable to deliver, others may have to pick up the slack and just power through. Regardless of the problem, the problem still needs to be solved.
  
-<iframe width="560" height="315" src="https://www.youtube.com/embed/IngelKjmecg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/IngelKjmecg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
+<p align="center"><blockquote> -2016 Taiwan Halfsize micromouse First Prize Kojimouse 11, Hirokazu Kojima (example of micromouse competition) </blockquote></p>
+
