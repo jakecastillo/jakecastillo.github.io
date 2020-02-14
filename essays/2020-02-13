@@ -1,0 +1,18 @@
+---
+layout: essay
+type: essay
+title: The baseline
+# All dates must be YYYY-MM-DD format!
+date: 2020-02-13
+labels:
+  - Coding standard
+  - Programming
+---
+#The Meta
+Keeping up with coding standards can help you lower the learning curve and benefit the learning experience. Practicing good coding is a fantastic way to make sure that you are staying in line with what is "meta." After a week using IntelliJ and the ESLint coding standard, I am personally a little irritated by some of the errors that it throws, but it keeps everything nice and neat. Coming from a background of C/C++ and being told that Javascript whitespace doesn't matter at all does not mean that my code can be all over the place, but I think ESLint is unnessesarily in line. There are certain coding practices that should be followed, but others are just for organization. It seems like a very useful tool to learn, but on the development end, I think it would be better to do without.
+
+#Rooted in functionality
+Learning programming in computer engineering with C/C++, syntax came first, then came the gritty logic. If ESLint helped with logic and algorithms then I think it would be an extremely powerful tool, but if whitespace is the main given problem, then I am not going to be inclined to use it. It is extra bulk that may get in the way of productivity. On the contrary, it may come in handy to present code. When wanting everything to be neat within coding standwards to create presentable code, ESLint may be extremely useful. Alternatively you could always use the tidy button that some IDEs come with.
+
+#How coding standards can be useful to learning
+Coding standards may be useful to learning because of repetition. When doing the same thing over and over again, if the product of your code is similar between your newest development and your last development, it will become ingrained into your brain and muscle memory.
