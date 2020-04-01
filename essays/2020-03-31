@@ -1,0 +1,30 @@
+---
+layout: essay
+type: essay
+title: "I'm Hungry"
+date: 2020-03-31
+labels:
+  - Software Engineering
+  - Meteor
+---
+# Overview
+Picture this: You're hungry and you don't know what to eat. You turn to your significant other, "hey what do you want?" With a minute of thinking they respond with, "I want what you want." You've been sitting in your car for an hour and a half now at this point and you really need to make a decision.
+
+As a final project, I wanted to propose a web application that took in Yelp as a dataset and chose a food place within specific constraints to randomize your decision for the night whether it be a solution to lack of spontaneity or a solution to indecisiveness. Keeping that in mind ideally you'd be able to select options that will dilute the searches down. These constraints will be: 
+* Price
+* Pating
+* Type of food
+* Range around you
+To make sure people aren't upset at the randomness, there will be a refresh button that allows you to reroll your choice.
+
+# Mockup page ideas
+Pages:
+* Intitial web app page
+* Account page
+
+The initial web page will have direct access to the randomizer. It will have a small page to select your contraints and a box to display the chosen food place. Other than that a menu bar displaying a log in button and a small app header will be included.
+
+The account page will contain information about yourself. If you'd like to save presets, this would be the place to do so.
+
+# Beyond the basics
+Aside from the basics, this web application would have to take in a refreshed yelp dataset. I'm unsure how I'd be able to get a hold of this information, but I'm sure there is access to it or a mock dataset somewhere. Something nice that could tie to this would be to reward users with points if they give their decided place a review. It would help potential local companies get nice exposure.
