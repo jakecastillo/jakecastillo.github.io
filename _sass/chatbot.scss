@@ -2,15 +2,20 @@
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
+  left: auto;
   z-index: 999;
   font-family: $font-body;
   color: #1f2933;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .chatbot-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: flex-end;
   background: #1f2933;
   color: #fff;
   border: none;
@@ -39,6 +44,7 @@
 }
 
 .chatbot-panel {
+  align-self: flex-end;
   width: min(360px, 88vw);
   max-height: min(75vh, 600px);
   background: #fff;
@@ -322,7 +328,7 @@
   .chatbot-widget {
     bottom: 1rem !important;
     right: 1rem !important;
-    left: 1rem;
+    left: auto;
   }
 
   .chatbot-panel {

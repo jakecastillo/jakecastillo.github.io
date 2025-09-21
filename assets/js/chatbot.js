@@ -195,7 +195,11 @@
     if (!widget) {
       return;
     }
-    const toggleButton = widget.querySelector('[data-action="toggle"]');
+    const toggleButtons = Array.prototype.slice.call(document.querySelectorAll('[data-chatbot-toggle]'));
+    const legacyToggle = widget.querySelector('[data-action="toggle"]');
+    if (!toggleButtons.length && legacyToggle) {
+      toggleButtons.push(legacyToggle);
+    }
     const panel = widget.querySelector('.chatbot-panel');
     const closeButton = widget.querySelector('[data-action="close"]');
     const suggestionContainer = widget.querySelector('#chatbot-suggestion-list');
@@ -243,8 +247,10 @@
       const shouldOpen = typeof open === 'boolean' ? open : !isOpen;
       isOpen = shouldOpen;
       widget.classList.toggle('chatbot-widget--open', shouldOpen);
-      if (toggleButton) {
-        toggleButton.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+      if (toggleButtons.length) {
+        toggleButtons.forEach(function (button) {
+          button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+        });
       }
       if (panel) {
         panel.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
@@ -278,9 +284,11 @@
       setStatus(statusElement, 'Add your OpenAI API key to start chatting.', 'info');
     }
 
-    if (toggleButton) {
-      toggleButton.addEventListener('click', function () {
-        togglePanel(true);
+    if (toggleButtons.length) {
+      toggleButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          togglePanel();
+        });
       });
     }
 
