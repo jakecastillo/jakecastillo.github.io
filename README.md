@@ -28,3 +28,8 @@ See a [live version of Moon](https://taylantatli.github.io/Moon) hosted on GitHu
 ## Getting Started
 
 To learn how to install and use this theme check out the [Setup Guide](https://taylantatli.github.io/Moon/moon-theme/) for more information.
+
+## Local development
++ Ensure Ruby 3.1.4 is available (e.g. via `rbenv` or `asdf`).
++ Run `bundle install` to install the GitHub Pages gem bundle locally.
++ Start the site with `bundle exec jekyll serve`.

@@ -1,6 +1,6 @@
 //colors
-$bodycolor           : #D24D57;
-$black           	 : #000;
+$bodycolor           : #f4f5fb;
+$black               : #000;
 $white               : #fff;
 $color_gray          : #e8e8e8;
 $red                 : #FF4136;
@@ -18,7 +18,12 @@ $color_fuscous_gray  : #555;
 $color_alabaster     : #fcfcfc;
 $color_celeste       : #ccc;
 $color_pink_swan     : #bbb;
-$comp-color 	     : complement(#222); 
+$comp-color          : complement(#222);
+$color_primary       : #6366f1;
+$color_primary_dark  : #4338ca;
+$color_primary_light : #a855f7;
+$color_accent        : #f472b6;
+$color_muted         : #64748b;
 
 //button colors
 $success			 : #5cb85c;
@@ -29,6 +34,7 @@ $info		         : #308cbc;
 //fonts
 $font1               : Fira Sans,sans-serif;
 $font2               : Inconsolata;
+$font-body           : $font1;
 $alt-font            : serif;
 $doc-font-size       : 16;
 $doc-line-height     : 26;

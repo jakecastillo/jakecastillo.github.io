@@ -1,84 +1,167 @@
 // Buttons
 %btnextend {
-	display: inline-block;
-	border: 1px solid;
-	border-color: rgba($color_mercury,0.5) rgba($color_bon_jour,0.5) $color_mischka;
-	border-radius: 3px;
-	text-decoration: none;
-	background: $white;
-	color: $color_shark;
-	&:hover {
-		box-shadow: 0 0 1px 0 rgba($color_shark,0.5);
-		color: $red;
-	}
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: transform .3s ease, box-shadow .3s ease, background .3s ease, color .3s ease, border-color .3s ease;
 }
+
 .social-btn {
-	padding: 10px;
-	margin: 10px;
-	@extend %btnextend;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        line-height: 1;
+        color: $color_primary_dark;
+        background: rgba($color_primary, 0.08);
+        border: 1px solid rgba($color_primary, 0.15);
+        box-shadow: 0 16px 32px -24px rgba($color_primary_dark, 0.45);
+        margin: 0;
+        text-decoration: none;
+        transition: transform .3s ease, box-shadow .3s ease, background .3s ease, color .3s ease, border-color .3s ease;
+        &:hover {
+                transform: translateY(-3px) scale(1.05);
+                background: linear-gradient(135deg, $color_primary, $color_primary_light);
+                color: $white;
+                border-color: transparent;
+                box-shadow: 0 26px 48px -24px rgba($color_primary_dark, 0.7);
+        }
+        &:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba($color_primary, 0.25);
+        }
 }
+
 .btn {
-	padding: 10px 18px;
-	@include font-rem(14);
-	margin: 4px auto;
-	@extend %btnextend;
-	&.btn-success {
-      background-color: $success;
-      color: $white;
-      border-color: $success;
-      &:visited {
-        color: $white;
-      }
-      &:hover {
-        background-color: $white;
-        color: $success;
-      }
-    }
-    &.btn-warning {
-      background-color: $warning;
-      color: $white;
-      border-color: $warning;
-      &:visited {
-        color: $white;
-      }
-      &:hover {
-        background-color: $white;
-        color: $warning;
-      }
-    }
-    &.btn-danger {
-      background-color: $danger;
-      color: $white;
-      border-color: $danger;
-      &:visited {
-        color: $white;
-      }
-      &:hover {
-        background-color: $white;
-        color: $danger;
-      }
-    }
-    &.btn-info {
-      background-color: $info;
-      color: $white;
-      border-color: $info;
-      &:visited {
-        color: $white;
-      }
-      &:hover {
-        background-color: $white;
-        color: $info;
-      }
-    }
+        @extend %btnextend;
+        padding: 0.85rem 1.9rem;
+        @include font-rem(15);
+        margin: 0.25rem 0;
+        color: $color_primary_dark;
+        background: rgba($white, 0.95);
+        border-color: rgba($color_primary, 0.2);
+        box-shadow: 0 18px 44px -28px rgba($color_primary_dark, 0.4);
+        &:hover {
+                transform: translateY(-2px);
+                background: rgba($color_primary, 0.12);
+                box-shadow: 0 28px 52px -30px rgba($color_primary_dark, 0.45);
+        }
+        &:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba($color_primary, 0.2);
+        }
+        &:visited {
+                color: $color_primary_dark;
+        }
+        &.btn--ghost {
+                background: transparent;
+                border-color: rgba($color_primary_dark, 0.18);
+                color: $color_primary_dark;
+                box-shadow: none;
+                &:hover {
+                        background: rgba($color_primary, 0.1);
+                        border-color: rgba($color_primary_dark, 0.25);
+                        box-shadow: 0 20px 45px -30px rgba($color_primary_dark, 0.45);
+                }
+                &:visited {
+                        color: $color_primary_dark;
+                }
+        }
+        &.btn-primary {
+                background-image: linear-gradient(135deg, $color_primary, $color_primary_light);
+                color: $white;
+                border-color: transparent;
+                box-shadow: 0 28px 50px -25px rgba($color_primary_dark, 0.7);
+                &:visited {
+                        color: $white;
+                }
+                &:hover {
+                        background-image: linear-gradient(135deg, lighten($color_primary, 4%), lighten($color_primary_light, 3%));
+                        box-shadow: 0 32px 56px -22px rgba($color_primary_dark, 0.75);
+                }
+        }
+        &.btn-secondary {
+                background: transparent;
+                border-color: rgba($color_primary, 0.35);
+                color: $color_primary_dark;
+                box-shadow: none;
+                &:hover {
+                        background: rgba($color_primary, 0.12);
+                        box-shadow: 0 24px 45px -28px rgba($color_primary_dark, 0.45);
+                }
+        }
+        &.btn-success {
+                background-color: $success;
+                color: $white;
+                border-color: $success;
+                box-shadow: 0 28px 48px -24px rgba($success, 0.6);
+                &:visited {
+                        color: $white;
+                }
+                &:hover {
+                        background-color: darken($success, 6%);
+                        box-shadow: 0 30px 50px -22px rgba($success, 0.65);
+                }
+        }
+        &.btn-warning {
+                background-color: $warning;
+                color: $white;
+                border-color: $warning;
+                box-shadow: 0 28px 48px -24px rgba($warning, 0.6);
+                &:visited {
+                        color: $white;
+                }
+                &:hover {
+                        background-color: darken($warning, 6%);
+                        box-shadow: 0 30px 50px -22px rgba($warning, 0.65);
+                }
+        }
+        &.btn-danger {
+                background-color: $danger;
+                color: $white;
+                border-color: $danger;
+                box-shadow: 0 28px 48px -24px rgba($danger, 0.6);
+                &:visited {
+                        color: $white;
+                }
+                &:hover {
+                        background-color: darken($danger, 6%);
+                        box-shadow: 0 30px 50px -22px rgba($danger, 0.65);
+                }
+        }
+        &.btn-info {
+                background-color: $info;
+                color: $white;
+                border-color: $info;
+                box-shadow: 0 28px 48px -24px rgba($info, 0.6);
+                &:visited {
+                        color: $white;
+                }
+                &:hover {
+                        background-color: darken($info, 6%);
+                        box-shadow: 0 30px 50px -22px rgba($info, 0.65);
+                }
+        }
 }
+
 .title .btn {
     margin: 10px;
     @include font-rem(16);
-    font-weight:300;
+    font-weight: 600;
 }
+
 .post-list {
     .btn {
-        @include font-rem(14);
+        @include font-rem(15);
     }
 }
 

@@ -33,6 +33,28 @@
     <meta name="HandheldFriendly" content="True">
     <meta name="MobileOptimized" content="320">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+      (function () {
+        try {
+          var storageKey = 'preferred-theme';
+          var storedTheme = localStorage.getItem(storageKey);
+          var theme = storedTheme;
+          if (!theme) {
+            var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            if (mediaQuery.matches) {
+              theme = 'dark';
+            }
+          }
+          if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.removeAttribute('data-theme');
+          }
+        } catch (e) {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      })();
+    </script>
     <!-- CSS -->
     <link rel="stylesheet" href="{{ site.url }}/assets/css/main.css">
     <!-- JS -->
@@ -48,7 +70,16 @@
     {% if site.background %}
     {% capture background %}{{ site.background }}{% endcapture %}
     {% unless background contains 'http://' or background contains 'https://' %}{% capture background %}{{ site.url }}/{{ background }}{% endcapture %}{% endunless %}
-    <style type="text/css">body {background-image:url({{ background }}); {% unless site.tiled_bg %} background-repeat: no-repeat; background-size: cover; {% endunless %}}</style>
+    <style type="text/css">
+      body {
+        --site-background-image: url({{ background }});
+        background-image: var(--site-background-image);
+        {% unless site.tiled_bg %}
+        background-repeat: no-repeat;
+        background-size: cover;
+        {% endunless %}
+      }
+    </style>
     {% endif %}
     <!-- Post Feature Image -->
     {% if page.feature %}

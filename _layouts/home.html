@@ -12,39 +12,32 @@ layout: compress
 <body>
     {% include nav.html %}
     <!-- Header -->
-    <header class="header flex" role="banner">
+    <header class="home-hero" role="banner">
         <div class="container animated fadeIn">
-            <div class="row">
-                    <a href="{{ site.url }}">
-                        <img src="{{ site.logo }}" class="img-circle zoombtn animated rotateIn">
+            <div class="home-hero__inner">
+                <div class="home-hero__media">
+                    <a href="{{ site.url }}" class="home-hero__avatar-link zoombtn" aria-label="{{ site.title }}">
+                        <span class="home-hero__avatar-wrapper">
+                            <img src="{{ site.logo }}" class="home-hero__avatar" alt="{{ site.title }} logo">
+                        </span>
                     </a>
-                    <h3 class="title">
-                        <a class="zoombtn" href="{{ site.url }}">
-                        	<p style="font-size:1.2rem;font-weight:300">{{ site.title }}</p>
-			            </a>
-                    </h3>
-                    <hr class="hr-line">
-                    <h3 class="title">
-                        <a href="{{ site.url }}">
-                        	<p style="font-size:1rem;font-weight:300">{{ site.bio }}</p>
-			            </a>
-                    </h3>
+                </div>
+                <div class="home-hero__content">
+                    <p class="home-hero__eyebrow">{{ site.bio }}</p>
+                    <h1 class="home-hero__title">
+                        <a class="home-hero__title-link" href="{{ site.url }}">{{ site.title }}</a>
+                    </h1>
+                    <p class="home-hero__subtitle">{{ site.description }}</p>
+                    <div class="home-hero__actions">
+                        <a class="btn btn-primary zoombtn" href="{{ site.url }}/about">About</a>
+                        <a class="btn btn-secondary zoombtn" href="{{ site.url }}/projects">Projects</a>
+                    </div>
                     {% include social-links.html %}
-                  <hr class="hr-line">
-                  <h3 class="title">
-                         <a class="btn zoombtn" href="{{ site.url }}/about">
-                         About
-                         </a>
-                         <!-- <a class="btn zoombtn" href="{{ site.url }}/posts">
-                         Posts
-                         </a> -->
-                         <a class="btn zoombtn" href="{{ site.url }}/projects">
-                         Projects
-                         </a>
-                 </h3>
+                </div>
             </div>
         </div>
     </header>
+    {% include chatbot-widget.html %}
     {% include scripts.html %}
 </body>
 </html>

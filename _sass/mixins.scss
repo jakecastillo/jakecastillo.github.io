@@ -99,10 +99,11 @@
 // --------------------------------------------------
 
 // .transition(PROPERTY DURATION DELAY(OPTIONAL) TIMING-FINCTION);
-@mixin transition($transition) {
-  -webkit-transition : $transition;
-  -moz-transition : $transition;
-  -ms-transition : $transition;
-  -o-transition : $transition;
-  transition : $transition; 
+@mixin transition($transitions...) {
+  // Allow a single transition value or multiple comma-separated transitions.
+  -webkit-transition : $transitions;
+  -moz-transition : $transitions;
+  -ms-transition : $transitions;
+  -o-transition : $transitions;
+  transition : $transitions; 
 }
