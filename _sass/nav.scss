@@ -1,3 +1,47 @@
+.nav-controls {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+@media only screen and (max-width: 48em) {
+  .nav-controls {
+    position: static;
+    top: auto;
+    right: auto;
+    width: 100%;
+    padding: 0.5rem 1.25rem 0;
+    margin: 0 auto 1.25rem;
+    justify-content: flex-end;
+  }
+}
+
+@media #{$small} {
+  .nav-controls {
+    top: auto;
+    right: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+}
+
+@media print {
+  .nav-controls {
+    display: none;
+  }
+}
+
 .dl-menuwrapper {
 	width: 100%;
 	position: absolute;
