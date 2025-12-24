@@ -112,7 +112,7 @@ export const resumeData: ResumeData = {
   skills: {
     languages: ["JavaScript", "TypeScript", "C", "C++", "SQL", "HTML"],
     databases: ["MySQL", "PostgreSQL"],
-    frameworks: ["NestJS", "Express", "Node.js", "Angular", "React", "Vue", "Prisma"],
+    frameworks: ["NestJS", "Express", "Node.js", "Angular", "React", "Vue", "Prisma", "Next.js", "AI Agent Integration"],
     platforms: ["AWS (infrastructure design)"],
     practices: ["Agile", "DRY", "YAGNI"],
     softSkills: ["Problem Solving", "Adaptability", "Communication", "Collaboration"],
