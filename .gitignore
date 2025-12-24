@@ -17,6 +17,12 @@
 /.next/
 /out/
 
+# Static export outputs
+*.html
+__next.*
+*.txt
+!README.md
+
 # production
 /build
 

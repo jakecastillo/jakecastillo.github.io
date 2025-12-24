@@ -37,7 +37,7 @@ export default function Home() {
               className="text-center lg:text-left order-1 lg:order-2"
             >
               <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
-                Hi, I'm <span className="text-indigo-600">Jake Castillo</span>
+                Hi, I&apos;m <span className="text-indigo-600">Jake Castillo</span>
               </h1>
               <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-2xl">
                 Software Engineer specializing in full-stack development, cloud architecture, and innovative solutions.

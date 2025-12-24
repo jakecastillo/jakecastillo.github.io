@@ -51,7 +51,8 @@ export default function Contact() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-gray-600 max-w-3xl mx-auto"
           >
-            I'm always interested in new opportunities and collaborations. Feel free to reach out!
+            I&apos;m always interested in new opportunities and collaborations. Feel free to
+            reach out!
           </motion.p>
         </div>
       </Section>
@@ -98,7 +99,8 @@ export default function Contact() {
             className="mt-16 text-center"
           >
             <p className="text-gray-600">
-              I'm currently based in {resumeData.location} and open to remote opportunities worldwide.
+              I&apos;m currently based in {resumeData.location} and open to remote opportunities
+              worldwide.
             </p>
           </motion.div>
         </div>
