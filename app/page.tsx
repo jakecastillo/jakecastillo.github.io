@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronDown, Code, Briefcase, Award } from "lucide-react";
 import Section from "@/components/Section";
+import TerminalTyping from "@/components/TerminalTyping";
 
 export default function Home() {
   return (
@@ -17,7 +18,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="order-2 lg:order-1"
+              className="order-1 lg:order-2"
             >
               <div className="w-80 h-80 mx-auto relative">
                 <Image
@@ -31,17 +32,17 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-center lg:text-left order-1 lg:order-2"
+              className="text-left order-2 lg:order-1"
             >
               <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
                 Hi, I&apos;m <span className="text-indigo-600">Jake Castillo</span>
               </h1>
-              <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-2xl">
-                Software Engineer specializing in full-stack development, cloud architecture, and innovative solutions.
-              </p>
+              <div className="mb-8">
+                <TerminalTyping />
+              </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
                 <Link
                   href="/about"
