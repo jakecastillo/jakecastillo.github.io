@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
-import { resumeData } from "@/data/resume";
 
 export default function TerminalTyping() {
   const [phase, setPhase] = useState<'opening' | 'typing' | 'complete'>('opening');

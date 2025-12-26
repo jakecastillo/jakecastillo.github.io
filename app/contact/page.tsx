@@ -35,13 +35,13 @@ export default function Contact() {
 
   return (
     <>
-      <Section className="bg-gray-50">
+      <Section className="bg-muted">
         <div className="text-center mb-16">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6"
+            className="text-4xl sm:text-5xl font-bold text-foreground mb-6"
           >
             Get In Touch
           </motion.h1>
@@ -49,7 +49,7 @@ export default function Contact() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-gray-600 max-w-3xl mx-auto"
+            className="text-lg text-muted-foreground max-w-3xl mx-auto"
           >
             I&apos;m always interested in new opportunities and collaborations. Feel free to
             reach out!
@@ -57,7 +57,7 @@ export default function Contact() {
         </div>
       </Section>
 
-      <Section className="bg-white">
+      <Section className="bg-surface">
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {contactInfo.map((info, index) => (
@@ -67,25 +67,25 @@ export default function Contact() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-gray-50 rounded-lg p-6 text-center"
+                className="bg-muted/60 border border-border rounded-lg p-6 text-center"
               >
-                <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <info.icon size={32} className="text-indigo-600" />
+                <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <info.icon size={32} className="text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-foreground mb-2">
                   {info.label}
                 </h3>
                 {info.href ? (
                   <a
                     href={info.href}
-                    className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                    className="text-primary hover:text-primary-hover transition-colors"
                     target={info.label === "LinkedIn" ? "_blank" : undefined}
                     rel={info.label === "LinkedIn" ? "noopener noreferrer" : undefined}
                   >
                     {info.value}
                   </a>
                 ) : (
-                  <p className="text-gray-700">{info.value}</p>
+                  <p className="text-foreground/80">{info.value}</p>
                 )}
               </motion.div>
             ))}
@@ -98,7 +98,7 @@ export default function Contact() {
             viewport={{ once: true }}
             className="mt-16 text-center"
           >
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               I&apos;m currently based in {resumeData.location} and open to remote opportunities
               worldwide.
             </p>
