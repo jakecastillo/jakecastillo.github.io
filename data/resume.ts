@@ -6,6 +6,7 @@ export interface Education {
 
 export interface Job {
   company: string;
+  companyUrl?: string;
   title: string;
   period: string;
   description: string[];
@@ -58,6 +59,7 @@ export const resumeData: ResumeData = {
   experience: [
     {
       company: "Pacific ImpactZone",
+      companyUrl: "https://pacimpactzone.com",
       title: "DevSecOps Software Engineer",
       period: "Oct 2025–Present",
       description: [
@@ -67,6 +69,7 @@ export const resumeData: ResumeData = {
     },
     {
       company: "DataHouse",
+      companyUrl: "https://www.datahouse.com",
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
       description: [
@@ -78,6 +81,7 @@ export const resumeData: ResumeData = {
     },
     {
       company: "DataHouse",
+      companyUrl: "https://www.datahouse.com",
       title: "Software Engineer (Part Time)",
       period: "Aug 2020–Jan 2021",
       description: [
@@ -87,6 +91,7 @@ export const resumeData: ResumeData = {
     },
     {
       company: "DataHouse",
+      companyUrl: "https://www.datahouse.com",
       title: "Intern",
       period: "Jan 2020–Aug 2020",
       description: [

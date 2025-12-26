@@ -46,9 +46,20 @@ export default function Experience() {
                     <h3 className="text-2xl font-semibold text-foreground mb-1">
                       {job.title}
                     </h3>
-                    <p className="text-lg text-primary font-medium mb-2">
-                      {job.company}
-                    </p>
+                    {job.companyUrl ? (
+                      <a
+                        href={job.companyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-lg text-primary font-medium mb-2 hover:text-primary-hover transition-colors"
+                      >
+                        {job.company}
+                      </a>
+                    ) : (
+                      <p className="text-lg text-primary font-medium mb-2">
+                        {job.company}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center text-muted-foreground mt-2 sm:mt-0">
                     <Calendar size={16} className="mr-1" />
