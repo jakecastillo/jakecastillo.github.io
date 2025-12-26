@@ -5,11 +5,11 @@ import Link from "next/link";
 import { Menu, X, Home, User, Briefcase, Code, Mail } from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/experience", label: "Experience" },
-  { href: "/skills", label: "Skills" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", label: "Home", icon: Home },
+  { href: "/about", label: "About", icon: User },
+  { href: "/experience", label: "Experience", icon: Briefcase },
+  { href: "/skills", label: "Skills", icon: Code },
+  { href: "/contact", label: "Contact", icon: Mail },
 ];
 
 export default function Header() {
@@ -29,8 +29,9 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-gray-700 hover:text-gray-900 transition-colors"
+                className="text-gray-700 hover:text-gray-900 transition-colors flex items-center"
               >
+                <item.icon size={16} className="text-indigo-600 mr-2" />
                 {item.label}
               </Link>
             ))}
@@ -54,9 +55,10 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  className="block px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors flex items-center"
                   onClick={() => setIsOpen(false)}
                 >
+                  <item.icon size={16} className="text-indigo-600 mr-2" />
                   {item.label}
                 </Link>
               ))}
