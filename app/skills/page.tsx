@@ -2,8 +2,49 @@
 
 import { motion } from "framer-motion";
 import { Award, Code, Database, Server, CheckCircle } from "lucide-react";
+import { SiJavascript, SiTypescript, SiC, SiCplusplus, SiPostgresql, SiHtml5, SiMysql, SiNestjs, SiExpress, SiNodedotjs, SiAngular, SiReact, SiVuedotjs, SiPrisma, SiNextdotjs, SiOpenai, SiAmazon } from 'react-icons/si';
 import Section from "@/components/Section";
 import { resumeData } from "@/data/resume";
+
+const skillIcons: Record<string, any> = {
+
+  'JavaScript': SiJavascript,
+
+  'TypeScript': SiTypescript,
+
+  'C': SiC,
+
+  'C++': SiCplusplus,
+
+  'SQL': SiPostgresql,
+
+  'HTML': SiHtml5,
+
+  'MySQL': SiMysql,
+
+  'PostgreSQL': SiPostgresql,
+
+  'NestJS': SiNestjs,
+
+  'Express': SiExpress,
+
+  'Node.js': SiNodedotjs,
+
+  'Angular': SiAngular,
+
+  'React': SiReact,
+
+  'Vue': SiVuedotjs,
+
+  'Prisma': SiPrisma,
+
+  'Next.js': SiNextdotjs,
+
+  'AI Agent Integration': SiOpenai,
+
+  'AWS (infrastructure design)': SiAmazon,
+
+};
 
 export default function Skills() {
   const skillCategories = [
@@ -56,12 +97,15 @@ export default function Skills() {
                   </h3>
                 </div>
                 <ul className="space-y-2">
-                  {category.items.map((item, i) => (
-                    <li key={i} className="flex items-center">
-                      <CheckCircle size={16} className="text-green-600 mr-2" />
-                      <span className="text-gray-700">{item}</span>
-                    </li>
-                  ))}
+                  {category.items.map((item, i) => {
+                    const Icon = skillIcons[item] || CheckCircle;
+                    return (
+                      <li key={i} className="flex items-center">
+                        <Icon size={16} className="text-indigo-600 mr-2" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </motion.div>
             ))}

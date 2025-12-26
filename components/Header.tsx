@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Home, User, Briefcase, Code, Mail } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Home" },
