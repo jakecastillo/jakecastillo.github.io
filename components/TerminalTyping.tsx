@@ -185,12 +185,12 @@ $ `;
 
   return (
     <motion.div
-      initial={{ width: 0, opacity: 0 }}
-      animate={{ width: "100%", opacity: 1 }}
+      initial={{ opacity: 0, scaleX: 0 }}
+      animate={{ opacity: 1, scaleX: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
       onAnimationComplete={() => setPhase("typing")}
       onClick={() => inputRef.current?.focus()}
-      className="bg-[var(--terminal-bg)] text-[var(--terminal-fg)] border border-[color:var(--terminal-border)] font-mono text-sm sm:text-base p-4 rounded-lg shadow-lg mx-auto h-[320px] overflow-hidden flex flex-col"
+      className="bg-[var(--terminal-bg)] text-[var(--terminal-fg)] border border-[color:var(--terminal-border)] font-mono text-sm sm:text-base p-4 rounded-lg shadow-lg mx-auto h-[320px] w-full max-w-2xl min-w-0 overflow-hidden flex flex-col origin-left"
     >
       <div className="flex items-center mb-2">
         <div className="w-3 h-3 bg-[#ff5555] rounded-full mr-2"></div>
@@ -201,7 +201,7 @@ $ `;
         </span>
       </div>
       {phase === "typing" ? (
-        <div className="whitespace-pre-wrap flex-1 overflow-auto min-h-0 pr-2">
+        <div className="whitespace-pre-wrap break-words flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 [&_.Typewriter__wrapper]:whitespace-pre-wrap [&_.Typewriter__wrapper]:break-words [&_.Typewriter__wrapper]:[overflow-wrap:anywhere] [&_.Typewriter__wrapper]:block [&_.Typewriter__wrapper]:max-w-full [&_.Typewriter__cursor]:max-w-full">
           <Typewriter
             options={{
               autoStart: false,
@@ -226,13 +226,13 @@ $ `;
         <div className="flex-1 flex flex-col min-h-0">
           <div
             ref={scrollContainerRef}
-            className="flex-1 overflow-auto whitespace-pre-wrap min-h-0 pr-2"
+            className="flex-1 min-w-0 overflow-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] min-h-0 pr-2"
           >
             {outputText}
           </div>
 
           <form
-            className="mt-2 flex items-center gap-2"
+            className="mt-2 flex items-center gap-2 min-w-0"
             onSubmit={async (e) => {
               e.preventDefault();
               const value = inputValue;
@@ -244,7 +244,7 @@ $ `;
               await runCommand(value);
             }}
           >
-            <span className="text-primary select-none">$</span>
+            <span className="text-primary select-none shrink-0">$</span>
             <input
               ref={inputRef}
               value={inputValue}
@@ -301,7 +301,7 @@ $ `;
               autoCapitalize="none"
               autoComplete="off"
               placeholder="Type `help` and press Enter"
-              className="flex-1 bg-transparent outline-none text-[var(--terminal-fg)] placeholder:text-[var(--terminal-muted)]"
+              className="flex-1 min-w-0 bg-transparent outline-none text-[var(--terminal-fg)] placeholder:text-[var(--terminal-muted)]"
               aria-label="Terminal input"
             />
           </form>

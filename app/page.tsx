@@ -35,7 +35,7 @@ export default function Home() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-left order-2 lg:order-1"
+              className="text-left order-2 lg:order-1 min-w-0"
             >
               <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6">
                 Hi, I&apos;m <span className="text-primary">Jake Castillo</span>
