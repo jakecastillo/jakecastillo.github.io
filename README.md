@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# jakecastillo.github.io
+
+Personal portfolio site built with Next.js (App Router) and statically exported for GitHub Pages.
+
+- Live site: `https://jakecastillo.github.io`
+- Framework: Next.js static export (`output: "export"`)
+- Styling/UX: Tailwind CSS v4, Framer Motion animations, dark/light theme toggle
+
+## What’s in here
+
+- Pages: Home, About, Experience, Skills, Contact (`app/`)
+- Shared UI: `Header`, `Footer`, `ScrollProgress`, `Section` (`components/`)
+- Terminal-style hero: interactive “terminal” typing + command handling (`components/TerminalTyping.tsx`)
+- Content source-of-truth: resume/skills/experience data in `data/resume.ts`
+- SEO basics: Open Graph metadata (`app/layout.tsx`) + sitemap/robots via `next-sitemap`
 
 ## Getting Started
 
-First, run the development server:
+Install deps, then run the dev server:
 
 ```bash
-npm run dev
-# or
+yarn install
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `yarn dev`: run locally
+- `yarn build`: build + static export to `out/` (also runs `next-sitemap` via `postbuild`)
+- `yarn lint`: lint
+- `yarn typecheck`: TypeScript check
+- `yarn format`: prettier format
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+- `app/`: routes + layout (`app/layout.tsx` sets global metadata and shells)
+- `components/`: reusable UI (nav, footer, scroll progress, terminal hero)
+- `data/resume.ts`: edit this to update copy, experience, skills, and contact info
+- `public/`: static assets (portrait, icons, generated `robots.txt`/`sitemap.xml`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This repo is configured to deploy to GitHub Pages via `.github/workflows/deploy.yml`:
 
-## Deploy on Vercel
+- On push to `master`, GitHub Actions installs deps, lints, typechecks, builds, and uploads `out/` to Pages.
+- `out/.nojekyll` is created during the workflow to avoid GitHub Pages Jekyll processing.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Customization Checklist
+
+- Update content: `data/resume.ts`
+- Update metadata/OG: `app/layout.tsx`
+- Update theme tokens: `app/globals.css` (`--background`, `--primary`, terminal colors, etc.)
+- Update hero image: `public/jake-portrait.jpg` (referenced by `app/page.tsx`)
+
+## Notes
+
+- This site is a static export; Pages are pre-rendered and served as static files (no server runtime).
+- If you add client-only features, keep them compatible with static hosting (no API routes unless you use a third-party backend).
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
