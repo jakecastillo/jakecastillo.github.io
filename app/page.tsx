@@ -22,7 +22,7 @@ export default function Home() {
             >
               <div className="w-80 h-80 mx-auto relative">
                 <Image
-                  src="/jake-portrait.jpg"
+                  src="/jake-portrait.jpeg"
                   alt="Jake Castillo"
                   fill
                   className="object-cover rounded-full shadow-2xl"

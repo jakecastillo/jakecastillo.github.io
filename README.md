@@ -52,7 +52,7 @@ This repo is configured to deploy to GitHub Pages via `.github/workflows/deploy.
 - Update content: `data/resume.ts`
 - Update metadata/OG: `app/layout.tsx`
 - Update theme tokens: `app/globals.css` (`--background`, `--primary`, terminal colors, etc.)
-- Update hero image: `public/jake-portrait.jpg` (referenced by `app/page.tsx`)
+- Update hero image: `public/jake-portrait.jpeg` (referenced by `app/page.tsx`)
 
 ## Notes
 
