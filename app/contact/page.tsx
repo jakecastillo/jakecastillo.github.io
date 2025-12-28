@@ -17,7 +17,7 @@ export default function Contact() {
       icon: Phone,
       label: "Phone",
       value: resumeData.phone,
-      href: `tel:${resumeData.phone}`,
+      href: null,
     },
     {
       icon: MapPin,

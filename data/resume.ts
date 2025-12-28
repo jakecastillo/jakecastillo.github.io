@@ -49,7 +49,7 @@ export const resumeData: ResumeData = {
   location: "Honolulu, HI",
   phone: "(808) 216-2163",
   email: "jakecast@hawaii.edu",
-  linkedin: "https://linkedin.com/in/jakecastillo", // Assuming, since not specified
+  linkedin: "https://www.linkedin.com/in/jake-castillo-00567819b/",
   summary: "Computer software/hardware design and innovation specialist with a drive to give back to the community and a strong foundation in engineering principles across multiple platforms and technologies. Experienced in full-stack development (more towards back-end), testing, and debugging code with a focus on cloud development/architecture (AWS).",
   education: {
     institution: "University of Hawaii at Manoa",
