@@ -37,7 +37,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-left order-2 lg:order-1 min-w-0"
             >
-              <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6">
+              <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight">
                 Hi, I&apos;m <span className="text-primary">Jake Castillo</span>
               </h1>
               <div className="mb-8">
@@ -46,13 +46,13 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
                 <Link
                   href="/about"
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-medium hover:bg-primary-hover transition-colors"
+                  className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-medium hover:bg-primary-hover transition-colors shadow-sm"
                 >
                   Learn More About Me
                 </Link>
                 <Link
                   href="/contact"
-                  className="border border-primary text-primary px-8 py-3 rounded-lg font-medium hover:bg-primary/10 transition-colors"
+                  className="border border-border text-foreground px-8 py-3 rounded-lg font-medium hover:border-primary/60 hover:bg-primary/5 transition-colors"
                 >
                   Get In Touch
                 </Link>
@@ -64,7 +64,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="animate-bounce text-center mt-16"
+            className="text-center mt-16"
           >
             <ChevronDown size={32} className="mx-auto text-muted-foreground" />
           </motion.div>
@@ -74,10 +74,10 @@ export default function Home() {
       {/* Overview Section */}
       <Section className="bg-surface">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
             What I Do
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             I bring expertise in modern web development, cloud solutions, and software engineering best practices to deliver high-impact solutions.
           </p>
         </div>
@@ -93,8 +93,8 @@ export default function Home() {
             <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Code size={32} className="text-primary" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">Full-Stack Development</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Full-Stack Development</h3>
+            <p className="text-muted-foreground leading-relaxed">
               Building robust applications with modern technologies like React, Node.js, and cloud platforms.
             </p>
           </motion.div>
@@ -109,8 +109,8 @@ export default function Home() {
             <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Briefcase size={32} className="text-accent" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">Cloud Architecture</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Cloud Architecture</h3>
+            <p className="text-muted-foreground leading-relaxed">
               Designing scalable, secure cloud solutions with AWS and modern infrastructure practices.
             </p>
           </motion.div>
@@ -125,8 +125,8 @@ export default function Home() {
             <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Award size={32} className="text-primary" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">Problem Solving</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Problem Solving</h3>
+            <p className="text-muted-foreground leading-relaxed">
               Tackling complex challenges with innovative solutions and collaborative teamwork.
             </p>
           </motion.div>

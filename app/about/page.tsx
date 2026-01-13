@@ -14,7 +14,7 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl font-bold text-foreground mb-6"
+            className="text-4xl sm:text-5xl font-bold text-foreground mb-6 tracking-tight"
           >
             About Me
           </motion.h1>
@@ -22,7 +22,7 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-muted-foreground max-w-3xl mx-auto"
+            className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed"
           >
             {resumeData.summary}
           </motion.p>
@@ -41,7 +41,7 @@ export default function About() {
             <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <GraduationCap size={32} className="text-accent" />
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-4">Education</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4 tracking-tight">Education</h2>
           </motion.div>
 
           <motion.div
@@ -49,15 +49,15 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
-            className="bg-muted/60 border border-border rounded-lg p-8"
+            className="bg-muted/50 border border-border/60 rounded-xl p-8 shadow-sm"
           >
-            <h3 className="text-2xl font-semibold text-foreground mb-2">
+            <h3 className="text-2xl font-semibold text-foreground mb-2 tracking-tight">
               {resumeData.education.degree}
             </h3>
-            <p className="text-lg text-muted-foreground mb-2">
+            <p className="text-lg text-muted-foreground mb-2 leading-relaxed">
               {resumeData.education.institution}
             </p>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground leading-relaxed">
               Graduated {resumeData.education.graduation}
             </p>
           </motion.div>

@@ -41,7 +41,7 @@ export default function Contact() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl font-bold text-foreground mb-6"
+            className="text-4xl sm:text-5xl font-bold text-foreground mb-6 tracking-tight"
           >
             Get In Touch
           </motion.h1>
@@ -49,7 +49,7 @@ export default function Contact() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-muted-foreground max-w-3xl mx-auto"
+            className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed"
           >
             I&apos;m always interested in new opportunities and collaborations. Feel free to
             reach out!
@@ -67,12 +67,12 @@ export default function Contact() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-muted/60 border border-border rounded-lg p-6 text-center"
+                className="bg-muted/50 border border-border/60 rounded-xl p-6 text-center shadow-sm"
               >
                 <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <info.icon size={32} className="text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+                <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">
                   {info.label}
                 </h3>
                 {info.href ? (
@@ -98,7 +98,7 @@ export default function Contact() {
             viewport={{ once: true }}
             className="mt-16 text-center"
           >
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground leading-relaxed">
               I&apos;m currently based in {resumeData.location} and open to remote opportunities
               worldwide.
             </p>

@@ -27,16 +27,19 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <nav className="flex space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-muted-foreground hover:text-foreground transition-colors flex items-center"
-              >
-                <item.icon size={16} className="text-primary mr-2" />
-                {item.label}
-              </Link>
-            ))}
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group text-muted-foreground hover:text-foreground transition-colors flex items-center"
+                >
+                  <item.icon
+                    size={16}
+                    className="text-muted-foreground mr-2 transition-colors group-hover:text-primary"
+                  />
+                  {item.label}
+                </Link>
+              ))}
             </nav>
             <ThemeToggle />
           </div>
@@ -62,10 +65,13 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-md transition-colors flex items-center"
+                  className="group block px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-md transition-colors flex items-center"
                   onClick={() => setIsOpen(false)}
                 >
-                  <item.icon size={16} className="text-primary mr-2" />
+                  <item.icon
+                    size={16}
+                    className="text-muted-foreground mr-2 transition-colors group-hover:text-primary"
+                  />
                   {item.label}
                 </Link>
               ))}

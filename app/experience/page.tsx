@@ -14,7 +14,7 @@ export default function Experience() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl font-bold text-foreground mb-6"
+            className="text-4xl sm:text-5xl font-bold text-foreground mb-6 tracking-tight"
           >
             Work Experience
           </motion.h1>
@@ -22,7 +22,7 @@ export default function Experience() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-muted-foreground max-w-3xl mx-auto"
+            className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed"
           >
             My professional journey in software engineering and technology leadership.
           </motion.p>
@@ -33,7 +33,7 @@ export default function Experience() {
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             <div
-              className="absolute left-4 top-0 bottom-0 w-px bg-border"
+              className="absolute left-4 top-0 bottom-0 w-px bg-border/70"
               aria-hidden="true"
             />
             <ol className="space-y-8" aria-label="Work experience timeline">
@@ -47,14 +47,14 @@ export default function Experience() {
                   className="relative pl-12"
                 >
                   <div
-                    className="absolute left-4 top-8 -translate-x-1/2 w-3 h-3 rounded-full bg-primary ring-4 ring-background"
+                    className="absolute left-4 top-8 -translate-x-1/2 w-3 h-3 rounded-full bg-primary ring-4 ring-surface"
                     aria-hidden="true"
                   />
 
-                  <div className="bg-muted/60 border border-border rounded-lg p-8">
+                  <div className="bg-muted/50 border border-border/60 rounded-xl p-8 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-2">
                       <div>
-                        <h3 className="text-2xl font-semibold text-foreground mb-1">
+                        <h3 className="text-2xl font-semibold text-foreground mb-1 tracking-tight">
                           {job.title}
                         </h3>
                         {job.companyUrl ? (
@@ -82,7 +82,7 @@ export default function Experience() {
                       {job.description.map((item, i) => (
                         <li key={i} className="flex items-start">
                           <span className="text-primary mr-2 mt-1">•</span>
-                          <span className="text-foreground/80">{item}</span>
+                          <span className="text-foreground/80 leading-relaxed">{item}</span>
                         </li>
                       ))}
                     </ul>

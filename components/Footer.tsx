@@ -6,16 +6,16 @@ export default function Footer() {
   return (
     <footer className="bg-surface border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr_1.1fr] gap-8 md:[&>div]:max-w-xs md:[&>div]:mx-auto">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Jake Castillo</h3>
-            <p className="text-muted-foreground mb-4">
+            <h3 className="text-lg font-semibold mb-4 tracking-tight">Jake Castillo</h3>
+            <p className="text-muted-foreground mb-4 leading-relaxed">
               Software Engineer specializing in full-stack development and cloud solutions.
             </p>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <h4 className="text-lg font-semibold mb-4 tracking-tight">Quick Links</h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -41,7 +41,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
+            <h4 className="text-lg font-semibold mb-4 tracking-tight">Contact Info</h4>
             <div className="space-y-2">
               <div className="flex items-center">
                 <Mail size={16} className="mr-2 text-muted-foreground" />

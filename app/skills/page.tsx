@@ -64,7 +64,7 @@ export default function Skills() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl sm:text-5xl font-bold text-foreground mb-6"
+            className="text-4xl sm:text-5xl font-bold text-foreground mb-6 tracking-tight"
           >
             Skills & Certifications
           </motion.h1>
@@ -72,7 +72,7 @@ export default function Skills() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-muted-foreground max-w-3xl mx-auto"
+            className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed"
           >
             My technical expertise and professional certifications.
           </motion.p>
@@ -89,11 +89,11 @@ export default function Skills() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-muted/60 border border-border rounded-lg p-6"
+                className="bg-muted/50 border border-border/60 rounded-xl p-6 shadow-sm"
               >
                 <div className="flex items-center mb-4">
                   <category.icon size={24} className="text-primary mr-3" />
-                  <h3 className="text-xl font-semibold text-foreground">
+                  <h3 className="text-xl font-semibold text-foreground tracking-tight">
                     {category.title}
                   </h3>
                 </div>
@@ -103,7 +103,7 @@ export default function Skills() {
                     return (
                       <li key={i} className="flex items-center">
                         <Icon size={16} className="text-primary mr-2" />
-                        <span className="text-foreground/80">{item}</span>
+                        <span className="text-foreground/80 leading-relaxed">{item}</span>
                       </li>
                     );
                   })}
@@ -122,7 +122,7 @@ export default function Skills() {
             <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Award size={32} className="text-accent" />
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-8">Certifications</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-8 tracking-tight">Certifications</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -133,18 +133,18 @@ export default function Skills() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 border border-border"
+                className="bg-gradient-to-r from-primary/10 to-accent/5 rounded-xl p-6 border border-border/60 shadow-sm"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-1">
+                    <h3 className="text-xl font-semibold text-foreground mb-1 tracking-tight">
                       {cert.name}
                     </h3>
                     <p className="text-primary font-medium">{cert.issuer}</p>
                   </div>
                   <Award size={32} className="text-primary" />
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground leading-relaxed">
                   <p>Issued: {cert.issued}</p>
                   <p>Expires: {cert.expires}</p>
                 </div>
