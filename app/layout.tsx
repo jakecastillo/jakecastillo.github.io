@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ScrollProgress from "@/components/ScrollProgress";
+import Navigation from "@/components/Navigation";
+import SmoothScroll from "@/components/SmoothScroll";
+import Scene from "@/components/Scene";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jake Castillo - Software Engineer",
-  description: "Computer software/hardware design and innovation specialist with expertise in full-stack development, AWS cloud architecture, and modern web technologies.",
+  title: "Jake Castillo | Software Engineer",
+  description: "Constructing digital reality through code & design. Full-stack engineer specialized in high-performance web applications.",
   openGraph: {
-    title: "Jake Castillo - Software Engineer",
-    description: "Portfolio of Jake Castillo, a skilled software engineer specializing in full-stack development and cloud solutions.",
+    title: "Jake Castillo | Software Engineer",
+    description: "Constructing digital reality through code & design.",
     url: "https://jakecastillo.github.io",
-    siteName: "Jake Castillo Portfolio",
+    siteName: "Jake Castillo",
     type: "website",
   },
 };
@@ -33,34 +33,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(() => {
-  try {
-    const stored = localStorage.getItem("theme");
-    const theme =
-      stored === "light" || stored === "dark"
-        ? stored
-        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
-    document.documentElement.dataset.theme = theme;
-  } catch {}
-})();`,
-          }}
-        />
-      </head>
+    <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden`}
       >
-        <ScrollProgress />
-        <Header />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
+        <SmoothScroll />
+
+        {/* Cinematic Background Layer */}
+        <Scene />
+
+        {/* Navigation Layer */}
+        <Navigation />
+
+        {/* Content Layer */}
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <main className="flex-grow">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

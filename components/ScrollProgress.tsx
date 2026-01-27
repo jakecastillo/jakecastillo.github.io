@@ -1,30 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 
 export default function ScrollProgress() {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const updateScrollProgress = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = (scrollTop / docHeight) * 100;
-      setScrollProgress(progress);
-    };
-
-    window.addEventListener("scroll", updateScrollProgress);
-    return () => window.removeEventListener("scroll", updateScrollProgress);
-  }, []);
+    const unsubscribe = scrollYProgress.on("change", (latest) => {
+      setIsVisible(latest > 0.01);
+    });
+    return () => unsubscribe();
+  }, [scrollYProgress]);
 
   return (
     <motion.div
-      className="fixed top-0 left-0 right-0 h-1 bg-primary z-50"
-      style={{ scaleX: scrollProgress / 100 }}
-      initial={{ scaleX: 0 }}
-      animate={{ scaleX: scrollProgress / 100 }}
-      transition={{ duration: 0.1 }}
+      className="fixed top-0 left-0 right-0 h-0.5 bg-primary origin-left z-[60]"
+      style={{ scaleX, opacity: isVisible ? 1 : 0 }}
+      transition={{ opacity: { duration: 0.2 } }}
     />
   );
 }

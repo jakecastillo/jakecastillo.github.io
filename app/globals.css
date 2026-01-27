@@ -1,96 +1,130 @@
 @import "tailwindcss";
 
 :root {
-  /* Indigo Mist (light) */
-  color-scheme: light;
-  --background: #f6f8fe;
-  --foreground: #0f172a;
-  --surface: #fbfcff;
-  --muted: #e5ebf5;
-  --muted-foreground: #516079;
-  --border: #c7d2e3;
-  --primary: #4b44e3;
-  --primary-hover: #3f38c8;
-  --primary-foreground: #ffffff;
-  --accent: #0aa3c3;
-  --accent-hover: #0b8faf;
-  --accent-foreground: #001018;
+  /* VOID & LASER PALETTE */
+  color-scheme: dark;
 
-  --terminal-bg: #0f172a;
-  --terminal-fg: #e2e8f0;
-  --terminal-muted: #94a3b8;
-  --terminal-border: rgba(79, 70, 229, 0.45);
+  /* Void: Deep, rich blacks and charcoals */
+  --background: #050505;
+  /* Near black */
+  --foreground: #e0e0e0;
+  /* Off-white for readability */
+  --surface: #0a0a0a;
+  /* Slightly lighter void */
+  --surface-elevated: #121212;
+  --muted: #1a1a1a;
+  --muted-foreground: #a1a1aa;
+
+  /* Laser: Luminous accents */
+  /* Primary: Electric Purple */
+  /* --primary: #7c3aed;  Violet 600 */
+  --primary: #8b5cf6;
+  /* Violet 500 - brighter */
+  --primary-hover: #7c3aed;
+  --primary-foreground: #ffffff;
+  --primary-muted: rgba(139, 92, 246, 0.15);
+  /* Glow base */
+
+  /* Accent: Neon Cyan */
+  --accent: #22d3ee;
+  /* Cyan 400 */
+  --accent-hover: #06b6d4;
+  --accent-foreground: #000000;
+  --accent-muted: rgba(34, 211, 238, 0.15);
+
+  /* Borders: Very subtle, almost invisible */
+  --border: #27272a;
+  --border-subtle: #18181b;
+
+  /* Gradients */
+  --gradient-subtle: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(34, 211, 238, 0.05) 100%);
+  --gradient-hero: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 70%);
+
+  /* Shadows: Colored glows rather than black shadows */
+  --shadow-sm: 0 0 0 1px var(--border);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border);
+  --shadow-lg: 0 10px 40px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--border);
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+  --shadow-glow-accent: 0 0 20px rgba(34, 211, 238, 0.3);
+
+  /* Typography Variables (To be mapped in Tailwind) */
+  --font-display: var(--font-geist-sans);
+  /* Placeholder for now */
+  --font-mono: var(--font-geist-mono);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-muted: var(--primary-muted);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-muted: var(--accent-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Custom Utilities */
+  --animate-float: float 6s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    /* Indigo Mist (dark) */
-    color-scheme: dark;
-    --background: #0b1020;
-    --foreground: #e5e7eb;
-    --surface: #121c38;
-    --muted: #1f2c49;
-    --muted-foreground: #a7b3cf;
-    --border: #2f4068;
-    --primary: #8b93fb;
-    --primary-hover: #7077f1;
-    --primary-foreground: #0b1020;
-    --accent: #2ad6ef;
-    --accent-hover: #0ec0dc;
-    --accent-foreground: #0b1020;
-  }
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  /* Indigo Mist (dark) */
-  color-scheme: dark;
-  --background: #0b1020;
-  --foreground: #e5e7eb;
-  --surface: #121c38;
-  --muted: #1f2c49;
-  --muted-foreground: #a7b3cf;
-  --border: #2f4068;
-  --primary: #8b93fb;
-  --primary-hover: #7077f1;
-  --primary-foreground: #0b1020;
-  --accent: #2ad6ef;
-  --accent-hover: #0ec0dc;
-  --accent-foreground: #0b1020;
-
-  --terminal-bg: #0b1020;
-  --terminal-fg: #e5e7eb;
-  --terminal-muted: #aab4cf;
-  --terminal-border: #32466e;
-}
-
+/* Global Reset & Base */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  /* Prevent horizontal scroll from animations */
 }
 
-:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
-  outline-offset: 2px;
+/* Lenis Recommended CSS */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Cinematic Utilities */
+.text-glow {
+  text-shadow: 0 0 20px var(--primary-muted);
+}
+
+.border-glow {
+  box-shadow: 0 0 10px var(--terminal-border);
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }

@@ -1,137 +1,90 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronDown, Code, Briefcase, Award } from "lucide-react";
-import Section from "@/components/Section";
+import { ArrowDown } from "lucide-react";
+import Image from "next/image";
 import TerminalTyping from "@/components/TerminalTyping";
+import StageManager from "@/components/StageManager";
+import ActPhilosophy from "@/components/ActPhilosophy";
+import ActExperience from "@/components/ActExperience";
+import ActSkills from "@/components/ActSkills";
+import ActContact from "@/components/ActContact";
+import HeaderTypewriter from "@/components/HeaderTypewriter";
 
 export default function Home() {
   return (
-    <>
-      {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="order-1 lg:order-2"
-            >
-              <div className="w-80 h-80 mx-auto relative">
+    <div className="relative w-full">
+      <StageManager />
+      {/* Act I: The Statement */}
+      <section id="home" className="relative min-h-screen py-24 flex flex-col items-center justify-center text-center px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="z-10 w-full max-w-6xl mx-auto flex flex-col items-center gap-12"
+        >
+          {/* Profile & Identity */}
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-br from-primary to-accent">
+              <div className="w-full h-full rounded-full overflow-hidden border-4 border-background relative">
                 <Image
                   src="/jake-portrait.jpeg"
                   alt="Jake Castillo"
                   fill
-                  className="object-cover rounded-full shadow-2xl"
+                  className="object-cover"
                   priority
                 />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-left order-2 lg:order-1 min-w-0"
-            >
-              <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6 tracking-tight leading-tight">
-                Hi, I&apos;m <span className="text-primary">Jake Castillo</span>
-              </h1>
-              <div className="mb-8">
-                <TerminalTyping />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-                <Link
-                  href="/about"
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-medium hover:bg-primary-hover transition-colors shadow-sm"
-                >
-                  Learn More About Me
-                </Link>
-                <Link
-                  href="/contact"
-                  className="border border-border text-foreground px-8 py-3 rounded-lg font-medium hover:border-primary/60 hover:bg-primary/5 transition-colors"
-                >
-                  Get In Touch
-                </Link>
-              </div>
-            </motion.div>
+            <div className="space-y-2">
+              <h2 className="text-sm font-mono tracking-[0.3em] text-accent uppercase">
+                Jake Castillo
+              </h2>
+              <HeaderTypewriter />
+            </div>
           </div>
 
+          {/* Terminal Interface */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="text-center mt-16"
+            className="w-full max-w-2xl"
           >
-            <ChevronDown size={32} className="mx-auto text-muted-foreground" />
+            <TerminalTyping />
           </motion.div>
-        </div>
+        </motion.div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2, duration: 1 }}
+          className="absolute bottom-8 flex flex-col items-center gap-2 text-muted-foreground"
+        >
+          <span className="text-[10px] uppercase tracking-widest font-mono">Initialize Scroll</span>
+          <ArrowDown className="w-4 h-4 animate-bounce" />
+        </motion.div>
       </section>
 
-      {/* Overview Section */}
-      <Section className="bg-surface">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 tracking-tight">
-            What I Do
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            I bring expertise in modern web development, cloud solutions, and software engineering best practices to deliver high-impact solutions.
-          </p>
-        </div>
+      {/* Act II: Philosophy */}
+      <div id="about">
+        <ActPhilosophy />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Code size={32} className="text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Full-Stack Development</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Building robust applications with modern technologies like React, Node.js, and cloud platforms.
-            </p>
-          </motion.div>
+      {/* Act III: Experience & Skills */}
+      <div id="exp">
+        <ActExperience />
+      </div>
+      <div id="skills">
+        <ActSkills />
+      </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Briefcase size={32} className="text-accent" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Cloud Architecture</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Designing scalable, secure cloud solutions with AWS and modern infrastructure practices.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Award size={32} className="text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Problem Solving</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Tackling complex challenges with innovative solutions and collaborative teamwork.
-            </p>
-          </motion.div>
-        </div>
-      </Section>
-    </>
+      {/* Act IV: Connection */}
+      <div id="contact">
+        <ActContact />
+      </div>
+    </div>
   );
 }
