@@ -7,13 +7,13 @@ import { resumeData } from "@/data/resume";
 
 export default function ActContact() {
     return (
-        <section className="min-h-screen bg-black flex flex-col items-center justify-center p-6 border-t border-primary/20 relative overflow-hidden">
+        <section className="relative py-32 px-6 md:px-12 min-h-[80vh] flex flex-col justify-center overflow-hidden">
             {/* Background Grid noise */}
             <div className="absolute inset-0 opacity-10 pointer-events-none"
                 style={{ backgroundImage: "linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)", backgroundSize: "40px 40px" }}
             />
 
-            <div className="max-w-3xl w-full font-mono z-10">
+            <div className="max-w-4xl mx-auto relative z-10 w-full text-center">
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}

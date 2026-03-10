@@ -1,13 +1,18 @@
 "use client";
 
+import { useRef } from "react"; // Added useRef import
 import { resumeData } from "@/data/resume";
 
 export default function ActSkills() {
-    return (
-        <section className="py-32 px-6 md:px-12 bg-surface-elevated relative overflow-hidden">
-            {/* Background Matrix/Grid effect could go here */}
+    const containerRef = useRef<HTMLDivElement>(null); // Added containerRef
 
-            <div className="max-w-7xl mx-auto relative z-10">
+    return (
+        <section ref={containerRef} className="relative py-32 border-t border-border/10 overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent opacity-50 pointer-events-none" />
+            <div className="absolute w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] -right-40 top-1/2 -translate-y-1/2 pointer-events-none" />
+
+            <div className="max-w-7xl mx-auto relative z-10 px-6 md:px-12"> {/* Added px-6 md:px-12 here */}
                 <div className="mb-16">
                     <h2 className="text-4xl md:text-6xl font-bold">TECHNICAL ARSENAL</h2>
                 </div>

@@ -17,7 +17,7 @@ export default function ActPhilosophy() {
     const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
     return (
-        <section ref={containerRef} className="relative h-[300vh] bg-surface-elevated">
+        <section ref={containerRef} className="relative h-[300vh]">
             <div className="sticky top-0 flex h-screen items-center overflow-hidden">
                 <motion.div
                     style={{ x, opacity }}

@@ -15,7 +15,7 @@ export default function ActExperience() {
 
     return (
         <section ref={targetRef} className="relative h-[300vh]">
-            <div className="sticky top-0 flex h-screen items-center overflow-hidden bg-background">
+            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
                 <div className="absolute lg:bottom-12 lg:left-12 bottom-6 left-6 z-20 text-muted-foreground font-mono text-xs tracking-widest flex items-center gap-2">
                     SCROLL TO EXPLORE <ArrowRight className="w-4 h-4" />
                 </div>

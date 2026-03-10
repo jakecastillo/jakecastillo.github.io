@@ -2,27 +2,30 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
-import HeroTerrain from "./canvas/HeroTerrain";
+import { Environment } from "@react-three/drei";
+import QuantumOrb from "./canvas/QuantumOrb";
+import LiquidGlass from "./canvas/LiquidGlass";
 
 export default function Scene() {
     return (
         <div className="fixed inset-0 z-0 pointer-events-none">
             <Canvas
                 gl={{ antialias: true, alpha: true }}
-                dpr={[1, 1.5]}    // Optimization for high-DPI screens
-                camera={{ position: [0, 2, 5], fov: 50 }} // Adjusted camera for better view of terrain
+                dpr={[1, 1.5]}
+                camera={{ position: [0, 0, 5], fov: 45 }}
             >
                 <Suspense fallback={null}>
-                    <ambientLight intensity={0.2} />
-                    <pointLight position={[10, 10, 10]} intensity={1} color="#8b5cf6" />
-                    <pointLight position={[-10, 5, -10]} intensity={0.5} color="#22d3ee" />
+                    <color attach="background" args={["#020617"]} /> {/* Deepest slate dark mode background */}
+                    <ambientLight intensity={0.4} /> {/* Slightly brighter ambient light so the sphere is visible */}
+                    <pointLight position={[5, 10, 5]} intensity={1.5} color="#38bdf8" /> {/* Cyan highlight */}
+                    <pointLight position={[-10, -5, 2]} intensity={0.5} color="#818cf8" /> {/* Indigo fill */}
 
-                    {/* Background Color match */}
-                    {/* <color attach="background" args={["#050505"]} />  Removed to handle transparent overlays better if needed, but safe to keep for consistency */}
+                    {/* The Environment map provides realistic reflections on the Glass and metallic Orb */}
+                    <Environment preset="city" environmentIntensity={0.2} />
 
-                    <HeroTerrain />
+                    <QuantumOrb />
+                    <LiquidGlass />
 
-                    <fog attach="fog" args={["#050505", 2, 12]} />
                 </Suspense>
             </Canvas>
         </div>
