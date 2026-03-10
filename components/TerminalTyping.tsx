@@ -379,8 +379,8 @@ $ `;
   }, [phase]);
 
   useEffect(() => {
-    if (isBootComplete && typeof window !== "undefined" && (window as any).terminalTypewriter) {
-      (window as any).terminalTypewriter.start();
+    if (isBootComplete && typeof window !== "undefined" && window.terminalTypewriter) {
+      window.terminalTypewriter.start();
     }
   }, [isBootComplete]);
 
@@ -432,7 +432,7 @@ $ `;
                 });
 
               if (typeof window !== "undefined") {
-                (window as any).terminalTypewriter = typewriter;
+                window.terminalTypewriter = typewriter;
               }
             }}
           />

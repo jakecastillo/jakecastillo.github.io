@@ -8,8 +8,8 @@ export default function HeaderTypewriter() {
     const isBootComplete = useBootStore((state) => state.isBootComplete);
 
     useEffect(() => {
-        if (isBootComplete && typeof window !== "undefined" && (window as any).headerTypewriter) {
-            (window as any).headerTypewriter.start();
+        if (isBootComplete && typeof window !== "undefined" && window.headerTypewriter) {
+            window.headerTypewriter.start();
         }
     }, [isBootComplete]);
 
@@ -33,7 +33,7 @@ export default function HeaderTypewriter() {
                         .typeString("ENGINEER.");
 
                     if (typeof window !== "undefined") {
-                        (window as any).headerTypewriter = typewriter;
+                        window.headerTypewriter = typewriter;
                     }
                 }}
             />

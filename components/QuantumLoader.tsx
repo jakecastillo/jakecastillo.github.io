@@ -35,11 +35,14 @@ export default function QuantumLoader() {
     // We want to enforce a minimum loading time for the cinematic effect
     const [displayProgress, setDisplayProgress] = useState(0);
     const minLoadTimeMs = 2500;
-    const startTimeRef = useRef(Date.now());
+    const startTimeRef = useRef(0);
 
     // Simulate progress and logs
     useEffect(() => {
         if (phase !== "loading") return;
+        if (startTimeRef.current === 0) {
+            startTimeRef.current = Date.now();
+        }
 
         const interval = setInterval(() => {
             const elapsed = Date.now() - startTimeRef.current;
