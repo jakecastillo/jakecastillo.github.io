@@ -50,7 +50,7 @@ export default function QuantumOrb() {
     return (
         <group position={[0, 0, -2]}>
             {/* Inner Core */}
-            <Sphere ref={orbRef} args={[1.0, 64, 64]}>  {/* Drastically reduced size to prevent clipping */}
+            <Sphere ref={orbRef} args={[1.0, 32, 32]}>  {/* Reduced segments from 64 to 32 for performance */}
                 <MeshDistortMaterial
                     color="#0f172a"
                     emissive="#1e293b"
@@ -63,7 +63,7 @@ export default function QuantumOrb() {
             </Sphere>
 
             {/* Outer Wireframe / Energy containment field */}
-            <Sphere ref={outerRingRef} args={[2.2, 32, 32]}> {/* Increased size to provide massive clearance */}
+            <Sphere ref={outerRingRef} args={[2.2, 16, 16]}> {/* Reduced segments from 32 to 16 for performance */}
                 <meshStandardMaterial
                     color="#38bdf8"
                     wireframe

@@ -36,13 +36,13 @@ export default function LiquidGlass() {
         <Plane
             ref={meshRef}
             // Use large fixed sizes to cover most viewports to avoid window SSR hydration mismatch
-            args={[30, 30, 64, 64]}
+            args={[30, 30, 32, 32]} // Reduced segments for better performance
             position={[0, 0, 1]} // Pushed slightly further away
         >
             <MeshTransmissionMaterial
                 backside={false}
-                samples={16}
-                resolution={1024}
+                samples={8} // Reduced from 16 for better mobile perf
+                resolution={512} // Reduced from 1024 to save texture memory and fillrate
                 transmission={0.9}     // High transparency
                 thickness={0.5}
                 ior={1.2}
