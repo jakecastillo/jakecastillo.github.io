@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { navSections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
+import { useBootStore } from "@/store/useBootStore";
+import { AnimatePresence } from "framer-motion";
 
 function MagneticButton({
     children,
@@ -53,6 +55,7 @@ function MagneticButton({
 
 export default function Navigation() {
     const lenis = useScrollStore((state) => state.lenis);
+    const isBootComplete = useBootStore((state) => state.isBootComplete);
 
     const handleNavClick = (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
         if (!href.startsWith("#")) return;
@@ -70,19 +73,28 @@ export default function Navigation() {
     };
 
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl ring-1 ring-black/5">
-                {navSections.map((section) => (
-                    <MagneticButton
-                        key={section.id}
-                        href={`#${section.id}`}
-                        onClick={handleNavClick(`#${section.id}`)}
-                    >
-                        <section.icon size={20} strokeWidth={1.5} />
-                        <span className="sr-only">{section.navLabel}</span>
-                    </MagneticButton>
-                ))}
-            </div>
-        </div>
+        <AnimatePresence>
+            {isBootComplete && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+                >
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl ring-1 ring-black/5">
+                        {navSections.map((section) => (
+                            <MagneticButton
+                                key={section.id}
+                                href={`#${section.id}`}
+                                onClick={handleNavClick(`#${section.id}`)}
+                            >
+                                <section.icon size={20} strokeWidth={1.5} />
+                                <span className="sr-only">{section.navLabel}</span>
+                            </MagneticButton>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
