@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Sphere, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
@@ -11,8 +11,8 @@ export default function QuantumOrb() {
     const outerRingRef = useRef<THREE.Mesh>(null);
     const scrollOffset = useScrollStore((state) => state.offset);
 
-    // Initial random values for subtle organic movement independent of time
-    const randomOffset = useMemo(() => Math.random() * Math.PI * 2, []);
+    // Stable phase offset to keep motion organic without impure render-time randomness
+    const phaseOffset = Math.PI * 0.61803398875;
 
     useFrame((state) => {
         if (!orbRef.current || !outerRingRef.current) return;
@@ -20,8 +20,8 @@ export default function QuantumOrb() {
         const time = state.clock.getElapsedTime();
 
         // Very subtle base rotation
-        const baseRotX = time * 0.05 + randomOffset;
-        const baseRotY = time * 0.08 + randomOffset;
+        const baseRotX = time * 0.05 + phaseOffset;
+        const baseRotY = time * 0.08 + phaseOffset;
 
         // Scroll influence
         const scrollFactor = scrollOffset * 0.001;
