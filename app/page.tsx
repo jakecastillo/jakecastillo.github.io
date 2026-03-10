@@ -10,8 +10,11 @@ import ActExperience from "@/components/ActExperience";
 import ActSkills from "@/components/ActSkills";
 import ActContact from "@/components/ActContact";
 import HeaderTypewriter from "@/components/HeaderTypewriter";
+import { useBootStore } from "@/store/useBootStore";
 
 export default function Home() {
+  const isBootComplete = useBootStore((state) => state.isBootComplete);
+
   return (
     <div className="relative w-full">
       <StageManager />
@@ -19,8 +22,8 @@ export default function Home() {
       <section id="home" className="relative min-h-screen py-24 flex flex-col items-center justify-center text-center px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
+          animate={isBootComplete ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 1, delay: 0.2 }}
           className="z-10 w-full max-w-6xl mx-auto flex flex-col items-center gap-12"
         >
           {/* Profile & Identity */}
@@ -48,8 +51,8 @@ export default function Home() {
           {/* Terminal Interface */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1, duration: 0.8 }}
+            animate={isBootComplete ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
             className="w-full max-w-2xl"
           >
             <TerminalTyping />
@@ -59,8 +62,8 @@ export default function Home() {
         {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
+          animate={isBootComplete ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: 1.5, duration: 1 }}
           className="absolute bottom-8 flex flex-col items-center gap-2 text-muted-foreground"
         >
           <span className="text-[10px] uppercase tracking-widest font-mono">Initialize Scroll</span>

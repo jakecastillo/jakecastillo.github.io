@@ -1,13 +1,23 @@
 "use client";
 
 import Typewriter from "typewriter-effect";
+import { useBootStore } from "@/store/useBootStore";
+import { useEffect } from "react";
 
 export default function HeaderTypewriter() {
+    const isBootComplete = useBootStore((state) => state.isBootComplete);
+
+    useEffect(() => {
+        if (isBootComplete && typeof window !== "undefined" && (window as any).headerTypewriter) {
+            (window as any).headerTypewriter.start();
+        }
+    }, [isBootComplete]);
+
     return (
         <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-[0.9] text-foreground mix-blend-difference">
             <Typewriter
                 options={{
-                    autoStart: true,
+                    autoStart: false,
                     loop: false,
                     delay: 60,
                     cursor: " ", // Transparent or space as we don't want a permanent blinking cursor after finish
@@ -20,8 +30,11 @@ export default function HeaderTypewriter() {
                         .typeString("ELOPER.") // Result: "SOFTWARE<br />DEVELOPER."
                         .pauseFor(800)
                         .deleteChars(10) // Deletes "DEVELOPER." leaving "SOFTWARE<br />"
-                        .typeString("ENGINEER.")
-                        .start();
+                        .typeString("ENGINEER.");
+
+                    if (typeof window !== "undefined") {
+                        (window as any).headerTypewriter = typewriter;
+                    }
                 }}
             />
         </h1>

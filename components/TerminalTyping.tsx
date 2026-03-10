@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
+import { useBootStore } from "@/store/useBootStore";
 
 import { resumeData } from "@/data/resume";
 
@@ -53,6 +54,7 @@ const fileSystem: Record<string, FileSystemNode> = {
 };
 
 export default function TerminalTyping() {
+  const isBootComplete = useBootStore((state) => state.isBootComplete);
   const [phase, setPhase] = useState<"opening" | "typing" | "complete">("opening");
 
   // Keep track of where we are. Root is "~"
@@ -376,6 +378,12 @@ $ `;
     inputRef.current?.focus();
   }, [phase]);
 
+  useEffect(() => {
+    if (isBootComplete && typeof window !== "undefined" && (window as any).terminalTypewriter) {
+      (window as any).terminalTypewriter.start();
+    }
+  }, [isBootComplete]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -421,8 +429,11 @@ $ `;
                 .callFunction(() => {
                   setOutputText(bootTranscript);
                   setPhase("complete");
-                })
-                .start();
+                });
+
+              if (typeof window !== "undefined") {
+                (window as any).terminalTypewriter = typewriter;
+              }
             }}
           />
         </div>
