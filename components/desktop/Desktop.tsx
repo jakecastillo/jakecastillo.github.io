@@ -5,6 +5,7 @@ import { useDesktopStore } from "@/store/useDesktopStore";
 import { useBootStore } from "@/store/useBootStore";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { useUrlSync } from "@/hooks/useUrlSync";
+import { APPS } from "./config/apps";
 import Menubar from "./Menubar";
 import Dock from "./Dock";
 import WindowFrame from "./WindowFrame";
@@ -26,9 +27,15 @@ export default function Desktop() {
                 style={{ pointerEvents: isInteractive ? "auto" : "none" }}
             >
                 <Menubar />
-                {Object.values(windows).map(
-                    (w) => w && <WindowFrame key={w.id} window={w} />,
-                )}
+                {Object.values(windows).map((w) => {
+                    if (!w) return null;
+                    const { Component } = APPS[w.id];
+                    return (
+                        <WindowFrame key={w.id} window={w}>
+                            <Component />
+                        </WindowFrame>
+                    );
+                })}
                 <Dock />
             </div>
         </LayoutGroup>
