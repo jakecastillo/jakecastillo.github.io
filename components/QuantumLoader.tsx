@@ -68,15 +68,20 @@ export default function QuantumLoader() {
 
     // Handle booting phase text sequence
     useEffect(() => {
-        if (localPhase === "booting") {
-            setTimeout(() => setLogs(p => [...p, ""]), 100);
-            setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 300);
-            setTimeout(() => setLogs(p => [...p, "Boot sequence complete."]), 600);
-            setTimeout(() => setLogs(p => [...p, "$ login --user jake"]), 950);
-            setTimeout(() => setLogs(p => [...p, "welcome back, jake_"]), 1300);
-            setTimeout(() => storeSetPhase("reveal"), 1700);
-            setTimeout(() => storeSetPhase("ready"), 2700);
-        }
+        if (localPhase !== "booting") return;
+
+        const ids: ReturnType<typeof setTimeout>[] = [];
+        ids.push(setTimeout(() => setLogs(p => [...p, ""]), 100));
+        ids.push(setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 300));
+        ids.push(setTimeout(() => setLogs(p => [...p, "Boot sequence complete."]), 600));
+        ids.push(setTimeout(() => setLogs(p => [...p, "$ login --user jake"]), 950));
+        ids.push(setTimeout(() => setLogs(p => [...p, "welcome back, jake_"]), 1300));
+        ids.push(setTimeout(() => storeSetPhase("reveal"), 1700));
+        ids.push(setTimeout(() => storeSetPhase("ready"), 2700));
+
+        return () => {
+            ids.forEach((id) => clearTimeout(id));
+        };
     }, [localPhase, storeSetPhase]);
 
     // Scroll to bottom of logs when new ones arrive
