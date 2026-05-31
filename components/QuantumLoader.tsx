@@ -37,6 +37,18 @@ export default function QuantumLoader() {
     const minLoadTimeMs = 2500;
     const startTimeRef = useRef(0);
 
+    // Honor ?skip=1 fast-path boot parameter
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("skip") === "1" || params.has("open") || params.has("focus")) {
+            storeSetPhase("reveal");
+            setTimeout(() => {
+                setLocalPhase("booting"); // keep local state consistent so timers don't fire
+                storeSetPhase("ready");
+            }, 800);
+        }
+    }, [storeSetPhase]);
+
     // Simulate progress and logs
     useEffect(() => {
         if (localPhase !== "loading") return;
