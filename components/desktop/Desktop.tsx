@@ -9,6 +9,7 @@ import { APPS } from "./config/apps";
 import Menubar from "./Menubar";
 import Dock from "./Dock";
 import WindowFrame from "./WindowFrame";
+import Palette from "./Palette";
 
 export default function Desktop() {
     const phase = useBootStore((s) => s.phase);
@@ -37,6 +38,7 @@ export default function Desktop() {
                     );
                 })}
                 <Dock />
+                <Palette />
             </div>
         </LayoutGroup>
     );
