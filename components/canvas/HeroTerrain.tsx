@@ -4,11 +4,9 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import * as THREE from "three";
-import { useScrollStore } from "@/hooks/useScrollStore";
 
 export default function HeroTerrain() {
     const meshRef = useRef<THREE.Mesh>(null);
-    const scrollOffset = useScrollStore((state) => state.offset);
 
     // Animate the terrain
     useFrame((state) => {
@@ -19,14 +17,10 @@ export default function HeroTerrain() {
         // Base animation
         const baseRotationX = -Math.PI / 2 + Math.sin(t * 0.1) * 0.05;
 
-        // Scroll influence: As user scrolls, terrain tilts up and flattens out
-        // Max scroll ~1000px implies approx 1 radian change if sensitive
-        const scrollFactor = scrollOffset * 0.001;
-
-        meshRef.current.rotation.x = baseRotationX + scrollFactor * 0.5;
-        meshRef.current.rotation.z = t * 0.05 + scrollFactor * 0.2;
-        meshRef.current.position.y = -1.5 + Math.sin(t * 0.2) * 0.1 - scrollFactor * 2; // Moves down as you scroll
-        meshRef.current.position.z = -scrollFactor * 5; // Moves away
+        meshRef.current.rotation.x = baseRotationX;
+        meshRef.current.rotation.z = t * 0.05;
+        meshRef.current.position.y = -1.5 + Math.sin(t * 0.2) * 0.1;
+        meshRef.current.position.z = 0;
     });
 
     return (

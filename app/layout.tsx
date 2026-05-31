@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
-import SmoothScroll from "@/components/SmoothScroll";
 import Scene from "@/components/Scene";
 import QuantumLoader from "@/components/QuantumLoader";
 
@@ -39,7 +38,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden`}
       >
         <QuantumLoader />
-        <SmoothScroll />
 
         {/* Cinematic Background Layer */}
         <Scene />

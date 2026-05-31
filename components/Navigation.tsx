@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { navSections } from "@/data/sections";
-import { useScrollStore } from "@/hooks/useScrollStore";
 import { useBootStore } from "@/store/useBootStore";
 import { AnimatePresence } from "framer-motion";
 
@@ -54,7 +53,6 @@ function MagneticButton({
 }
 
 export default function Navigation() {
-    const lenis = useScrollStore((state) => state.lenis);
     const isBootComplete = useBootStore((state) => state.isBootComplete);
 
     const handleNavClick = (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -64,11 +62,7 @@ export default function Navigation() {
         if (!target) return;
 
         event.preventDefault();
-        if (lenis) {
-            lenis.scrollTo(target, { offset: -8 });
-        } else {
-            target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
         window.history.replaceState(null, "", href);
     };
 

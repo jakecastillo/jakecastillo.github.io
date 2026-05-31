@@ -4,12 +4,10 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Sphere, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
-import { useScrollStore } from "@/hooks/useScrollStore";
 
 export default function QuantumOrb() {
     const orbRef = useRef<THREE.Mesh>(null);
     const outerRingRef = useRef<THREE.Mesh>(null);
-    const scrollOffset = useScrollStore((state) => state.offset);
 
     // Stable phase offset to keep motion organic without impure render-time randomness
     const phaseOffset = Math.PI * 0.61803398875;
@@ -23,17 +21,12 @@ export default function QuantumOrb() {
         const baseRotX = time * 0.05 + phaseOffset;
         const baseRotY = time * 0.08 + phaseOffset;
 
-        // Scroll influence
-        const scrollFactor = scrollOffset * 0.001;
-
-        orbRef.current.rotation.x = baseRotX + scrollFactor * 2;
-        orbRef.current.rotation.y = baseRotY + scrollFactor * 3;
+        orbRef.current.rotation.x = baseRotX;
+        orbRef.current.rotation.y = baseRotY;
 
         // OUTER RING ROTATION
-        // Keep the scroll rotation subtle to prevent the wireframe from 
-        // clipping through the distorted inner core at extreme scroll depths
-        outerRingRef.current.rotation.x = -baseRotX * 1.5 - scrollFactor * 0.5;
-        outerRingRef.current.rotation.z = baseRotY * 1.2 + scrollFactor * 0.5;
+        outerRingRef.current.rotation.x = -baseRotX * 1.5;
+        outerRingRef.current.rotation.z = baseRotY * 1.2;
 
         // Gentle hovering effect
         const hoverY = Math.sin(time * 0.5) * 0.2;
