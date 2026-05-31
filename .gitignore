@@ -47,3 +47,6 @@ yarn-error.log*
 next-env.d.ts
 
 .agent
+
+# Superpowers brainstorming session artifacts
+.superpowers/
