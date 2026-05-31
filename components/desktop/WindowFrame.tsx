@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion, useDragControls } from "framer-motion";
 import { X, Minus, Square } from "lucide-react";
 import { useDesktopStore, type WindowState } from "@/store/useDesktopStore";
@@ -19,6 +20,7 @@ export default function WindowFrame({ window: win, children }: Props) {
     const focusedId = useDesktopStore((s) => s.focusedId);
 
     const dragControls = useDragControls();
+    const [flash, setFlash] = useState<"left" | "right" | "top" | null>(null);
 
     const isFocused = focusedId === win.id;
     const size = APPS[win.id].defaultSize;
@@ -44,20 +46,23 @@ export default function WindowFrame({ window: win, children }: Props) {
                 const vw = window.innerWidth;
                 const vh = window.innerHeight;
 
-                // Snap to maximize when titlebar dragged near the top.
                 if (newY < 24) {
                     toggleMax(win.id);
                     setPos(win.id, { x: 80, y: 80 });
+                    setFlash("top");
+                    setTimeout(() => setFlash(null), 250);
                     return;
                 }
-
-                // Snap to left/right half when dragged near horizontal edges.
                 if (newX < 24) {
                     setPos(win.id, { x: 16, y: Math.max(40, newY) });
+                    setFlash("left");
+                    setTimeout(() => setFlash(null), 250);
                     return;
                 }
                 if (newX + size.w > vw - 24) {
                     setPos(win.id, { x: vw - size.w - 16, y: Math.max(40, newY) });
+                    setFlash("right");
+                    setTimeout(() => setFlash(null), 250);
                     return;
                 }
 
@@ -117,6 +122,12 @@ export default function WindowFrame({ window: win, children }: Props) {
                 <div className="w-12" />
             </div>
             <div className="relative w-full h-[calc(100%-30px)] overflow-auto">
+                {flash && (
+                    <div
+                        className="absolute inset-0 pointer-events-none bg-accent/15 transition-opacity duration-200"
+                        aria-hidden
+                    />
+                )}
                 {children}
             </div>
         </motion.div>
