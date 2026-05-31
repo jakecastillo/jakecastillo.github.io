@@ -3,11 +3,10 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
-import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
 import { useBootStore } from "@/store/useBootStore";
 import { APPS } from "./config/apps";
-
-const DOCK_ORDER: AppId[] = ["terminal", "about", "career", "stack", "contact"];
+import { DOCK_ORDER } from "./config/dock";
 
 function MagneticIcon({
     onClick,

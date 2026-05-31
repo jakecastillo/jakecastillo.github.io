@@ -5,9 +5,8 @@ import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
 import { useBootStore } from "@/store/useBootStore";
 import { useUrlSync } from "@/hooks/useUrlSync";
 import { APPS } from "./config/apps";
+import { DOCK_ORDER } from "./config/dock";
 import NowWidget from "./NowWidget";
-
-const DOCK_ORDER: AppId[] = ["terminal", "about", "career", "stack", "contact"];
 
 export default function MobileShell() {
     const phase = useBootStore((s) => s.phase);

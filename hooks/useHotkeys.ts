@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
 import { useBootStore } from "@/store/useBootStore";
-
-const DOCK_ORDER: AppId[] = ["terminal", "about", "career", "stack", "contact"];
+import { DOCK_ORDER } from "@/components/desktop/config/dock";
 
 export function useHotkeys() {
     const open = useDesktopStore((s) => s.open);
