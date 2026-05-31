@@ -499,6 +499,23 @@ $ `;
           >
             {outputText}
 
+            <div className="md:hidden flex gap-1 mb-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {["help", "ls", "whoami", "open about", "copy email"].map((cmd) => (
+                    <button
+                        key={cmd}
+                        type="button"
+                        onClick={async () => {
+                            setInputValue("");
+                            setHistory((prev) => [...prev, cmd]);
+                            await runCommand(cmd);
+                        }}
+                        className="shrink-0 px-2 py-1 text-[10px] rounded border border-white/10 text-gray-300 bg-white/5 hover:bg-white/10 transition-colors font-mono"
+                    >
+                        {cmd}
+                    </button>
+                ))}
+            </div>
+
             {/* Input area attached to bottom of output */}
             <form
               className="flex items-center gap-2 min-w-0 pt-0" // removed border-t
