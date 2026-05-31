@@ -27,19 +27,19 @@ const BASE_LOGS = [
 
 export default function QuantumLoader() {
     const { progress, active } = useProgress();
-    const setBootComplete = useBootStore((state) => state.setBootComplete);
-    const [phase, setPhase] = useState<"loading" | "booting" | "done">("loading");
+    const storeSetPhase = useBootStore((s) => s.setPhase);
+    const storePhase = useBootStore((s) => s.phase);
+    const [localPhase, setLocalPhase] = useState<"loading" | "booting">("loading");
     const [logs, setLogs] = useState<string[]>(["Initializing boot sequence..."]);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // We want to enforce a minimum loading time for the cinematic effect
     const [displayProgress, setDisplayProgress] = useState(0);
     const minLoadTimeMs = 2500;
     const startTimeRef = useRef(0);
 
     // Simulate progress and logs
     useEffect(() => {
-        if (phase !== "loading") return;
+        if (localPhase !== "loading") return;
         if (startTimeRef.current === 0) {
             startTimeRef.current = Date.now();
         }
@@ -47,44 +47,37 @@ export default function QuantumLoader() {
         const interval = setInterval(() => {
             const elapsed = Date.now() - startTimeRef.current;
             const timeProgress = Math.min((elapsed / minLoadTimeMs) * 100, 100);
-
             const visualProgress = elapsed > minLoadTimeMs ? Math.max(progress, 100) : timeProgress;
             setDisplayProgress(visualProgress);
 
-            // Add a realistic log line
             setLogs((prev) => {
-                // Occasional delay in logs for realism
                 if (Math.random() > 0.7) return prev;
                 const newLog = BASE_LOGS[Math.floor(Math.random() * BASE_LOGS.length)];
-                const newLogs = [...prev, newLog];
-                return newLogs.slice(-30);
+                return [...prev, newLog].slice(-30);
             });
 
-            // Check for completion
             if ((progress === 100 || !active) && elapsed >= minLoadTimeMs) {
                 clearInterval(interval);
-                setPhase("booting");
+                setLocalPhase("booting");
+                storeSetPhase("booting");
             }
         }, 80);
 
         return () => clearInterval(interval);
-    }, [progress, active, phase]);
+    }, [progress, active, localPhase, storeSetPhase]);
 
     // Handle booting phase text sequence
     useEffect(() => {
-        if (phase === "booting") {
-            // Sequence of final terminal commands before entering UI
+        if (localPhase === "booting") {
             setTimeout(() => setLogs(p => [...p, ""]), 100);
             setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 300);
             setTimeout(() => setLogs(p => [...p, "Boot sequence complete."]), 600);
-            setTimeout(() => setLogs(p => [...p, "Starting UI session..._"]), 1000);
-            // End the sequence
-            setTimeout(() => {
-                setPhase("done");
-                setBootComplete(true);
-            }, 1600);
+            setTimeout(() => setLogs(p => [...p, "$ login --user jake"]), 950);
+            setTimeout(() => setLogs(p => [...p, "welcome back, jake_"]), 1300);
+            setTimeout(() => storeSetPhase("reveal"), 1700);
+            setTimeout(() => storeSetPhase("ready"), 2700);
         }
-    }, [phase, setBootComplete]);
+    }, [localPhase, storeSetPhase]);
 
     // Scroll to bottom of logs when new ones arrive
     useEffect(() => {
@@ -114,7 +107,7 @@ export default function QuantumLoader() {
 
     return (
         <AnimatePresence>
-            {phase !== "done" && (
+            {storePhase !== "ready" && storePhase !== "reveal" && (
                 <motion.div
                     className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-black font-mono text-sm sm:text-base"
                     exit={{ opacity: 0 }}
@@ -127,7 +120,7 @@ export default function QuantumLoader() {
                     >
                         {logs.map((log, i) => formatLog(log, i))}
 
-                        {phase === "loading" && (
+                        {localPhase === "loading" && (
                             <div className="mt-4 border-t border-gray-800 pt-4 flex items-center gap-4 text-gray-300">
                                 <span className="font-bold text-gray-400">root@system:~#</span>
                                 <div className="flex-1 h-1 bg-gray-900 overflow-hidden relative opacity-50">
