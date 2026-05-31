@@ -5,13 +5,21 @@ import { useDesktopStore } from "@/store/useDesktopStore";
 import { useBootStore } from "@/store/useBootStore";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { useUrlSync } from "@/hooks/useUrlSync";
-import { APPS } from "./config/apps";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Menubar from "./Menubar";
 import Dock from "./Dock";
 import WindowFrame from "./WindowFrame";
 import Palette from "./Palette";
+import MobileShell from "./MobileShell";
+import { APPS } from "./config/apps";
 
 export default function Desktop() {
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+
+    return isDesktop ? <DesktopShell /> : <MobileShell />;
+}
+
+function DesktopShell() {
     const phase = useBootStore((s) => s.phase);
     const windows = useDesktopStore((s) => s.windows);
 
