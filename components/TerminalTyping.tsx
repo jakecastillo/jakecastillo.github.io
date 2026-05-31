@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
 import { useBootStore } from "@/store/useBootStore";
+import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
 
 import { resumeData } from "@/data/resume";
 
@@ -88,6 +89,8 @@ $ `;
       "git log",
       "npm install",
       "sudo",
+      "open",
+      "close",
     ],
     []
   );
@@ -99,6 +102,24 @@ $ `;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const openWindow = useDesktopStore((s) => s.open);
+  const closeWindow = useDesktopStore((s) => s.close);
+
+  const APP_LIST: AppId[] = ["terminal", "about", "career", "stack", "contact"];
+  const APP_ALIASES: Record<string, AppId> = {
+    "about.md": "about",
+    "career.app": "career",
+    "stack.app": "stack",
+    "contact.app": "contact",
+  };
+
+  const resolveAppId = (raw: string): AppId | null => {
+    const lower = raw.toLowerCase();
+    if (APP_LIST.includes(lower as AppId)) return lower as AppId;
+    if (APP_ALIASES[lower]) return APP_ALIASES[lower];
+    return null;
+  };
 
   // Auto-scroll whenever output changes
   useEffect(() => {
@@ -364,6 +385,36 @@ $ `;
           appendLines(["Usage: copy email"]);
         }
         break;
+
+      case "open": {
+        if (!arg1) {
+          appendLines(["Usage: open <app>", "Apps: about, career, stack, contact"]);
+          return;
+        }
+        const id = resolveAppId(arg1);
+        if (!id) {
+          appendLines([`open: ${arg1}: unknown app`]);
+          return;
+        }
+        openWindow(id);
+        appendLines([`opening ${id}.app...`]);
+        break;
+      }
+
+      case "close": {
+        if (!arg1) {
+          appendLines(["Usage: close <app>"]);
+          return;
+        }
+        const id = resolveAppId(arg1);
+        if (!id) {
+          appendLines([`close: ${arg1}: unknown app`]);
+          return;
+        }
+        closeWindow(id);
+        appendLines([`closed ${id}.app`]);
+        break;
+      }
 
       default:
         appendLines([
