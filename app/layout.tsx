@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
 import Scene from "@/components/Scene";
 import QuantumLoader from "@/components/QuantumLoader";
 
@@ -41,9 +40,6 @@ export default function RootLayout({
 
         {/* Cinematic Background Layer */}
         <Scene />
-
-        {/* Navigation Layer */}
-        <Navigation />
 
         {/* Content Layer */}
         <div className="relative z-10 flex flex-col min-h-screen">
