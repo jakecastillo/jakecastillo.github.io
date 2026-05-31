@@ -1,7 +1,7 @@
 "use client";
 
 import { Command } from "cmdk";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
 import { APPS } from "./config/apps";
@@ -11,6 +11,15 @@ export default function Palette() {
     const paletteOpen = useDesktopStore((s) => s.paletteOpen);
     const setPalette = useDesktopStore((s) => s.setPalette);
     const open = useDesktopStore((s) => s.open);
+    const lastFocusedRef = useRef<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (paletteOpen) {
+            lastFocusedRef.current = document.activeElement as HTMLElement | null;
+        } else if (lastFocusedRef.current) {
+            lastFocusedRef.current.focus();
+        }
+    }, [paletteOpen]);
 
     useEffect(() => {
         if (!paletteOpen) return;

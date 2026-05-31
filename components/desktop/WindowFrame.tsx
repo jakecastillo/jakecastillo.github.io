@@ -36,6 +36,8 @@ export default function WindowFrame({ window: win, children }: Props) {
     return (
         <motion.div
             layoutId={win.id === "terminal" ? "terminal-window" : undefined}
+            role="dialog"
+            aria-label={`${name} window`}
             drag={!isMax}
             dragListener={false}
             dragControls={dragControls}
