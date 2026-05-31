@@ -39,9 +39,31 @@ export default function WindowFrame({ window: win, children }: Props) {
             dragControls={dragControls}
             dragMomentum={false}
             onDragEnd={(_, info) => {
+                const newX = win.pos.x + info.offset.x;
+                const newY = win.pos.y + info.offset.y;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+
+                // Snap to maximize when titlebar dragged near the top.
+                if (newY < 24) {
+                    toggleMax(win.id);
+                    setPos(win.id, { x: 80, y: 80 });
+                    return;
+                }
+
+                // Snap to left/right half when dragged near horizontal edges.
+                if (newX < 24) {
+                    setPos(win.id, { x: 16, y: Math.max(40, newY) });
+                    return;
+                }
+                if (newX + size.w > vw - 24) {
+                    setPos(win.id, { x: vw - size.w - 16, y: Math.max(40, newY) });
+                    return;
+                }
+
                 setPos(win.id, {
-                    x: Math.max(0, win.pos.x + info.offset.x),
-                    y: Math.max(32, win.pos.y + info.offset.y),
+                    x: Math.max(0, Math.min(newX, vw - size.w)),
+                    y: Math.max(32, Math.min(newY, vh - 100)),
                 });
             }}
             onMouseDown={() => focus(win.id)}
