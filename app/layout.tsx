@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Scene from "@/components/Scene";
 import QuantumLoader from "@/components/QuantumLoader";
+import BootLayoutGroup from "@/components/BootLayoutGroup";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,17 +37,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden`}
       >
-        <QuantumLoader />
-
         {/* Cinematic Background Layer */}
         <Scene />
 
-        {/* Content Layer */}
-        <div className="relative z-10 flex flex-col min-h-screen">
-          <main className="flex-grow">
-            {children}
-          </main>
-        </div>
+        {/* Boot + Content share a LayoutGroup so the terminal boot overlay can morph into the Terminal window */}
+        <BootLayoutGroup>
+          <QuantumLoader />
+          <div className="relative z-10 flex flex-col min-h-screen">
+            <main className="flex-grow">
+              {children}
+            </main>
+          </div>
+        </BootLayoutGroup>
       </body>
     </html>
   );

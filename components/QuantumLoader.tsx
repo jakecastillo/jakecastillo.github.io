@@ -126,9 +126,10 @@ export default function QuantumLoader() {
         <AnimatePresence>
             {storePhase !== "ready" && storePhase !== "reveal" && (
                 <motion.div
+                    layoutId="terminal-window"
                     className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-black font-mono text-sm sm:text-base"
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    exit={{ opacity: 0.0001 }}
+                    transition={{ duration: 0.8, ease: "easeInOut", layout: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }}
                 >
                     {/* Background terminal overlay */}
                     <div
