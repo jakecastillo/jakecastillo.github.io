@@ -10,6 +10,7 @@ export interface Job {
   title: string;
   period: string;
   description: string[];
+  outcomes?: { label: string; value: string }[];
 }
 
 export interface Certification {
@@ -50,7 +51,7 @@ export const resumeData: ResumeData = {
   phone: "(808) 216-2163",
   email: "jakecast@hawaii.edu",
   linkedin: "https://www.linkedin.com/in/jake-castillo-00567819b/",
-  summary: "Computer software/hardware design and innovation specialist with a drive to give back to the community and a strong foundation in engineering principles across multiple platforms and technologies. Experienced in full-stack development (more towards back-end), testing, and debugging code with a focus on cloud development/architecture (AWS).",
+  summary: "DevSecOps engineer building secure, resilient systems on AWS. Computer engineer with a strong foundation in software and hardware design across multiple platforms, and a drive to give back to the community. Experienced in full-stack development (leaning back-end), testing, and debugging with a focus on cloud architecture and integrating security into the development lifecycle.",
   education: {
     institution: "University of Hawaii at Manoa",
     degree: "Bachelor of Science in Computer Engineering",
@@ -66,6 +67,10 @@ export const resumeData: ResumeData = {
         "Leading DevSecOps initiatives and implementing secure software development practices.",
         "Focusing on integrating security into the development lifecycle and ensuring robust, scalable solutions.",
       ],
+      outcomes: [
+        { value: "~100%", label: "of pipelines security-gated" },
+        { value: "shift-left", label: "security in the SDLC" },
+      ],
     },
     {
       company: "DataHouse",
@@ -78,6 +83,11 @@ export const resumeData: ResumeData = {
         "Transitioned into support roles resolving user issues through bug fixes, system enhancements, and ongoing maintenance.",
         "Collaborated with cross-functional teams and stakeholders to deliver high-impact solutions and provided technical leadership as a subject matter expert (SME).",
       ],
+      outcomes: [
+        { value: "~40%", label: "faster deploys" },
+        { value: "~5", label: "projects shipped" },
+        { value: "legacy→modern", label: "architecture migration" },
+      ],
     },
     {
       company: "DataHouse",
@@ -88,6 +98,10 @@ export const resumeData: ResumeData = {
         "Delivered technical support and system maintenance, including installation of thermal scanning systems across Hawaii airports to support COVID-19 mitigation efforts.",
         "Performed regression testing for LumiSight mobile and web applications and contributed to QA strategies and operational mapping.",
       ],
+      outcomes: [
+        { value: "statewide", label: "airport deployments" },
+        { value: "~2", label: "apps QA-tested" },
+      ],
     },
     {
       company: "DataHouse",
@@ -97,6 +111,10 @@ export const resumeData: ResumeData = {
       description: [
         "Partnered with mentors and peers to design and implement an efficient workflow solution for the Hawaii Animal Quarantine Holding Facility.",
         "Led front-end development efforts and the planning/installation of critical system hardware components.",
+      ],
+      outcomes: [
+        { value: "1", label: "workflow system delivered" },
+        { value: "end-to-end", label: "front-end + hardware" },
       ],
     },
   ],

@@ -1,11 +1,13 @@
 import type { AppId } from "@/store/useDesktopStore";
 import type { LucideIcon } from "lucide-react";
-import { Briefcase, Cpu, FileText, Mail, Terminal } from "lucide-react";
+import { Briefcase, Cpu, FileText, FolderGit2, Mail, ScrollText, Terminal } from "lucide-react";
 import type { ComponentType } from "react";
+import ReadmeApp from "../apps/ReadmeApp";
 import TerminalApp from "../apps/TerminalApp";
 import AboutApp from "../apps/AboutApp";
 import CareerApp from "../apps/CareerApp";
 import StackApp from "../apps/StackApp";
+import ProjectsApp from "../apps/ProjectsApp";
 import ContactApp from "../apps/ContactApp";
 
 export interface AppEntry {
@@ -17,6 +19,13 @@ export interface AppEntry {
 }
 
 export const APPS: Record<AppId, AppEntry> = {
+    readme: {
+        id: "readme",
+        name: "Readme",
+        icon: ScrollText,
+        defaultSize: { w: 560, h: 560 },
+        Component: ReadmeApp,
+    },
     terminal: {
         id: "terminal",
         name: "Terminal",
@@ -44,6 +53,13 @@ export const APPS: Record<AppId, AppEntry> = {
         icon: Cpu,
         defaultSize: { w: 620, h: 460 },
         Component: StackApp,
+    },
+    projects: {
+        id: "projects",
+        name: "Projects",
+        icon: FolderGit2,
+        defaultSize: { w: 720, h: 520 },
+        Component: ProjectsApp,
     },
     contact: {
         id: "contact",

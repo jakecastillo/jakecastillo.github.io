@@ -1,92 +1,94 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
 import { useBootStore } from "@/store/useBootStore";
+import { DESKTOP_MEDIA_QUERY } from "@/hooks/useMediaQuery";
+import { decode, encode, type UrlState } from "@/lib/urlState";
 
-const APP_IDS: ReadonlyArray<AppId> = [
-    "terminal",
-    "about",
-    "career",
-    "stack",
-    "contact",
-];
+// Default landing (no ?open= deep-link): the Readme manifest, focused — a
+// recruiter-readable proof screen that sells in 10s (R4). Readme is the only
+// default-open window so the first impression is one clean focal point; the
+// metaphor reveals itself as the visitor explores the dock.
+const DEFAULT_OPEN: AppId[] = ["readme"];
+const DEFAULT_FOCUS: AppId = "readme";
 
-function parseOpen(value: string | null): AppId[] {
-    if (!value) return [];
-    return value
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s): s is AppId => (APP_IDS as readonly string[]).includes(s));
+// Mobile breakpoint mirrors Desktop.tsx's shell switch via the shared
+// DESKTOP_MEDIA_QUERY constant. MobileShell is a single-view shell driven only
+// by focusedId, so on mobile the user only ever perceives ONE app as "open" at
+// a time — even though every nav tap / terminal chip calls open(), which
+// accumulates a persistent window in the store map.
+function isDesktopViewport(): boolean {
+  return typeof window !== "undefined" && window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
 }
 
-function parseFocus(value: string | null): AppId | null {
-    if (!value) return null;
-    return (APP_IDS as readonly string[]).includes(value)
-        ? (value as AppId)
-        : null;
+// Collapse a full window state down to what the current viewport actually
+// presents as open. On desktop every window is a real, visible WindowFrame, so
+// the URL mirrors the whole set. On mobile only the focused app is on screen, so
+// the canonical URL reflects that single app — this stops chips/nav from piling
+// invisible windows into ?open= (which would otherwise re-materialize on a
+// resize-to-desktop or when the URL is shared/bookmarked).
+function perceivedState(state: UrlState): UrlState {
+  if (isDesktopViewport()) return state;
+  if (!state.focus) return { open: [], minimized: [], focus: null };
+  return { open: [state.focus], minimized: [], focus: state.focus };
+}
+
+function currentQuery(): string {
+  return window.location.search ? window.location.search : window.location.pathname;
+}
+
+function writeUrl(state: UrlState): void {
+  const next = encode(perceivedState(state));
+  const target = next ? `?${next}` : window.location.pathname;
+  if (target !== currentQuery()) {
+    window.history.replaceState(null, "", target);
+  }
 }
 
 export function useUrlSync() {
-    const open = useDesktopStore((s) => s.open);
-    const focus = useDesktopStore((s) => s.focus);
-    const windows = useDesktopStore((s) => s.windows);
-    const focusedId = useDesktopStore((s) => s.focusedId);
-    const setPhase = useBootStore((s) => s.setPhase);
-    const seededRef = useRef(false);
+  const hydrate = useDesktopStore((s) => s.hydrate);
+  const setPhase = useBootStore((s) => s.setPhase);
 
-    // Initial seed from URL on mount.
-    useEffect(() => {
-        if (seededRef.current) return;
-        seededRef.current = true;
+  // Seed once on mount: decode → hydrate → strip ?skip → canonicalize URL.
+  useEffect(() => {
+    const search = window.location.search;
+    const decoded = decode(search);
+    const skip = new URLSearchParams(search).get("skip") === "1";
+    if (skip || decoded.open.length > 0 || decoded.focus !== null) {
+      setPhase("reveal");
+    }
 
-        const params = new URLSearchParams(window.location.search);
-        const skipBoot =
-            params.get("skip") === "1" || params.has("open") || params.has("focus");
-        const openIds = parseOpen(params.get("open"));
-        const focusId = parseFocus(params.get("focus"));
+    const seed: UrlState =
+      decoded.open.length > 0
+        ? {
+            open: decoded.open,
+            minimized: decoded.minimized,
+            focus: decoded.focus ?? decoded.open[decoded.open.length - 1],
+          }
+        : { open: [...DEFAULT_OPEN], minimized: [], focus: DEFAULT_FOCUS };
 
-        if (skipBoot) {
-            setPhase("reveal");
-        }
+    hydrate(seed);
+    writeUrl(seed); // canonical URL; drops ?skip and any garbage
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-        // Always ensure terminal is open by default once we're in `ready`.
-        const finalOpen = openIds.length > 0 ? openIds : ["terminal" as AppId];
-        for (const id of finalOpen) open(id);
-
-        if (focusId && !finalOpen.includes(focusId)) {
-            open(focusId);
-        }
-        if (focusId) {
-            focus(focusId);
-        } else if (finalOpen.length > 0) {
-            focus(finalOpen[finalOpen.length - 1]);
-        }
-    }, [open, focus, setPhase]);
-
-    // Mirror store → URL (debounced via raf).
-    useEffect(() => {
-        const rafId = requestAnimationFrame(() => {
-            const params = new URLSearchParams(window.location.search);
-            const openList = Object.keys(windows) as AppId[];
-
-            if (openList.length === 0) {
-                params.delete("open");
-            } else {
-                params.set("open", openList.join(","));
-            }
-
-            if (focusedId) {
-                params.set("focus", focusedId);
-            } else {
-                params.delete("focus");
-            }
-
-            const next = params.toString();
-            const target = next ? `?${next}` : window.location.pathname;
-            window.history.replaceState(null, "", target);
-        });
-
-        return () => cancelAnimationFrame(rafId);
-    }, [windows, focusedId]);
+  // Mirror store → URL (debounced, write-only-on-change).
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const flush = () => {
+      const s = useDesktopStore.getState();
+      const open = Object.keys(s.windows) as AppId[];
+      const minimized = open.filter((id) => s.windows[id]?.minimized);
+      writeUrl({ open, minimized, focus: s.focusedId });
+    };
+    const unsub = useDesktopStore.subscribe(() => {
+      clearTimeout(timer);
+      timer = setTimeout(flush, 150);
+    });
+    return () => {
+      unsub();
+      clearTimeout(timer);
+    };
+  }, []);
 }

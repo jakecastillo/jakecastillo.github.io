@@ -1,13 +1,14 @@
 "use client";
 
 import { resumeData } from "@/data/resume";
+import AppCanvas from "@/components/desktop/AppCanvas";
 import { ArrowUpRight } from "lucide-react";
 
 export default function CareerApp() {
     return (
-        <div className="p-6 font-mono text-sm space-y-4">
+        <AppCanvas wide className="font-mono text-sm space-y-4">
             <header>
-                <div className="text-[10px] tracking-[0.3em] text-accent mb-1">{`// CAREER LOG`}</div>
+                <div className="text-[10px] tracking-[0.3em] text-accent mb-1">{`// AUDIT_LOG`}</div>
                 <h2 className="text-xl font-black tracking-tight text-foreground">
                     Experience
                 </h2>
@@ -37,6 +38,21 @@ export default function CareerApp() {
                                 </a>
                             )}
                         </div>
+
+                        {job.outcomes && job.outcomes.length > 0 && (
+                            <ul className="mt-3 flex flex-wrap gap-2">
+                                {job.outcomes.map((o, k) => (
+                                    <li
+                                        key={k}
+                                        className="flex items-baseline gap-1.5 px-2.5 py-1 rounded-full border border-primary/30 bg-primary-muted shadow-[var(--shadow-glow)] transition-colors hover:border-primary/60"
+                                    >
+                                        <span className="text-[11px] font-bold text-primary">{o.value}</span>
+                                        <span className="text-[10px] tracking-wide text-accent/80">{o.label}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
                         <ul className="mt-3 space-y-2 border-l-2 border-border/40 pl-3">
                             {job.description.map((d, j) => (
                                 <li key={j} className="text-xs text-muted-foreground leading-relaxed">
@@ -47,6 +63,6 @@ export default function CareerApp() {
                     </li>
                 ))}
             </ol>
-        </div>
+        </AppCanvas>
     );
 }

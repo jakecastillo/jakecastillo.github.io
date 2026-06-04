@@ -1,3 +1,11 @@
 import type { AppId } from "@/store/useDesktopStore";
 
-export const DOCK_ORDER: AppId[] = ["terminal", "about", "career", "stack", "contact"];
+export const DOCK_ORDER: AppId[] = [
+    "readme",
+    "terminal",
+    "about",
+    "career",
+    "stack",
+    "projects",
+    "contact",
+];

@@ -3,10 +3,15 @@
 import { useState } from "react";
 import { Check, Copy, Mail, Linkedin, MapPin, Github } from "lucide-react";
 import { resumeData } from "@/data/resume";
+import { BRAND } from "@/components/desktop/config/brand";
+import AppCanvas from "@/components/desktop/AppCanvas";
 
 interface Row {
     key: string;
     label: string;
+    /** Cosmetic label shown to the user. */
+    displayText: string;
+    /** Canonical value used for href + clipboard copy. */
     value: string;
     href?: string;
     icon: typeof Mail;
@@ -17,6 +22,7 @@ const rows = (): Row[] => [
     {
         key: "email",
         label: "Email",
+        displayText: resumeData.email,
         value: resumeData.email,
         href: `mailto:${resumeData.email}`,
         icon: Mail,
@@ -25,6 +31,7 @@ const rows = (): Row[] => [
     {
         key: "linkedin",
         label: "LinkedIn",
+        displayText: "linkedin.com/in/jakecastillo",
         value: resumeData.linkedin,
         href: resumeData.linkedin,
         icon: Linkedin,
@@ -33,7 +40,8 @@ const rows = (): Row[] => [
     {
         key: "github",
         label: "GitHub",
-        value: "github.com/jakecastillo",
+        displayText: "github.com/jakecastillo",
+        value: "https://github.com/jakecastillo",
         href: "https://github.com/jakecastillo",
         icon: Github,
         copyable: true,
@@ -41,6 +49,7 @@ const rows = (): Row[] => [
     {
         key: "location",
         label: "Location",
+        displayText: resumeData.location,
         value: resumeData.location,
         icon: MapPin,
         copyable: false,
@@ -67,13 +76,13 @@ export default function ContactApp() {
     };
 
     return (
-        <div className="p-6 font-mono text-sm space-y-5">
+        <AppCanvas className="font-mono text-sm space-y-5">
             <header>
                 <div className="text-[10px] tracking-[0.3em] text-accent/70 mb-1">
                     {`/// SECURE_CHANNEL_ESTABLISHED`}
                 </div>
                 <h2 className="text-xl font-black tracking-tight text-foreground">{resumeData.name}</h2>
-                <p className="text-xs text-muted-foreground">DevSecOps Engineer</p>
+                <p className="text-xs text-muted-foreground">{BRAND.role}</p>
             </header>
 
             <ul className="space-y-2">
@@ -82,7 +91,7 @@ export default function ContactApp() {
                     return (
                         <li
                             key={r.key}
-                            className="flex items-center gap-3 p-3 rounded-md border border-border/40 bg-background/40 hover:border-accent/40 transition-colors"
+                            className="flex items-center gap-3 p-3 rounded-md border border-border/40 bg-background/40 hover:border-accent/40 transition-colors motion-safe:active:scale-[0.98]"
                         >
                             <Icon size={16} className="text-muted-foreground" />
                             <div className="flex-1 min-w-0">
@@ -94,12 +103,12 @@ export default function ContactApp() {
                                         href={r.href}
                                         target={r.href.startsWith("http") ? "_blank" : undefined}
                                         rel="noopener noreferrer"
-                                        className="text-foreground hover:text-accent transition-colors break-all text-xs"
+                                        className="text-foreground hover:text-accent transition-colors truncate text-xs block"
                                     >
-                                        {r.value}
+                                        {r.displayText}
                                     </a>
                                 ) : (
-                                    <span className="text-foreground text-xs">{r.value}</span>
+                                    <span className="text-foreground text-xs">{r.displayText}</span>
                                 )}
                             </div>
                             {r.copyable && (
@@ -115,6 +124,6 @@ export default function ContactApp() {
                     );
                 })}
             </ul>
-        </div>
+        </AppCanvas>
     );
 }
