@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Sphere, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
@@ -8,7 +8,7 @@ import { useScrollStore } from "@/hooks/useScrollStore";
 
 // Brand palette: violet is the dominant accent, cyan is a rare secondary tint.
 const BRAND_VIOLET = "#8b5cf6";
-const BRAND_CYAN = "#38bdf8";
+const BRAND_CYAN = "#22d3ee";
 
 export default function QuantumOrb() {
     const orbRef = useRef<THREE.Mesh>(null);
@@ -23,6 +23,21 @@ export default function QuantumOrb() {
             typeof window.matchMedia === "function" &&
             window.matchMedia("(prefers-reduced-motion: reduce)").matches
     );
+
+    // Coarse-pointer (touch) devices that still reach this component get a
+    // lower-poly sphere to shave vertex work. Computed once via lazy state init
+    // so the value is read outside render and never changes for this instance.
+    const [coarsePointer] = useState(
+        () =>
+            typeof window !== "undefined" &&
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(pointer: coarse)").matches
+    );
+
+    // Inner-core tessellation: drop from 32 to 16 segments on coarse pointers.
+    const coreSegments = coarsePointer ? 16 : 32;
+    // Outer wireframe is already low-poly; trim it a touch further on touch.
+    const ringSegments = coarsePointer ? 8 : 12;
 
     // Stable phase offset to keep motion organic without impure render-time randomness
     const phaseOffset = Math.PI * 0.61803398875;
@@ -73,15 +88,16 @@ export default function QuantumOrb() {
 
     return (
         <group position={[0, 0, -2]}>
-            {/* Inner Core — deep violet-tinted slate. Emissive kept very low so the
-                core reads as atmosphere and never competes with foreground copy. */}
-            <Sphere ref={orbRef} args={[1.0, 32, 32]}>
+            {/* Inner Core — deep violet-tinted slate. Emissive kept extremely low
+                so the brightest lit pixel stays under ~#2a2550, letting muted text
+                overlapping the orb hold >=4.5:1 contrast. Never competes with copy. */}
+            <Sphere ref={orbRef} args={[1.0, coreSegments, coreSegments]}>
                 <MeshDistortMaterial
-                    color="#1a1633"
+                    color="#16122b"
                     emissive={BRAND_VIOLET}
-                    emissiveIntensity={0.08}
-                    roughness={0.25}
-                    metalness={0.8}
+                    emissiveIntensity={0.04}
+                    roughness={0.35}
+                    metalness={0.7}
                     distort={0.3}
                     speed={2}
                 />
@@ -89,7 +105,7 @@ export default function QuantumOrb() {
 
             {/* Outer Wireframe / Energy containment field — brand violet, dialed
                 down to a faint premium halo behind text. Fewer segments for perf. */}
-            <Sphere ref={outerRingRef} args={[2.2, 12, 12]}>
+            <Sphere ref={outerRingRef} args={[2.2, ringSegments, ringSegments]}>
                 <meshStandardMaterial
                     color={BRAND_VIOLET}
                     emissive={BRAND_CYAN}

@@ -83,8 +83,23 @@ export default function StageManager() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={
                             prefersReducedMotion
-                                ? { opacity: 0 }
-                                : { opacity: 0, x: 16 }
+                                ? {
+                                      opacity: 0,
+                                      // Exit ~25% quicker than the entrance for a
+                                      // crisper handoff between acts.
+                                      transition: {
+                                          duration: 0.15,
+                                          ease: [0.16, 1, 0.3, 1],
+                                      },
+                                  }
+                                : {
+                                      opacity: 0,
+                                      x: 16,
+                                      transition: {
+                                          duration: 0.3,
+                                          ease: [0.16, 1, 0.3, 1],
+                                      },
+                                  }
                         }
                         transition={{
                             duration: prefersReducedMotion ? 0.2 : 0.4,

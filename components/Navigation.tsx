@@ -7,8 +7,9 @@ import { navSections, sections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
 import { useBootStore } from "@/store/useBootStore";
 
-// All section ids we observe to determine what's in view (includes "skills",
-// which has no nav button but should not falsely keep "exp" active).
+// All section ids we observe to determine what's in view. Every section is now
+// a dock item (home, about, exp, skills, contact), so the active-section
+// highlight must resolve correctly for all five ids — including "skills".
 const observedIds = sections.map((section) => section.id);
 
 /**
@@ -126,10 +127,14 @@ function MagneticButton({
             transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
             className="group relative"
         >
-            {/* Tooltip — visible on hover AND keyboard focus for discoverability. */}
+            {/* Tooltip — visible on hover AND keyboard focus for discoverability.
+                The label/indicator swap is intentionally asymmetric: the resting
+                (exit) state carries a shorter duration (120ms) than the
+                hover/focus (enter) state (180ms), so it leaves slightly faster
+                than it arrives. */}
             <span
                 role="tooltip"
-                className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium text-foreground opacity-0 translate-y-1 shadow-md transition-all duration-150 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0"
+                className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium text-foreground opacity-0 translate-y-1 shadow-md transition-all duration-[120ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:duration-[180ms] group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:duration-[180ms]"
             >
                 {label}
             </span>
@@ -142,18 +147,21 @@ function MagneticButton({
                 onMouseLeave={reset}
                 aria-label={label}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-200 active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-white/10 ${
+                className={`relative flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-white/10 ${
                     isActive
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-primary"
+                        ? "text-primary duration-200"
+                        : "text-muted-foreground duration-[140ms] hover:text-primary"
                 }`}
             >
                 {children}
-                {/* Active indicator dot beneath the icon. */}
+                {/* Active indicator dot beneath the icon. Enters at 200ms,
+                    exits faster at 140ms to match the tooltip's quicker leave. */}
                 <span
                     aria-hidden="true"
-                    className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity duration-200 ${
-                        isActive ? "opacity-100" : "opacity-0"
+                    className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity ease-out ${
+                        isActive
+                            ? "opacity-100 duration-200"
+                            : "opacity-0 duration-[140ms]"
                     }`}
                 />
                 <span className="sr-only">{label}</span>

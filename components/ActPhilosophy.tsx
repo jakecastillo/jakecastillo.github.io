@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     motion,
     useReducedMotion,
@@ -11,16 +11,16 @@ import { resumeData } from "@/data/resume";
 
 const pillars = [
     {
-        title: "Infrastructure Design",
-        body: "Designing resilient, microservice-first platforms that modernize legacy stacks and scale cleanly with growth.",
+        title: "Secure Cloud Architecture",
+        body: "Architecting self-healing AWS platforms with least-privilege IAM, encryption, and compliance guardrails embedded as code from day one.",
     },
     {
-        title: "Cloud Orchestration",
-        body: "Architecting self-healing AWS infrastructure with security and compliance embedded as code from day one.",
+        title: "Shift-Left Security",
+        body: "Baking SAST, dependency scanning, and policy-as-code into CI/CD so vulnerabilities surface in the pipeline — never in production.",
     },
     {
-        title: "Data Integrity",
-        body: "Enforcing type safety and consistency across complex schemas with modern ORMs, constraints, and SQL strategy.",
+        title: "Resilient Data Integrity",
+        body: "Enforcing type safety, encryption-at-rest, and schema constraints so cloud services stay trustworthy under load and under attack.",
     },
 ];
 
@@ -28,7 +28,7 @@ const reveal = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.2 },
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const },
 };
 
 // Slide 1 — the core belief.
@@ -36,12 +36,12 @@ function SlideBelief() {
     return (
         <div className="flex flex-col justify-center">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                Philosophy
+                DevSecOps Philosophy
             </p>
-            <h2 className="text-5xl font-black tracking-tighter text-foreground">
+            <h2 className="text-5xl font-black leading-[1.05] tracking-tighter text-foreground">
                 ENGINEERING
                 <br />
-                <span className="text-primary text-glow">RESILIENT SYSTEMS.</span>
+                <span className="text-primary text-glow">SECURE SYSTEMS.</span>
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
                 {resumeData.summary}
@@ -55,16 +55,16 @@ function SlideProcess() {
     return (
         <div className="flex flex-col justify-center">
             <h3 className="mb-8 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                Systems Thinking
+                Security by Design
             </h3>
             <div className="border-l border-border-strong pl-8">
                 <ul className="space-y-10">
                     {pillars.map((pillar) => (
                         <li key={pillar.title}>
-                            <h4 className="text-3xl font-bold text-foreground">
+                            <h4 className="text-3xl font-bold leading-snug text-foreground">
                                 {pillar.title}.
                             </h4>
-                            <p className="measure mt-2 text-base leading-relaxed text-muted-foreground">
+                            <p className="measure-narrow mt-2 text-base leading-relaxed text-muted-foreground">
                                 {pillar.body}
                             </p>
                         </li>
@@ -80,14 +80,15 @@ function SlideResult() {
     return (
         <div className="flex flex-col justify-center">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                The Result
+                The Outcome
             </p>
-            <h2 className="text-8xl font-black tracking-tighter text-foreground text-glow">
-                PRECISION.
+            <h2 className="text-8xl font-black leading-[0.95] tracking-tighter text-foreground text-glow">
+                HARDENED.
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
-                Security embedded into the development lifecycle — type-safe,
-                observable, and built to hold up in production.
+                Security embedded across the development lifecycle — cloud
+                infrastructure that ships fast, stays type-safe and observable,
+                and holds up against real-world threats in production.
             </p>
         </div>
     );
@@ -96,6 +97,21 @@ function SlideResult() {
 export default function ActPhilosophy() {
     const containerRef = useRef<HTMLDivElement>(null);
     const prefersReducedMotion = useReducedMotion();
+
+    // Detect touch / coarse-pointer / narrow viewports. On phones the horizontal
+    // pin reads as scroll-jacking, so we fall back to the static vertical stack.
+    // Starts false to keep SSR/client markup in sync; resolves after mount.
+    const [isCompact, setIsCompact] = useState(false);
+    useEffect(() => {
+        const evaluate = () =>
+            setIsCompact(
+                window.matchMedia("(pointer: coarse)").matches ||
+                    window.innerWidth < 768,
+            );
+        evaluate();
+        window.addEventListener("resize", evaluate);
+        return () => window.removeEventListener("resize", evaluate);
+    }, []);
 
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -108,8 +124,9 @@ export default function ActPhilosophy() {
     // (fully visible) rather than clipping it as the old -50% range did.
     const x = useTransform(scrollYProgress, [0.12, 0.92], ["0%", "-66%"]);
 
-    // Reduced motion: a static vertical stack, opacity-only reveals, no pin.
-    if (prefersReducedMotion) {
+    // Reduced motion OR touch/coarse/narrow: a static vertical stack,
+    // opacity-only reveals, no horizontal pin (no scroll-jacking on phones).
+    if (prefersReducedMotion || isCompact) {
         return (
             <section className="container-page py-24">
                 <div className="flex flex-col gap-24">

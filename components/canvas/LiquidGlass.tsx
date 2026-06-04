@@ -13,6 +13,9 @@ export default function LiquidGlass() {
     useFrame((state) => {
         if (!meshRef.current) return;
 
+        // Skip all per-frame work while the tab is backgrounded.
+        if (typeof document !== "undefined" && document.hidden) return;
+
         const time = state.clock.getElapsedTime();
 
         // Very slow, subtle organic movement independent of scroll
@@ -41,8 +44,8 @@ export default function LiquidGlass() {
         >
             <MeshTransmissionMaterial
                 backside={false}
-                samples={8} // Reduced from 16 for better mobile perf
-                resolution={512} // Reduced from 1024 to save texture memory and fillrate
+                samples={4} // Reduced for lower fillrate cost; still smooth refraction
+                resolution={256} // Reduced to save texture memory and fillrate
                 transmission={0.9}     // High transparency
                 thickness={0.5}
                 ior={1.2}

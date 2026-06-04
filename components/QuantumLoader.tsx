@@ -34,7 +34,7 @@ export default function QuantumLoader() {
 
     // Keep the cinematic flash brief so the hero paints fast (LCP < ~1s).
     const [displayProgress, setDisplayProgress] = useState(0);
-    const minLoadTimeMs = 500;
+    const minLoadTimeMs = 250;
     const startTimeRef = useRef(0);
 
     // Reduced-motion (and a manual Skip) bypass the boot entirely.
@@ -86,13 +86,21 @@ export default function QuantumLoader() {
     useEffect(() => {
         if (phase === "booting") {
             // Brief epilogue before entering the UI (kept tight for fast LCP).
-            const t1 = setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 90);
-            const t2 = setTimeout(() => setLogs(p => [...p, "Starting UI session..._"]), 220);
-            const t3 = setTimeout(finish, 420);
+            const t1 = setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 50);
+            const t2 = setTimeout(() => setLogs(p => [...p, "Starting UI session..._"]), 110);
+            const t3 = setTimeout(finish, 200);
             return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [phase, setBootComplete]);
+
+    // Begin the exit fade the instant the bar reads 100% — don't wait out the epilogue.
+    useEffect(() => {
+        if (displayProgress >= 100 && phase !== "done") {
+            finish();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [displayProgress, phase]);
 
     // Scroll to bottom of logs when new ones arrive
     useEffect(() => {
@@ -124,9 +132,10 @@ export default function QuantumLoader() {
         <AnimatePresence>
             {phase !== "done" && (
                 <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-black font-mono text-sm sm:text-base"
+                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden font-mono text-sm sm:text-base"
+                    style={{ background: "rgba(6,6,8,0.92)" }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    transition={{ duration: 0.4, ease: [0.4, 0, 1, 1] }}
                 >
                     {/* Background terminal overlay */}
                     <div
@@ -153,7 +162,7 @@ export default function QuantumLoader() {
                     <div
                         className="absolute inset-0 pointer-events-none opacity-20"
                         style={{
-                            background: "linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))",
+                            background: "linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(139, 92, 246, 0.05), rgba(34, 211, 238, 0.02), rgba(139, 92, 246, 0.05))",
                             backgroundSize: "100% 2px, 3px 100%"
                         }}
                     />

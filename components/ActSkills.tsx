@@ -13,7 +13,7 @@ export default function ActSkills() {
     const groupContainer: Variants = {
         hidden: {},
         visible: {
-            transition: { staggerChildren: reduceMotion ? 0 : 0.08 },
+            transition: { staggerChildren: reduceMotion ? 0 : 0.06 },
         },
     };
 
@@ -22,7 +22,7 @@ export default function ActSkills() {
         visible: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.5, ease: EASE },
+            transition: { duration: 0.3, ease: EASE },
         },
     };
 
@@ -39,30 +39,62 @@ export default function ActSkills() {
             />
 
             <Container className="relative z-10">
-                <motion.h2
+                {/* Offset oversized heading — overhangs the grid for asymmetric tension. */}
+                <motion.header
                     initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.2 }}
-                    transition={{ duration: 0.5, ease: EASE }}
-                    className="text-6xl font-bold tracking-tighter mb-16"
+                    transition={{ duration: 0.3, ease: EASE }}
+                    className="mb-20 max-w-3xl"
                 >
-                    TECHNICAL ARSENAL
-                </motion.h2>
+                    <p className="text-xs font-mono tracking-[0.5em] text-accent mb-4">
+                        02 / CAPABILITIES
+                    </p>
+                    <h2 className="text-7xl font-bold tracking-tighter leading-[0.95] -ml-1">
+                        TECHNICAL
+                        <br />
+                        <span className="text-primary">ARSENAL</span>
+                    </h2>
+                </motion.header>
 
-                <motion.div
-                    variants={groupContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3"
-                >
-                    <SkillGroup variants={item} title="LANGUAGES" skills={resumeData.skills.languages} />
-                    <SkillGroup variants={item} title="FRAMEWORKS" skills={resumeData.skills.frameworks} />
-                    <SkillGroup variants={item} title="CLOUD & INFRA" skills={resumeData.skills.platforms} />
-                    <SkillGroup variants={item} title="DATABASES" skills={resumeData.skills.databases} />
-                    <SkillGroup variants={item} title="PRACTICES" skills={resumeData.skills.practices} />
-                    <SkillGroup variants={item} title="ROLES" skills={resumeData.skills.roles} />
-                </motion.div>
+                {/* Asymmetric 2/3 + 1/3 split: featured lead column carries the eye, secondary stack fills the rail. */}
+                <div className="grid gap-12 lg:grid-cols-3">
+                    {/* Lead group — featured, spans two columns. */}
+                    <motion.div
+                        variants={groupContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                        className="lg:col-span-2 grid gap-10 sm:grid-cols-2"
+                    >
+                        <SkillGroup
+                            variants={item}
+                            featured
+                            title="LANGUAGES"
+                            skills={resumeData.skills.languages}
+                        />
+                        <SkillGroup
+                            variants={item}
+                            featured
+                            title="FRAMEWORKS"
+                            skills={resumeData.skills.frameworks}
+                        />
+                    </motion.div>
+
+                    {/* Secondary rail — quieter supporting groups stacked in the remaining third. */}
+                    <motion.div
+                        variants={groupContainer}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                        className="flex flex-col gap-8"
+                    >
+                        <SkillGroup variants={item} title="CLOUD & INFRA" skills={resumeData.skills.platforms} />
+                        <SkillGroup variants={item} title="DATABASES" skills={resumeData.skills.databases} />
+                        <SkillGroup variants={item} title="PRACTICES" skills={resumeData.skills.practices} />
+                        <SkillGroup variants={item} title="ROLES" skills={resumeData.skills.roles} />
+                    </motion.div>
+                </div>
 
                 <div className="mt-24 pt-12 border-t border-border">
                     <h3 className="text-xs font-mono tracking-[0.5em] text-accent mb-8">CERTIFICATIONS</h3>
@@ -94,21 +126,29 @@ function SkillGroup({
     title,
     skills,
     variants,
+    featured = false,
 }: {
     title: string;
     skills: string[];
     variants: Variants;
+    featured?: boolean;
 }) {
     return (
         <motion.div variants={variants}>
-            <h3 className="text-lg font-mono font-bold text-foreground mb-6 border-l-2 border-primary pl-4">
+            <h3
+                className={`font-mono font-bold text-foreground mb-6 border-l-2 border-primary pl-4 ${
+                    featured ? "text-2xl tracking-tight" : "text-base"
+                }`}
+            >
                 {title}
             </h3>
             <div className="flex flex-wrap gap-3">
                 {skills.map((skill) => (
                     <span
                         key={skill}
-                        className="px-4 py-2 text-sm rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary hover:bg-primary-muted transition-colors cursor-default"
+                        className={`rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary hover:bg-primary-muted transition-colors cursor-default ${
+                            featured ? "px-4 py-2 text-base" : "px-3 py-1.5 text-sm"
+                        }`}
                     >
                         {skill}
                     </span>
