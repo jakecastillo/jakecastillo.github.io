@@ -69,8 +69,8 @@ export const resumeData: ResumeData = {
       title: "DevSecOps Software Engineer",
       period: "Oct 2025–Present",
       description: [
-        "Lead DevSecOps initiatives, embedding security controls and automated checks directly into the CI/CD pipeline.",
-        "Shift security left across the SDLC — threat modeling, dependency and secret scanning, and hardened, scalable cloud delivery.",
+        "Lead DevSecOps initiatives, embedding automated dependency, secret, and SAST scanning into CI/CD so vulnerabilities are caught pre-merge instead of in production.",
+        "Shift security left across the SDLC with threat modeling and policy-as-code — hardening cloud delivery without slowing release cadence.",
       ],
     },
     {
@@ -79,9 +79,9 @@ export const resumeData: ResumeData = {
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
       description: [
-        "Led modernization of legacy systems to microservice architectures, streamlining DevOps and measurably improving reliability and performance.",
-        "Designed and shipped scalable full-stack features across 4+ products with React, NestJS/Prisma, and PostgreSQL.",
-        "Served as subject-matter expert and technical lead — partnering with cross-functional teams and resolving production issues through fixes and enhancements.",
+        "Modernized a brittle legacy monolith into NestJS microservices — isolating failure domains to enable independent, lower-risk deploys across 4+ products over a 5-year tenure.",
+        "Built full-stack features end-to-end with React, NestJS/Prisma, and PostgreSQL, enforcing schema-level type safety to eliminate a class of runtime data bugs.",
+        "Acted as technical SME and lead across cross-functional teams, owning production incident resolution and long-term maintainability.",
       ],
     },
     {
@@ -90,8 +90,8 @@ export const resumeData: ResumeData = {
       title: "Software Engineer (Part Time)",
       period: "Aug 2020–Jan 2021",
       description: [
-        "Deployed thermal-scanning systems across Hawaii airports for COVID-19 mitigation, owning installation and field support.",
-        "Ran regression testing for the LumiSight web and mobile apps and contributed to QA strategy and operational mapping.",
+        "Deployed thermal-scanning systems across Hawaii's airports for COVID-19 mitigation — owning installation, field support, and rollout.",
+        "Ran regression testing for the LumiSight web and mobile apps and helped shape QA strategy and operational mapping.",
       ],
     },
     {
@@ -100,7 +100,7 @@ export const resumeData: ResumeData = {
       title: "Engineering Intern",
       period: "Jan 2020–Aug 2020",
       description: [
-        "Designed and built a workflow solution for the Hawaii Animal Quarantine Holding Facility alongside mentors and peers.",
+        "Designed and shipped a workflow solution for the Hawaii Animal Quarantine Holding Facility alongside mentors and peers.",
         "Led front-end development and planned and installed critical system hardware.",
       ],
     },

@@ -39,7 +39,7 @@ export const sections: Section[] = [
     id: "skills",
     navLabel: "Skills",
     icon: Code,
-    showInNav: false,
+    showInNav: true,
     stageLabel: "ACT III",
     stageTitle: "CAPABILITIES",
   },

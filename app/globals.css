@@ -108,6 +108,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -163,9 +164,9 @@ body {
 /* ----------------------------------------------------------------------- */
 
 /* Constrain body copy to a readable 45–75ch measure */
-.measure { max-width: 68ch; }
+.measure { max-width: 66ch; }
 .measure-narrow { max-width: 52ch; }
-.measure-wide { max-width: 80ch; }
+.measure-wide { max-width: 74ch; }
 
 /* Shared page container + outer gutters (keeps gutters consistent per act) */
 .container-page {

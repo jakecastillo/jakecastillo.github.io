@@ -13,11 +13,11 @@ import Container from "@/components/Container";
 import { resumeData } from "@/data/resume";
 
 const reveal = {
-  hidden: { opacity: 0, y: 18 },
+  hidden: { opacity: 0, y: 16 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, delay: 0.15 + i * 0.08, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.32, delay: 0.1 + i * 0.06, ease: [0.16, 1, 0.3, 1] as const },
   }),
 };
 
@@ -74,14 +74,24 @@ export default function Home() {
               variants={reveal}
               initial="hidden"
               animate="show"
-              className="measure text-lg text-muted-foreground sm:text-xl"
+              className="measure text-balance text-xl font-medium text-foreground sm:text-2xl"
             >
-              Software engineer securing cloud-native AWS platforms — embedding security
-              into the development lifecycle, from the pipeline to production.
+              {resumeData.tagline}
+            </motion.p>
+
+            <motion.p
+              custom={3}
+              variants={reveal}
+              initial="hidden"
+              animate="show"
+              className="measure text-base text-muted-foreground"
+            >
+              Software engineer in Honolulu embedding security into the SDLC and shipping
+              resilient, type-safe AWS systems.
             </motion.p>
 
             <motion.ul
-              custom={3}
+              custom={4}
               variants={reveal}
               initial="hidden"
               animate="show"
@@ -98,7 +108,7 @@ export default function Home() {
             </motion.ul>
 
             <motion.div
-              custom={4}
+              custom={5}
               variants={reveal}
               initial="hidden"
               animate="show"
@@ -124,7 +134,7 @@ export default function Home() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View GitHub profile"
-                className="inline-flex items-center gap-2 rounded-full px-4 py-3 font-mono text-sm text-muted-foreground transition-colors hover:text-primary"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-border-subtle px-5 py-3 font-mono text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
               >
                 <Github size={18} strokeWidth={2} aria-hidden="true" />
                 GitHub
@@ -135,7 +145,7 @@ export default function Home() {
 
           {/* Signature: interactive terminal */}
           <motion.div
-            custom={5}
+            custom={6}
             variants={reveal}
             initial="hidden"
             animate="show"
@@ -152,7 +162,7 @@ export default function Home() {
           transition={{ delay: 1.4, duration: 1 }}
           className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground"
         >
-          <span className="font-mono text-[11px] uppercase tracking-widest">Scroll</span>
+          <span className="font-mono text-xs uppercase tracking-widest">Scroll</span>
           <ArrowDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
         </motion.div>
       </section>

@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 const SITE_URL = "https://jakecastillo.github.io";
 const TITLE = "Jake Castillo | DevSecOps Software Engineer";
 const DESCRIPTION =
-  "Jake Castillo is a DevSecOps software engineer in Honolulu securing cloud-native AWS platforms — embedding security into the development lifecycle and shipping resilient, type-safe systems.";
+  "DevSecOps software engineer in Honolulu securing cloud-native AWS platforms — embedding security into the SDLC and shipping resilient, type-safe systems.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: ["/og.png"],
+    images: [{ url: "/og.png", alt: "Jake Castillo — DevSecOps Software Engineer" }],
   },
   icons: {
     icon: [

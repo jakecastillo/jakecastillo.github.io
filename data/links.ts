@@ -10,6 +10,7 @@ export type ContactLink = {
   icon: LucideIcon;
   external?: boolean;
   download?: boolean;
+  primary?: boolean; // the single dominant CTA
 };
 
 export const contactLinks: ContactLink[] = [
@@ -19,6 +20,7 @@ export const contactLinks: ContactLink[] = [
     displayLabel: "EMAIL_UPLINK",
     href: `mailto:${resumeData.email}`,
     icon: Mail,
+    primary: true,
   },
   {
     key: "github",
