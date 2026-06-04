@@ -25,20 +25,38 @@
   --primary-muted: rgba(139, 92, 246, 0.15);
   /* Glow base */
 
-  /* Accent: Neon Cyan */
+  /* Accent: Neon Cyan — RATIONED. Reserved as the secure/active SIGNAL
+     (perimeter snap, focus rings, running-app dot, active window). Violet
+     (--primary) stays the dominant identity color. */
   --accent: #22d3ee;
   /* Cyan 400 */
   --accent-hover: #06b6d4;
   --accent-foreground: #000000;
   --accent-muted: rgba(34, 211, 238, 0.15);
+  /* Semantic alias: use --signal to make "this is the secure/active state"
+     intent explicit at the call site. Same value as --accent by design. */
+  --signal: var(--accent);
+  --signal-muted: var(--accent-muted);
 
   /* Borders: Very subtle, almost invisible */
   --border: #27272a;
   --border-subtle: #18181b;
 
-  /* Gradients */
-  --gradient-subtle: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(34, 211, 238, 0.05) 100%);
-  --gradient-hero: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 70%);
+  /* ELEVATION SURFACE RAMP (depth by lightness, not glow).
+     A violet-tinted dark ramp where each step is ~+4 L* lighter than the
+     last. --surface-window is the BASE (matches the existing hardcoded
+     #0a0a18 window body, so surfaces swap to tokens with no visual jump);
+     chrome (title bars) sits a step up; raised (cards / menus) a step
+     higher still. Pair with --edge-light for a top inner highlight that
+     reads as a physical light-catching edge. */
+  --surface-window: #0a0a18;
+  /* Window body — ramp base, L* ~3 */
+  --surface-chrome: #13132a;
+  /* Title bars / chrome — L* ~7 */
+  --surface-raised: #1c1c3a;
+  /* Cards / menus / popovers — L* ~12 */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Top light-edge — apply as a box-shadow for elevation */
 
   /* Shadows: Colored glows rather than black shadows */
   --shadow-sm: 0 0 0 1px var(--border);
@@ -48,8 +66,7 @@
   --shadow-glow-accent: 0 0 20px rgba(34, 211, 238, 0.3);
 
   /* Typography Variables (To be mapped in Tailwind) */
-  --font-display: var(--font-geist-sans);
-  /* Placeholder for now */
+  --font-display: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -70,11 +87,21 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-muted: var(--accent-muted);
+  /* Semantic secure/active signal (alias of accent) — enables bg-signal /
+     text-signal / border-signal utilities that read as intentional. */
+  --color-signal: var(--signal);
+  --color-signal-muted: var(--signal-muted);
+
+  /* Elevation surface ramp as Tailwind utilities:
+     bg-surface-window / bg-surface-chrome / bg-surface-raised
+     (+ text-/border-/ring- variants). */
+  --color-surface-window: var(--surface-window);
+  --color-surface-chrome: var(--surface-chrome);
+  --color-surface-raised: var(--surface-raised);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  /* Custom Utilities */
-  --animate-float: float 6s ease-in-out infinite;
+  --font-display: var(--font-space-grotesk);
 }
 
 /* Global Reset & Base */
@@ -86,6 +113,25 @@ body {
   /* Prevent horizontal scroll from animations */
 }
 
+/* Accessibility: visible keyboard focus (WCAG 2.4.7 Focus Visible).
+   Keyboard-only via :focus-visible so mouse/touch users don't see a ring.
+   A LASER-cyan outline + offset reads clearly against the VOID surfaces and
+   is distinct from hover (which only shifts color/opacity). The `outline`
+   wins over Tailwind `outline-none` utilities on the terminal & palette
+   inputs because :focus-visible raises specificity. A matching box-shadow
+   gives a halo even where an offset outline would be clipped by an
+   overflow-hidden chrome (e.g. window control buttons). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-muted);
+}
+
+/* Never show the legacy hard focus ring for pointer interactions. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* Cinematic Utilities */
 .text-glow {
   text-shadow: 0 0 20px var(--primary-muted);
@@ -95,14 +141,27 @@ body {
   box-shadow: 0 0 10px var(--terminal-border);
 }
 
-@keyframes float {
+/* Reduced-motion safety net (defensive only).
+   Per-component motion is already gated in JS (Framer Motion variants,
+   the WebGL frameloop, IdentityLockup/dock/orb static paths), so this is a
+   backstop for any *CSS-declared* animation or transition that might slip
+   in later — it must NOT fight that JS gating.
 
-  0%,
-  100% {
-    transform: translateY(0);
-  }
+   Framer Motion animates via inline element styles (Web Animations API /
+   direct transform writes), not CSS `@keyframes` or the CSS `transition`
+   property, so collapsing CSS animation/transition timing here leaves the
+   app's orchestrated motion fully intact. We use a near-zero finite
+   duration (not `animation: none`) so any one-shot CSS animation still
+   reaches its final keyframe instead of being cancelled mid-state, and we
+   leave properties like opacity/color free to settle instantly. */
+@media (prefers-reduced-motion: reduce) {
 
-  50% {
-    transform: translateY(-10px);
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
