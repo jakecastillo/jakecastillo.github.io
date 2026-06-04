@@ -76,7 +76,7 @@ const fileSystem: Record<string, FileSystemNode> = {
       },
       "about.md": { type: "file", content: resumeData.summary },
       "contact.txt": { type: "file", content: `Email: ${resumeData.email}\nDocs: type 'copy email' to put in clipboard.` },
-      ".config": { type: "file", content: "theme=dark\nfont=geek-mono\ncoffee_level=critical" },
+      ".config": { type: "file", content: "theme=void\naccent=laser\nshell=zsh\nleast_privilege=true" },
     },
   },
 };
@@ -358,18 +358,14 @@ export default function TerminalTyping() {
         // posture statement that's actually true of this static, dependency-
         // light build. This is the load-bearing security verb.
         appendLines([
-          "running SAST + dependency audit on jakeOS...",
-          "  [scan] static analysis ............ done",
-          "  [scan] dependency audit .......... done",
-          "  [scan] secret detection .......... done",
+          "posture check — jakeOS",
+          "  runtime ............ static export, no server to compromise",
+          "  client secrets ..... none (everything ships at build time)",
+          "  dependency surface . minimal, pinned",
+          "  headers / CSP ...... enforced at the edge on deploy",
           "",
-          "  0 criticals / 0 high / 0 medium",
-          "  0 hardcoded secrets",
-          "  deps: clean (0 known advisories)",
-          "  secure-by-default: enabled",
-          "  least-privilege: enforced",
-          "",
-          "✓ audit passed — the secure path is the fast path",
+          "  attack surface: a static document. nothing to pop.",
+          "  the secure path is the fast path.",
         ]);
         // R1: a successful audit is a deliberate secure action → re-seal.
         pulseSecure();
@@ -427,7 +423,7 @@ export default function TerminalTyping() {
           copied
             ? `✓ Email copied to clipboard: ${resumeData.email}`
             : `→ Email: ${resumeData.email}`,
-          "Let's build something secure. ✦",
+          "Let's build something secure.",
         ]);
         // R1: opening Contact already re-fires the perimeter SEAL via the
         // store's open()→pulseSecure(), so no explicit pulse is needed here.
@@ -535,10 +531,8 @@ export default function TerminalTyping() {
       case "sudo":
         if (arg1 === "rm" && args.includes("-rf") && (args.includes("/") || args.includes(".") || args.includes("*"))) {
           appendLines([
-            "WARNING: SYSTEM CRYTICAL OPERATION DETECTED.",
-            "Deleting system32...",
-            "...",
-            "Just kidding. Please don't delete my portfolio.",
+            "rm: '/': Operation not permitted.",
+            "least-privilege is enforced here — even for you.",
           ]);
         } else if (arg1 === "hire") {
           // Route to the full hire flow (open Contact + copy email + confirm).
@@ -551,10 +545,10 @@ export default function TerminalTyping() {
       case "git":
         if (arg1 === "log") {
           appendLines([
-            "* 9a2b3c (HEAD -> main) feat: added interactive terminal",
-            "* 8d7e6f fix: resolved coffee dependency cycle",
-            "* 5g4h3i feat: graduated university",
-            "* 1a2b3c init: hello world",
+            "* a1f3c9d (HEAD -> main) feat: secure-perimeter boot beat",
+            "* 7b2e4a0 refactor: drive interaction sound from one signal",
+            "* c4d8f12 feat: README manifest — proof before portfolio",
+            "* 0e9a6b3 init: jakeOS",
           ]);
         } else {
           appendLines(["git: command not found. Try 'git log'."]);
@@ -573,8 +567,6 @@ export default function TerminalTyping() {
             ...resumeData.skills.languages,
             ...resumeData.skills.frameworks,
             ...resumeData.skills.databases,
-            "coffee",
-            "sleep",
           ].map(s => s.toLowerCase());
 
           if (allSkills.includes(pkg.toLowerCase())) {
@@ -587,7 +579,7 @@ export default function TerminalTyping() {
             appendLines([
               `npm ERR! 404 Not Found: ${pkg}`,
               `npm ERR! User has not yet installed '${pkg}'.`,
-              `npm ERR! Suggestion: 'npm install coffee'`
+              `npm ERR! Suggestion: try one from 'ls skills/'.`
             ]);
           }
         } else {

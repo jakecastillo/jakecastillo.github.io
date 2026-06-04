@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-// Joke "uptime" since boot. Tuned so the computed value matches the canonical
-// "Uptime: 26 years" surfaced in whoami/resume.summary (26y as of 2026).
-const BIRTH_YEAR = 2000;
+// "uptime" reads as years shipping production software (first production role:
+// DataHouse, Jan 2020) — an experience signal, NOT a birth year. (The old value
+// derived age from a 2000 birth year, which broadcast Jake's age in the menubar.)
+const CAREER_START_YEAR = 2020;
 
 function formatHonolulu(now: Date): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -30,22 +31,12 @@ export default function NowWidget() {
   }, []);
 
   const time = now ? formatHonolulu(now) : "--:--";
-  const uptime = now ? now.getFullYear() - BIRTH_YEAR : null;
+  const uptime = now ? now.getFullYear() - CAREER_START_YEAR : null;
 
+  // The live clock is the liveness cue — no separate throbbing "online" LED.
   return (
     <div className="flex items-center gap-3 font-mono text-[11px] text-muted-foreground">
-      <span className="flex items-center gap-1.5">
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-        online
-      </span>
-      <span className="text-border select-none" aria-hidden="true">
-        ·
-      </span>
-      <span
-        className="text-muted-foreground/70 italic decoration-dotted decoration-muted-foreground/40 underline underline-offset-2 cursor-help"
-        title={`Jake's uptime since boot — est. ${BIRTH_YEAR}`}
-        aria-label={`Easter egg: Jake's uptime is about ${uptime ?? "twenty-something"} years since ${BIRTH_YEAR}`}
-      >
+      <span className="text-muted-foreground/70" title="years shipping production software">
         ~uptime {uptime ?? "--"}y
       </span>
       <span className="text-border select-none" aria-hidden="true">

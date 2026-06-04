@@ -11,7 +11,6 @@ import { DOCK_ORDER } from "./config/dock";
 import NowWidget from "./NowWidget";
 import Wordmark from "./Wordmark";
 import GrainOverlay from "./GrainOverlay";
-import MobileIdentityLockup from "./MobileIdentityLockup";
 
 // R8 swipe nav tuning. The gesture is purely ADDITIVE to the tab bar — it only
 // commits a switch when the horizontal intent is unambiguous so it never fights
@@ -187,13 +186,6 @@ export default function MobileShell() {
                         </motion.div>
                     );
                 })}
-
-                {/* R6: mobile's one-time brand crescendo. Mounted INSIDE <main>
-                    (so its local scrim can never overlay the top bar or tab
-                    row) and only during the reveal phase — it self-dismisses
-                    after a short dwell or on first gesture. pointer-events:none,
-                    so it never blocks a tab tap or the swipe surface. */}
-                {isInteractive && phase === "reveal" && <MobileIdentityLockup />}
             </motion.main>
 
             <motion.nav

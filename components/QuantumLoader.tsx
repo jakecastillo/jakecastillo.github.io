@@ -1,52 +1,33 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBootStore } from "@/store/useBootStore";
+import { REVEAL_EASE } from "@/lib/revealTimeline";
+import SealedPerimeter from "@/components/SealedPerimeter";
 
-const BASE_LOGS = [
-    "[  OK  ] Started Kernel Logging Service.",
-    "[  OK  ] Reached target System Initialization.",
-    "[  OK  ] Listening on Load Balancing Socket.",
-    "[  OK  ] Started Network Manager.",
-    "[  OK  ] Started WPA supplicant.",
-    "[  OK  ] Reached target Network.",
-    "[  OK  ] Secure perimeter established.",
-    "Mounting /sys/kernel/debug...",
-    "[  OK  ] Mounted /sys/kernel/debug.",
-    "Starting WebGL Context Initialization...",
-    "[  OK  ] Started WebGL Context Initialization.",
-    "Starting Quantum Orb Subroutine...",
-    "Starting Liquid Glass Shaders...",
-    "[  OK  ] Compiled PBR Shaders.",
-    "Generating Displacement Maps...",
-    "Synchronizing Animation Frame Loop...",
-    "[  OK  ] Resolved texture dependencies.",
-    "Mounting DOM Nodes...",
-];
+// One honest beat, one clock. The old loader faked a systemd CRT boot (invented
+// service logs, a progress bar wired to a 500ms wall-clock, Math.random log
+// sampling) over work that wasn't happening — the Scene is deferred behind
+// SceneLoader's idle callback, so there was nothing to mask, and a DevSecOps
+// reviewer reads fake boot output as cosplay. This replaces it with a single
+// designed moment: the secure perimeter SEALING. The cyan lock-ring draws closed
+// once over ~600ms, then hands off seamlessly to the live orb (the same lattice).
+const SEAL_MS = 650;
+// Hold "reveal" long enough for the orb's land + chrome stagger to settle before
+// "ready" arms the bare-desktop hints, so nothing stacks on a still-animating hero.
+const REVEAL_TO_READY_MS = 1300;
 
 export default function QuantumLoader() {
     const storeSetPhase = useBootStore((s) => s.setPhase);
     const storePhase = useBootStore((s) => s.phase);
-    const [localPhase, setLocalPhase] = useState<"loading" | "booting">("loading");
-    const [logs, setLogs] = useState<string[]>(["Initializing boot sequence..."]);
-    const containerRef = useRef<HTMLDivElement>(null);
 
-    const [displayProgress, setDisplayProgress] = useState(0);
-    // The boot loader is intentionally time-based: <Scene/> is deferred behind
-    // SceneLoader's idle callback and only fades in at the reveal phase, so there
-    // is no in-flight Canvas Suspense load to gate on while the terminal paints.
-    // A fixed minimum dwell gives the boot CRT its beat without ever hanging.
-    const minLoadTimeMs = 500;
-    const startTimeRef = useRef(0);
-    // Set when the skip fast-path or reduced-motion guard short-circuits the boot.
-    // The loading interval reads this each tick and bails, so it can never revert
-    // a later phase (reveal/ready) back to "booting". A ref (not state) is used so
-    // we never call setState synchronously inside an effect body.
+    // Set when a fast-path (skip / reduced-motion / interaction) short-circuits
+    // boot, so the seal timers below bail and can never revert a later phase.
     const fastPathRef = useRef(false);
 
-    // Honor ?skip=1 (and deep-links) fast-path boot parameter. Mark the fast path
-    // so the loading interval bails and never clobbers "reveal" back to "booting".
+    // Honor ?skip=1 (and deep-links) — jump straight to the desktop, never paint
+    // the seal beat. Marks the fast path so the seal timers below no-op.
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         if (params.get("skip") === "1" || params.has("open") || params.has("focus")) {
@@ -57,11 +38,10 @@ export default function QuantumLoader() {
         }
     }, [storeSetPhase]);
 
-    // Reduced-motion users skip the boot entirely; any interaction skips it too.
+    // Reduced-motion users skip the seal entirely (they land on the static
+    // SealedPerimeter the Scene renders); any genuine interaction also skips it.
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            // Mark the fast path so the loading interval can't revert to "booting"
-            // and replay the full reveal->ready animation over the live desktop.
             fastPathRef.current = true;
             storeSetPhase("ready");
             return;
@@ -82,147 +62,55 @@ export default function QuantumLoader() {
         };
     }, [storeSetPhase]);
 
-    // Simulate progress and logs (time-based; see minLoadTimeMs note above).
+    // The whole boot machine: ONE seal beat, then a sequenced handoff. No second
+    // clock, no log cascade. The reveal->ready hold lets the orb land settle.
     useEffect(() => {
-        if (localPhase !== "loading") return;
-        if (startTimeRef.current === 0) {
-            startTimeRef.current = Date.now();
-        }
-
-        const interval = setInterval(() => {
-            // A fast path (skip / reduced-motion / interaction) already drove the
-            // phase forward — stop here so we never revert it to "booting".
-            if (fastPathRef.current) {
-                clearInterval(interval);
-                return;
-            }
-
-            const elapsed = Date.now() - startTimeRef.current;
-            const timeProgress = Math.min((elapsed / minLoadTimeMs) * 100, 100);
-            setDisplayProgress(timeProgress);
-
-            setLogs((prev) => {
-                if (Math.random() > 0.7) return prev;
-                const newLog = BASE_LOGS[Math.floor(Math.random() * BASE_LOGS.length)];
-                return [...prev, newLog].slice(-30);
-            });
-
-            // Hand off to the booting beat once the minimum dwell has elapsed.
-            if (elapsed >= minLoadTimeMs) {
-                clearInterval(interval);
-                setLocalPhase("booting");
-                storeSetPhase("booting");
-            }
-        }, 80);
-
-        return () => clearInterval(interval);
-    }, [localPhase, storeSetPhase]);
-
-    // Handle booting phase text sequence
-    useEffect(() => {
-        if (localPhase !== "booting") return;
-
-        const ids: ReturnType<typeof setTimeout>[] = [];
-        ids.push(setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 80));
-        ids.push(setTimeout(() => setLogs(p => [...p, "$ login --user jake"]), 200));
-        ids.push(setTimeout(() => setLogs(p => [...p, "welcome back, jake_"]), 360));
-        ids.push(setTimeout(() => storeSetPhase("reveal"), 480));
-        ids.push(setTimeout(() => storeSetPhase("ready"), 1000));
-
+        if (fastPathRef.current) return;
+        const revealId = setTimeout(() => {
+            if (!fastPathRef.current) storeSetPhase("reveal");
+        }, SEAL_MS);
+        const readyId = setTimeout(() => {
+            if (!fastPathRef.current) storeSetPhase("ready");
+        }, SEAL_MS + REVEAL_TO_READY_MS);
         return () => {
-            ids.forEach((id) => clearTimeout(id));
+            clearTimeout(revealId);
+            clearTimeout(readyId);
         };
-    }, [localPhase, storeSetPhase]);
-
-    // Scroll to bottom of logs when new ones arrive
-    useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight;
-        }
-    }, [logs]);
-
-    // Helper to format logs (makes "[  OK  ]" green)
-    const formatLog = (log: string, index: number) => {
-        if (log.startsWith("[  OK  ]")) {
-            return (
-                <div key={index} className="opacity-90 flex gap-2">
-                    <span className="text-foreground/50">[</span>
-                    <span className="text-accent font-bold">  OK  </span>
-                    <span className="text-foreground/50">]</span>
-                    <span className="text-muted-foreground">{log.substring(8)}</span>
-                </div>
-            );
-        }
-        if (log.startsWith("$ ")) {
-            // command echo — laser violet
-            return (
-                <div key={index} className="opacity-90 text-primary">
-                    {log}
-                </div>
-            );
-        }
-        if (log.startsWith("welcome")) {
-            // login confirmation — cyan with glow
-            return (
-                <div
-                    key={index}
-                    className="text-accent"
-                    style={{ textShadow: "0 0 12px rgba(34,211,238,0.45)" }}
-                >
-                    {log}
-                </div>
-            );
-        }
-        return (
-            <div key={index} className="opacity-90 text-muted-foreground">
-                {log}
-            </div>
-        );
-    };
+    }, [storeSetPhase]);
 
     return (
         <AnimatePresence>
             {storePhase !== "ready" && storePhase !== "reveal" && (
                 <motion.div
-                    // No shared-layout morph: there is no destination element with
-                    // a matching layoutId, so a lone layoutId here only drove a
-                    // spurious layout transition that re-inflated the overlay and
-                    // stalled AnimatePresence's unmount. The overlay simply fades.
-                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-[#020617] font-mono text-sm sm:text-base"
-                    // Exit fully to opacity 0 (not 0.0001) so AnimatePresence fires
-                    // exit-complete and unmounts the fixed z-50 node promptly.
+                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-[#020617]"
+                    // Short exit so the desktop chrome (which waits ~0.38s on the
+                    // shared reveal timeline) paints on an already-cleared screen —
+                    // the loader and the desktop are never on screen together.
+                    initial={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    transition={{ duration: 0.35, ease: REVEAL_EASE }}
                 >
-                    {/* Background terminal overlay */}
-                    <div
-                        ref={containerRef}
-                        className="absolute inset-0 p-4 sm:p-8 flex flex-col justify-end overflow-hidden"
+                    {/* The seal beat: the perimeter lattice with the cyan lock-ring
+                        drawing closed once. Same visual language as the live orb, so
+                        the exit hands off into the orb instead of cutting to it. */}
+                    <SealedPerimeter isDesktop draw placement="center" />
+
+                    {/* One honest line + a skip affordance, fading up under the seal. */}
+                    <motion.div
+                        className="absolute inset-x-0 bottom-[18%] flex flex-col items-center gap-3 px-6 text-center font-mono"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.15, ease: REVEAL_EASE }}
                     >
-                        {logs.map((log, i) => formatLog(log, i))}
-
-                        {localPhase === "loading" && (
-                            <div className="mt-4 border-t border-white/10 pt-4 flex items-center gap-4 text-muted-foreground">
-                                <span className="font-bold text-primary">root@system:~#</span>
-                                <div className="flex-1 h-1 bg-white/5 overflow-hidden relative rounded-full">
-                                    <div
-                                        className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-primary to-accent"
-                                        style={{ width: `${displayProgress}%`, transition: "width 0.1s linear" }}
-                                    />
-                                </div>
-                                <span className="text-accent/70">[{Math.floor(displayProgress)}%]</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* CRT scanline overlay */}
-                    <div
-                        className="absolute inset-0 pointer-events-none opacity-[0.12]"
-                        style={{
-                            background: "linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(34,211,238,0.04), rgba(139,92,246,0.03))",
-                            backgroundSize: "100% 2px, 100% 100%"
-                        }}
-                    />
+                        <p className="text-[11px] sm:text-xs tracking-[0.32em] text-muted-foreground">
+                            <span className="text-foreground">jake_castillo</span>
+                            <span className="mx-2 text-muted-foreground/40">·</span>
+                            <span className="text-accent">secure perimeter established</span>
+                        </p>
+                        <p className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground/40">
+                            press any key →
+                        </p>
+                    </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>

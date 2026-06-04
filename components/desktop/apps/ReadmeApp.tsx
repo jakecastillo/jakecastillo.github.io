@@ -1,10 +1,12 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Download } from "lucide-react";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { BRAND } from "@/components/desktop/config/brand";
 import { projects } from "@/data/projects";
 import AppCanvas from "@/components/desktop/AppCanvas";
+import { REVEAL_EASE } from "@/lib/revealTimeline";
 
 /**
  * Pull the headline figure for a given project straight from data/projects.ts so
@@ -62,21 +64,36 @@ const AVAILABILITY =
 
 export default function ReadmeApp() {
     const open = useDesktopStore((s) => s.open);
+    const reduced = useReducedMotion();
 
     return (
         <AppCanvas className="font-mono text-sm">
-            {/* KICKER — in-world OS manifest header */}
-            <header className="space-y-3">
+            {/* IDENTITY — the README header is now the ONE identity beat (the
+                full-screen lockup splash + wallpaper strapline were retired). A
+                single quiet fade-up on open replaces them; reduced-motion shows it
+                instantly. Name leads, the POV line lands as the takeaway. */}
+            <motion.header
+                className="space-y-2"
+                initial={reduced ? false : { opacity: 0, y: 8 }}
+                animate={reduced ? undefined : { opacity: 1, y: 0 }}
+                transition={{ duration: 0.42, ease: REVEAL_EASE }}
+            >
                 <div className="text-[10px] tracking-[0.3em] text-muted-foreground/70">
                     {`// SYSTEM README`}
                 </div>
-                <h2 className="font-display text-2xl sm:text-[1.75rem] font-black leading-[1.1] tracking-tight text-foreground">
-                    {BRAND.signature}
-                </h2>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                    {BRAND.name} — {BRAND.tagline}. The proof, before the portfolio.
+                <h1 className="font-display text-2xl sm:text-[1.75rem] font-bold leading-[1.1] tracking-tight text-foreground">
+                    {BRAND.name}
+                </h1>
+                <p className="text-[11px] tracking-[0.18em] uppercase text-muted-foreground">
+                    {BRAND.role} · {BRAND.location}
                 </p>
-            </header>
+                <p className="pt-1.5 text-sm leading-snug text-foreground/90">
+                    {BRAND.signature}
+                </p>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                    The proof, before the portfolio.
+                </p>
+            </motion.header>
 
             {/* PROOF — three quantified hero numbers, violet-dominant */}
             <section aria-label="Proof of impact">
@@ -110,10 +127,10 @@ export default function ReadmeApp() {
                 aria-label="Availability"
                 className="flex items-center gap-3 rounded-md border border-border/50 bg-background/30 px-4 py-3"
             >
-                <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 motion-safe:animate-ping" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(34,211,238,0.8)]" />
-                </span>
+                <span
+                    className="h-2 w-2 shrink-0 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(34,211,238,0.8)]"
+                    aria-hidden="true"
+                />
                 <p className="text-[11px] leading-snug text-foreground">
                     <span className="tracking-[0.2em] text-accent">AVAILABLE</span>
                     <span className="text-muted-foreground"> — {AVAILABILITY}</span>

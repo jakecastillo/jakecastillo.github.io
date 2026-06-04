@@ -11,8 +11,6 @@ interface WordmarkProps {
  *
  * Renders BRAND.handle ("jake.os") as a status-dot + two-tone monospace lockup:
  * the name segment in violet (--primary) and the ".os" suffix in cyan (--accent).
- * Height, spacing and tracking match the original Menubar item so the
- * layoutId="terminal-window" boot->window morph and the Playwright audit stay green.
  */
 export default function Wordmark({ size = "11px", className = "" }: WordmarkProps) {
     // Derive both tones from the canonical string so identity stays single-sourced.

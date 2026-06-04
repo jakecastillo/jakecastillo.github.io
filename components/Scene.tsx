@@ -9,6 +9,8 @@ import QuantumOrb from "./canvas/QuantumOrb";
 import LiquidGlass from "./canvas/LiquidGlass";
 import { useMediaQuery, DESKTOP_MEDIA_QUERY } from "@/hooks/useMediaQuery";
 import { useBootStore } from "@/store/useBootStore";
+import SealedPerimeter from "@/components/SealedPerimeter";
+import { REVEAL, REVEAL_EASE } from "@/lib/revealTimeline";
 
 // Minimal shape for the (non-standard, not-in-lib.dom) Network Information API.
 // Used only to detect Data Saver so we can skip the WebGL Canvas on low-power /
@@ -101,7 +103,10 @@ export default function Scene() {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: visible ? 1 : 0 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.7 }}
+            // Cross-fade in AT reveal (+0 on the shared timeline) so the orb picks
+            // up directly from the boot seal lattice — a handoff, not a second
+            // intro. (Was delay 0.7s / 0.8s easeOut, which raced the overlay exit.)
+            transition={{ duration: REVEAL.orbDuration, ease: REVEAL_EASE, delay: REVEAL.orb }}
             className="fixed inset-0 z-0 pointer-events-none"
         >
             {lowPower ? (
@@ -121,8 +126,11 @@ export default function Scene() {
                     <Suspense fallback={null}>
                         <color attach="background" args={["#020617"]} />
                         <ambientLight intensity={0.4} />
-                        <pointLight position={[5, 10, 5]} intensity={1.5} color="#38bdf8" />
-                        <pointLight position={[-10, -5, 2]} intensity={0.5} color="#818cf8" />
+                        {/* Palette-disciplined lighting: a violet key + a single
+                            cool cyan rim — the only two colors in the system.
+                            (Was off-brand sky-blue #38bdf8 + indigo #818cf8.) */}
+                        <pointLight position={[5, 10, 5]} intensity={1.4} color="#8b5cf6" />
+                        <pointLight position={[-8, -4, 3]} intensity={0.45} color="#22d3ee" />
                         <Environment preset="city" environmentIntensity={0.2} />
                         <QuantumOrb isDesktop={isDesktop} allowMotion={allowMotion} />
                         {heavyOn && <LiquidGlass />}
@@ -189,71 +197,5 @@ export default function Scene() {
                 />
             )}
         </motion.div>
-    );
-}
-
-// Static, WebGL-free "sealed perimeter" used on the low-power path. A faint
-// violet containment lattice (radial spokes + concentric rings) with the cyan
-// lock-ring already sealed at the equator — the frozen twin of the live orb's
-// "secure perimeter established" read. No motion, no binary asset, two colors.
-function SealedPerimeter({ isDesktop }: { isDesktop: boolean }) {
-    // Match the live orb's footprint roughly: large + centered on desktop, shrunk
-    // and dropped low on mobile so it reads as the same quiet backdrop.
-    const size = isDesktop ? "min(62vmin, 620px)" : "min(78vw, 360px)";
-    const top = isDesktop ? "50%" : "78%";
-    return (
-        <div
-            aria-hidden
-            className="absolute inset-0 overflow-hidden"
-            style={{ background: "#020617" }}
-        >
-            <div
-                className="absolute"
-                style={{
-                    width: size,
-                    height: size,
-                    left: "50%",
-                    top,
-                    transform: "translate(-50%, -50%)",
-                    opacity: isDesktop ? 0.85 : 0.5,
-                }}
-            >
-                <svg
-                    viewBox="0 0 200 200"
-                    width="100%"
-                    height="100%"
-                    fill="none"
-                    aria-hidden
-                >
-                    {/* Faint violet containment lattice (the shield-mesh, frozen):
-                        two concentric great-circle rings + light meridian/parallel
-                        spokes so it reads as a structured guarded boundary, not a
-                        plain circle. Violet (--primary) only. */}
-                    <g stroke="#8b5cf6" strokeWidth="0.6" opacity="0.28">
-                        <circle cx="100" cy="100" r="78" />
-                        <circle cx="100" cy="100" r="60" />
-                        <ellipse cx="100" cy="100" rx="30" ry="78" />
-                        <ellipse cx="100" cy="100" rx="60" ry="78" />
-                        <ellipse cx="100" cy="100" rx="78" ry="30" />
-                        <ellipse cx="100" cy="100" rx="78" ry="60" />
-                    </g>
-                    {/* Sealed cyan lock-ring at the equator (--accent, the secure
-                        signal) — drawn brighter than the lattice so the perimeter
-                        reads as ESTABLISHED, matching the live orb's locked state. */}
-                    <ellipse
-                        cx="100"
-                        cy="100"
-                        rx="80"
-                        ry="22"
-                        stroke="#22d3ee"
-                        strokeWidth="1.4"
-                        opacity="0.7"
-                    />
-                    {/* Faint violet inner core hint so the silhouette has a center
-                        of mass like the live orb. */}
-                    <circle cx="100" cy="100" r="22" fill="#8b5cf6" opacity="0.06" />
-                </svg>
-            </div>
-        </div>
     );
 }

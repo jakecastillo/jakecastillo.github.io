@@ -13,6 +13,7 @@ import Wordmark from "./Wordmark";
 import { APPS } from "./config/apps";
 import { BRAND } from "./config/brand";
 import { windowPhysics } from "@/lib/windowPhysics";
+import { REVEAL, REVEAL_EASE } from "@/lib/revealTimeline";
 
 const MENUS = ["File", "Edit", "View"];
 
@@ -82,7 +83,7 @@ export default function Menubar() {
 
     const activeName = focusedId ? APPS[focusedId].name : "Desktop";
 
-    // ✦ Tidy: first un-maximize any maximized window so it rejoins physics
+    // Tidy: first un-maximize any maximized window so it rejoins physics
     // (maximized windows aren't registered, so Tidy would otherwise leave the
     // rest hidden behind it), then arrange on the next frame once it remounts.
     const handleTidy = () => {
@@ -96,13 +97,17 @@ export default function Menubar() {
 
     return (
         <motion.div
-            initial={{ y: -40, opacity: 0 }}
+            // Chrome settles on the shared reveal timeline AFTER the boot overlay
+            // has cleared — a small fade+drop, not a 40px slide racing the loader.
+            initial={reduceMotion ? false : { y: 8, opacity: 0 }}
             animate={
                 phase === "reveal" || phase === "ready"
                     ? { y: 0, opacity: 1 }
-                    : { y: -40, opacity: 0 }
+                    : reduceMotion
+                      ? { opacity: 0 }
+                      : { y: 8, opacity: 0 }
             }
-            transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+            transition={{ delay: REVEAL.chrome, duration: REVEAL.chromeDuration, ease: REVEAL_EASE }}
             className="absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-4 bg-black/40 backdrop-blur-md border-b border-white/5 z-40 select-none"
         >
             <div className="flex min-w-0 items-center gap-4 font-mono text-[11px]">
@@ -121,24 +126,19 @@ export default function Menubar() {
                     className="shrink-0 whitespace-nowrap text-accent/90 hover:text-accent transition-colors cursor-pointer"
                     aria-label="Tidy windows into a grid"
                 >
-                    ✦ Tidy
+                    Tidy
                 </button>
             </div>
             <div className="flex shrink-0 items-center gap-4">
-                {/* Terse availability echo (R15). A rationed-cyan status dot
-                    (cyan == active/live signal) + label; the dot pulse is
-                    motion-safe only so reduced-motion stays static. Deferred to
-                    lg+ so the 32px bar never crowds at the 768px desktop floor.
-                    Full string from BRAND on hover. Referenced defensively. */}
+                {/* Terse availability echo (R15). Text-as-signal — the cyan label
+                    carries the "active/live" meaning, no throbbing status LED (the
+                    pulsing dots elsewhere were the corny tell). Deferred to lg+ so
+                    the 32px bar never crowds at the 768px floor; full string on hover. */}
                 {BRAND.availability && (
                     <span
-                        className="hidden lg:flex items-center gap-1.5 whitespace-nowrap font-mono text-[11px] text-muted-foreground"
+                        className="hidden lg:inline whitespace-nowrap font-mono text-[11px] text-signal/90"
                         title={BRAND.availability}
                     >
-                        <span
-                            aria-hidden="true"
-                            className="w-1.5 h-1.5 rounded-full bg-signal shadow-[0_0_6px_var(--signal)] motion-safe:animate-pulse"
-                        />
                         open to work
                     </span>
                 )}
@@ -191,13 +191,10 @@ export default function Menubar() {
                     }
                     transition={
                         showPulse
-                            ? { duration: 1.1, repeat: 2, ease: "easeInOut" }
+                            ? { duration: 1.2, ease: "easeInOut" }
                             : { duration: 0.2 }
                     }
                 >
-                    <span className="text-accent/80 group-hover:text-accent" aria-hidden="true">
-                        ✦
-                    </span>
                     <span aria-hidden="true">Spotlight</span>
                     <kbd className="rounded border border-border bg-black/30 px-1 text-[10px] text-muted-foreground/80">
                         {shortcut}

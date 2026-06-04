@@ -49,8 +49,8 @@ export default function StackApp() {
     return (
         <AppCanvas wide className="font-mono text-sm space-y-6">
             <header className="flex items-center justify-between">
-                <h2 className="font-display text-xl font-black tracking-tight text-foreground">
-                    Technical Arsenal
+                <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
+                    Stack
                 </h2>
                 <div className="flex gap-1 text-[11px]">
                     {TABS.map((t) => (

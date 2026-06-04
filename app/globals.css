@@ -132,18 +132,29 @@ body {
   outline: none;
 }
 
-/* Cinematic Utilities */
-.text-glow {
-  text-shadow: 0 0 20px var(--primary-muted);
+/* Boot seal beat: the cyan lock-ring drawing CLOSED once (stroke-dashoffset).
+   Used by the intro <SealedPerimeter draw> so the perimeter visibly "establishes"
+   instead of just appearing. Reduced-motion collapses this (see the net below) so
+   the ring renders already-sealed. The dash length comfortably exceeds the
+   equator ellipse circumference so the wipe fully reveals it. */
+@keyframes seal-draw {
+  from {
+    stroke-dashoffset: 420;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
-.border-glow {
-  box-shadow: 0 0 10px var(--terminal-border);
+.seal-ring-draw {
+  stroke-dasharray: 420;
+  animation: seal-draw 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Reduced-motion safety net (defensive only).
    Per-component motion is already gated in JS (Framer Motion variants,
-   the WebGL frameloop, IdentityLockup/dock/orb static paths), so this is a
+   the WebGL frameloop, dock/orb static paths), so this is a
    backstop for any *CSS-declared* animation or transition that might slip
    in later — it must NOT fight that JS gating.
 

@@ -2,10 +2,11 @@
  * lib/sound.ts — a tiny, default-OFF, synthesized Web Audio layer (R9).
  *
  * A real OS has sounds; the cloneable desktop-metaphor templates skip them. This
- * adds exactly TWO oscillator-only tones — no asset fetch, no binary on the
+ * adds exactly ONE oscillator-only tone — no asset fetch, no binary on the
  * critical path:
- *   - a soft "lock" tick (the perimeter SEAL re-fire)
- *   - a faint "focus" tick (a window gaining focus / opening)
+ *   - the SEAL: a soft latch "click" on the deliberate secure action (the audible
+ *     twin of the orb's cyan lock-ring snap). No per-window-open whisper — sound
+ *     is the rationed signature, mirroring cyan in the visual system.
  *
  * Design constraints (honored exactly):
  *   - STATIC EXPORT / SSR-safe: every browser API is `typeof`-guarded; nothing
@@ -22,10 +23,8 @@
  *     tone is a short enveloped blip, never a sustained tone.
  *
  * Wiring (set up once, lazily, by the store module — see initSoundWiring):
- *   (a) focus/open tick — fires when `focusedId` changes
- *   (b) lock SEAL tick  — fires when `secureActionAt` changes (the re-snap beat)
- * There is intentionally NO per-keystroke clack (cut as most plumbing / least
- * payoff).
+ *   the SEAL fires when `secureActionAt` changes (the deliberate secure beat).
+ * That is the ONLY trigger — no focus/open whisper, no per-keystroke clack.
  */
 
 import { getFlag, setFlag } from "./firstRun";
@@ -159,7 +158,11 @@ function blip(
     duration: number,
     glideTo?: number,
 ): void {
-    if (!soundActive() || !ctx || !master) return;
+    // Also require a RUNNING context: ctx.resume() is async, so right after the
+    // first-gesture unlock the context can still be "suspended" — scheduling onto
+    // it drops the tone silently. We'd rather skip that one tone than replay it
+    // late (a delayed seal click is worse than a missed one).
+    if (!soundActive() || !ctx || !master || ctx.state !== "running") return;
     try {
         const now = ctx.currentTime;
         const osc = ctx.createOscillator();
@@ -201,38 +204,40 @@ function blip(
 }
 
 /**
- * Soft "lock" tick — the perimeter SEAL. A two-note close (a short high glide
- * settling onto a lower fundamental) reads as a latch/seal "click". Reserved for
- * the deliberate secure-action re-snap, so it stays rare and meaningful.
+ * The perimeter SEAL — the ONE interaction tone. A short upper note glides down
+ * and latches onto a lower fundamental, reading as a "seal/latch click". It is
+ * the audible twin of the orb's cyan lock-ring snap, reserved for the deliberate
+ * secure action so it stays rare and meaningful. There is intentionally no
+ * per-window-open "focus" whisper — sound is the rationed signature, mirroring
+ * how cyan is rationed in the visual system.
  */
-export function playLockTick(): void {
+export function playSeal(): void {
     // A brief upper note that glides down and seals — the "snap closed" feel.
     blip(660, 0.5, 0.16, 420);
 }
 
 /**
- * Faint "focus" tick — a window gaining focus / opening. Quieter and shorter than
- * the lock tick so frequent focus changes stay a whisper, never a melody.
- */
-export function playFocusTick(): void {
-    blip(880, 0.22, 0.06);
-}
-
-/**
- * Wire the two call sites to shared desktop state, exactly once, on the client.
+ * Wire the single sound — the SEAL — to shared desktop state, once, on the client.
  *
- * Subscribes to useDesktopStore and fires:
- *   (a) playFocusTick() when `focusedId` changes (covers open + focus)
- *   (b) playLockTick()  when `secureActionAt` changes (the SEAL re-snap)
+ * Subscribes to useDesktopStore and watches ONLY `secureActionAt` (the same
+ * signal the orb's visual lock-ring snap watches), firing playSeal() when it
+ * changes. This is gesture-accurate WITHOUT inferring intent from a pile of
+ * unrelated state diffs:
+ *   - A logical secure action that writes the store more than once still fires
+ *     EXACTLY ONE tone — e.g. open('contact') stamps secureActionAt via
+ *     pulseSecure(), THEN writes windows/focus in a separate set(); only the
+ *     first write changes secureActionAt, so only one seal plays (this is the
+ *     fix for the old "double-blip" where a focusedId-watching subscription
+ *     fired twice on the two writes).
+ *   - Focus / open / close / minimize / hydrate make NO sound — sound is
+ *     reserved for the deliberate secure beat, never per-window-open noise.
+ *   - Because audio and the orb's visual snap both react to the SAME value, the
+ *     tick and the cyan bloom land together instead of drifting apart.
  *
- * The store calls this from a `typeof window` guard at the bottom of its module,
- * so the subscription owner is the store (single source of truth) and works on
- * BOTH the desktop and mobile shells (the orb's own subscription doesn't, since
- * the Canvas is unmounted on low-power / mobile-scrim paths).
- *
- * The store import is done lazily INSIDE this function to keep module-eval order
- * clean across the store <-> sound import cycle (the reference resolves only when
- * the store calls us, by which point its module has finished initializing).
+ * armGestureUnlock() is kept so a returning visitor with sound-on persisted still
+ * unlocks the AudioContext on their first gesture. The store calls this from a
+ * `typeof window` guard, and the store import is lazy here to keep the
+ * store<->sound module cycle clean.
  */
 export async function initSoundWiring(): Promise<void> {
     if (wired || typeof window === "undefined") return;
@@ -240,31 +245,12 @@ export async function initSoundWiring(): Promise<void> {
 
     armGestureUnlock();
 
-    // Lazy import breaks the static cycle: the store imports this module to call
-    // initSoundWiring(); we import the store back only here, after it's ready.
     const { useDesktopStore } = await import("@/store/useDesktopStore");
 
-    const initial = useDesktopStore.getState();
-    let lastFocus = initial.focusedId;
-    let lastSecureAt = initial.secureActionAt;
-
+    let lastSecureAt = useDesktopStore.getState().secureActionAt;
     useDesktopStore.subscribe((state) => {
-        const focusChanged = state.focusedId !== lastFocus;
-        const sealChanged = state.secureActionAt !== lastSecureAt;
-
-        // Opening Contact stamps secureActionAt AND moves focus in the same store
-        // write, so both flags trip at once. The SEAL is the meaningful beat —
-        // play only the lock tick then and SUPPRESS the focus whisper so the
-        // contact-open never stutters as a muddy double-blip.
-        if (focusChanged) lastFocus = state.focusedId;
-        if (sealChanged) lastSecureAt = state.secureActionAt;
-
-        if (sealChanged && state.secureActionAt != null) {
-            // (b) Lock SEAL tick — the perimeter re-snap.
-            playLockTick();
-        } else if (focusChanged && state.focusedId) {
-            // (a) Focus/open tick — a window gained focus (no concurrent seal).
-            playFocusTick();
-        }
+        if (state.secureActionAt === lastSecureAt) return;
+        lastSecureAt = state.secureActionAt;
+        if (state.secureActionAt != null) playSeal();
     });
 }

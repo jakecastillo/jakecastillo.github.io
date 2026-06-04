@@ -42,15 +42,15 @@ export default function AboutApp() {
                         </div>
                     </div>
 
-                    <h2 className="font-display text-xl font-black tracking-tight mt-4">{BRAND.name}</h2>
+                    <h2 className="font-display text-xl font-bold tracking-tight mt-4">{BRAND.name}</h2>
                     <p className="text-primary text-xs mt-0.5">{BRAND.role}</p>
                     <p className="text-muted-foreground text-xs">{BRAND.location}</p>
 
                     <div className="mt-3 flex items-start gap-2 rounded-full border border-accent/30 bg-accent/5 px-3 py-1.5 self-center md:self-stretch">
-                        <span className="relative mt-[3px] flex h-2 w-2 shrink-0" aria-hidden="true">
-                            <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 motion-safe:animate-ping" />
-                            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(34,211,238,0.8)]" />
-                        </span>
+                        <span
+                            className="mt-[3px] h-2 w-2 shrink-0 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(34,211,238,0.8)]"
+                            aria-hidden="true"
+                        />
                         <span className="text-[10px] leading-snug tracking-[0.1em] text-accent text-left">
                             {BRAND.availability}
                         </span>
@@ -79,9 +79,7 @@ export default function AboutApp() {
                     {/* SIGNATURE — the ownable POV line, highlighted near identity */}
                     <div className="border-l-2 border-accent pl-4">
                         <p className="font-display text-lg sm:text-xl font-bold leading-tight tracking-tight text-foreground">
-                            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                                “{BRAND.signature}”
-                            </span>
+                            “{BRAND.signature}”
                         </p>
                         <p className="text-muted-foreground text-xs leading-relaxed mt-2">
                             Secure-by-default ships faster because the cost of a vulnerability is lowest before

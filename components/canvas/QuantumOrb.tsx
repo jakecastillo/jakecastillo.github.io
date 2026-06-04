@@ -400,8 +400,9 @@ export default function QuantumOrb({
             meridiansRef.current.rotation.y = baseRotY * 0.5;
         }
 
-        // Gentle hovering effect
-        const hoverY = Math.sin(time * 0.5) * 0.2;
+        // A barely-there drift so the orb reads alive-but-STILL (a guarded
+        // perimeter), not a bobbing toy. (Was 4x larger + faster.)
+        const hoverY = Math.sin(time * 0.3) * 0.05;
         orbRef.current.position.y = hoverY;
         meshShellRef.current.position.y = hoverY;
         if (lockRingRef.current) {
@@ -411,8 +412,9 @@ export default function QuantumOrb({
             meridiansRef.current.position.y = hoverY;
         }
 
-        // Pulsing scale effect (calm baseline)
-        let scale = 1 + Math.sin(time * 1.2) * 0.02;
+        // No idle "breathing" pulse — the orb holds still between the one-shot
+        // reveal / secure-action snaps so those beats are the only motion read.
+        let scale = 1;
 
         // One-shot reveal "landing + lock": brief emissive/opacity spike with a
         // slight scale bump that decays back to a calm baseline over
@@ -589,8 +591,8 @@ export default function QuantumOrb({
                         toneMapped={false}
                         roughness={0.2}
                         metalness={0.8}
-                        distort={0.3}
-                        speed={2}
+                        distort={0.15}
+                        speed={0.6}
                     />
                 </Sphere>
 

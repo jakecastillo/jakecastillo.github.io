@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import SceneLoader from "@/components/SceneLoader";
 import QuantumLoader from "@/components/QuantumLoader";
-import BootLayoutGroup from "@/components/BootLayoutGroup";
 import { BRAND } from "@/components/desktop/config/brand";
 import { resumeData } from "@/data/resume";
 
@@ -133,15 +132,12 @@ export default function RootLayout({
         {/* Cinematic Background Layer (lazy-loaded so three.js leaves the critical path) */}
         <SceneLoader />
 
-        {/* Boot + Content share a LayoutGroup so the terminal boot overlay can morph into the Terminal window */}
-        <BootLayoutGroup>
-          <QuantumLoader />
-          <div className="relative z-10 flex flex-col min-h-screen">
-            <main className="flex-grow">
-              {children}
-            </main>
-          </div>
-        </BootLayoutGroup>
+        <QuantumLoader />
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <main className="flex-grow">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );
