@@ -82,9 +82,9 @@ export const resumeData: ResumeData = {
       period: "Jan 2021–Oct 2025",
       context: "Hawaiʻi's largest software consultancy — modernizing enterprise & government systems.",
       description: [
-        "Modernized a brittle legacy monolith into NestJS microservices — isolating failure domains to enable independent, lower-risk deploys across 4+ products over a 5-year tenure.",
+        "Re-architected a brittle legacy monolith into 12+ NestJS microservices serving 10k+ users across 4+ products — isolating failure domains to cut production incidents and unplanned downtime over a 5-year tenure.",
         "Built full-stack features end-to-end with React, NestJS/Prisma, and PostgreSQL, enforcing schema-level type safety to eliminate a class of runtime data bugs.",
-        "Acted as technical SME and lead across cross-functional teams, owning production incident resolution and long-term maintainability.",
+        "Acted as technical SME and lead across cross-functional teams, owning production support and long-term maintainability.",
       ],
     },
     {
