@@ -45,7 +45,6 @@ export default function ActExperience() {
 
     const { scrollYProgress } = useScroll({ target: targetRef });
     const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
-    const barWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
     // Map scroll progress → active node index for the "NN / TT" counter.
     const [active, setActive] = useState(0);
@@ -58,7 +57,7 @@ export default function ActExperience() {
     // case-study list — no pin, no horizontal transform, opacity-only reveals.
     if (!immersive) {
         return (
-            <section className="container-page pt-24 pb-28 [padding-bottom:calc(7rem+env(safe-area-inset-bottom))]">
+            <section className="section-y container-page [padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
                 <h2 className="sr-only">Experience</h2>
                 <p className="mb-12 font-mono text-xs tracking-widest text-muted-foreground">
                     {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
@@ -104,8 +103,8 @@ export default function ActExperience() {
                         aria-hidden="true"
                     >
                         <motion.div
-                            style={{ width: barWidth }}
-                            className="h-full rounded-full bg-primary glow-primary"
+                            style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
+                            className="h-full w-full rounded-full bg-primary glow-primary"
                         />
                     </div>
                 </div>
@@ -166,7 +165,7 @@ function TimelineNode({
             />
 
             {/* Readability scrim: keeps muted text ≥4.5:1 even over the bright orb core. */}
-            <div className="rounded-xl bg-background/70 px-4 py-3 backdrop-blur-sm">
+            <div className="rounded-xl bg-background/70 p-6 backdrop-blur-sm sm:p-8">
                 {/* Role / period / company hierarchy — reads as a STAR case-study header */}
                 <header className="mb-6 flex flex-col gap-2">
                     <span className="font-mono text-xs uppercase tracking-[0.2em] text-subtle-foreground">
@@ -204,7 +203,7 @@ function TimelineNode({
                     href={job.companyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-border px-5 py-2.5 font-mono text-sm tracking-wider text-foreground transition-[color,background-color,transform] duration-150 hover:bg-surface-elevated hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+                    className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-mono text-sm tracking-wider text-white transition-[color,background-color,transform] duration-150 hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
                 >
                     VIEW COMPANY <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>

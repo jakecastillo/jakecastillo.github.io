@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Typewriter from "typewriter-effect";
 import { useBootStore } from "@/store/useBootStore";
 
@@ -56,6 +56,11 @@ const fileSystem: Record<string, FileSystemNode> = {
 
 export default function TerminalTyping() {
   const isBootComplete = useBootStore((state) => state.isBootComplete);
+  const prefersReducedMotion = useReducedMotion();
+  // "opening" renders a static, fully-readable transcript on the very first
+  // frame (the terminal is NEVER an empty panel). "typing" runs the Typewriter
+  // as progressive enhancement over the same content. "complete" hands off to
+  // the interactive shell. Under reduced motion we never enter "typing".
   const [phase, setPhase] = useState<"opening" | "typing" | "complete">("opening");
 
   // Keep track of where we are. Root is "~"
@@ -381,19 +386,35 @@ $ `;
   }, [phase]);
 
   useEffect(() => {
-    if (isBootComplete && typeof window !== "undefined" && window.terminalTypewriter) {
+    if (
+      !prefersReducedMotion &&
+      isBootComplete &&
+      typeof window !== "undefined" &&
+      window.terminalTypewriter
+    ) {
       window.terminalTypewriter.start();
     }
-  }, [isBootComplete]);
+  }, [isBootComplete, prefersReducedMotion]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1, ease: [0.25, 0.4, 0.25, 1] }}
-      onAnimationComplete={() => setPhase("typing")}
+      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.1, ease: [0.25, 0.4, 0.25, 1] }}
+      onAnimationComplete={() => {
+        if (phase !== "opening") return;
+        if (prefersReducedMotion) {
+          // Reduced motion: skip the Typewriter entirely, seed the final boot
+          // transcript and hand straight off to the interactive shell. Same
+          // branded content, no per-character animation.
+          setOutputText(bootTranscript);
+          setPhase("complete");
+        } else {
+          setPhase("typing");
+        }
+      }}
       onClick={() => inputRef.current?.focus()}
-      className={`bg-[#1c1c1c] text-[#f1f1f1] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
+      className={`bg-[color:var(--surface-overlay)] text-[color:var(--foreground)] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
         isFocused
           ? "ring-2 ring-offset-2 ring-offset-background ring-[color:var(--primary-hover)] border border-border-strong"
           : "border border-border"
@@ -409,24 +430,47 @@ $ `;
         fontFamily: "Menlo, Monaco, 'Courier New', monospace"
       }}
     >
-      {/* Window chrome */}
-      <div className="relative flex items-center h-7 px-3 bg-[#3a3a3a] border-b border-[#2a2a2a] shrink-0">
+      {/* Window chrome — bar derived near the surface-overlay token (#2a2a32),
+          a touch lighter than the body for luminance elevation. */}
+      <div className="relative flex items-center h-7 px-3 bg-[#2a2a32] border-b border-[#202028] shrink-0">
         <div className="flex gap-2 absolute left-3">
           <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e]" />
           <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24]" />
           <div className="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29]" />
         </div>
         <div className="w-full text-center">
-          <span className="text-[#999] text-xs font-semibold flex items-center justify-center gap-1.5 opacity-80">
+          <span className="text-[#c4c4c4] text-xs font-semibold flex items-center justify-center gap-1.5 opacity-90">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z" /></svg>
             jake — -zsh
           </span>
         </div>
       </div>
 
-      {/* Typing phase */}
+      {/* Opening phase — the boot transcript rendered as STATIC styled text on
+          the very first frame, so the panel is never empty/black before the
+          Typewriter takes over. role="log" so AT announce the same content. */}
+      {phase === "opening" && (
+        <div
+          role="log"
+          aria-live="polite"
+          aria-label="Terminal boot transcript"
+          tabIndex={0}
+          className="p-3 whitespace-pre-wrap break-words [overflow-wrap:anywhere] flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--primary-hover)]"
+        >
+          {bootTranscript}
+        </div>
+      )}
+
+      {/* Typing phase — progressive enhancement: the Typewriter replays the
+          same transcript character-by-character (only for non-reduced-motion). */}
       {phase === "typing" && (
-        <div className="p-3 whitespace-pre-wrap break-words flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 text-xs leading-relaxed [&_.Typewriter__wrapper]:whitespace-pre-wrap [&_.Typewriter__wrapper]:break-words [&_.Typewriter__wrapper]:[overflow-wrap:anywhere] [&_.Typewriter__wrapper]:block [&_.Typewriter__cursor]:text-[color:var(--primary-hover)]">
+        <div
+          role="log"
+          aria-live="polite"
+          aria-label="Terminal boot transcript"
+          tabIndex={0}
+          className="p-3 whitespace-pre-wrap break-words flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--primary-hover)] [&_.Typewriter__wrapper]:whitespace-pre-wrap [&_.Typewriter__wrapper]:break-words [&_.Typewriter__wrapper]:[overflow-wrap:anywhere] [&_.Typewriter__wrapper]:block [&_.Typewriter__cursor]:text-[color:var(--primary-hover)]"
+        >
           <Typewriter
             options={{
               autoStart: false,
@@ -455,7 +499,11 @@ $ `;
         <div className="p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
           <div
             ref={scrollContainerRef}
-            className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-xs leading-relaxed scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+            role="log"
+            aria-live="polite"
+            aria-label="Terminal output. Use arrow keys to scroll."
+            tabIndex={0}
+            className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-sm leading-relaxed scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--primary-hover)] rounded-sm"
           >
             {outputText}
 
@@ -472,7 +520,7 @@ $ `;
                 await runCommand(value);
               }}
             >
-              <span className="text-[color:var(--primary-hover)] select-none shrink-0 text-xs font-semibold">
+              <span className="text-[color:var(--primary-hover)] select-none shrink-0 text-sm font-semibold">
                 {currentPath.length === 1 ? "~" : currentPath[currentPath.length - 1]} $
               </span>
               <input
@@ -534,7 +582,7 @@ $ `;
                 autoCapitalize="none"
                 autoComplete="off"
                 placeholder=""
-                className="flex-1 min-w-0 bg-transparent text-[#f1f1f1] text-xs placeholder:text-gray-500 placeholder:opacity-50"
+                className="flex-1 min-w-0 bg-transparent text-[color:var(--foreground)] text-sm placeholder:text-gray-500 placeholder:opacity-50 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
                 aria-label="Terminal input"
               />
             </form>

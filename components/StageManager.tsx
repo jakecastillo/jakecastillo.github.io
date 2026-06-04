@@ -70,7 +70,10 @@ export default function StageManager() {
         stageSections.find((act) => act.id === activeId) ?? stageSections[0];
 
     return (
-        <div className="fixed top-12 left-12 z-40 hidden lg:block">
+        // Nudged down from top-12 to clear the fixed header brand mark that now
+        // sits at top-5 left-5; this keeps the act indicator from colliding with
+        // it while staying aligned to the left gutter.
+        <div className="fixed top-24 left-12 z-40 hidden lg:block">
             <div className="flex flex-col items-start gap-2">
                 <AnimatePresence mode="wait">
                     <motion.div

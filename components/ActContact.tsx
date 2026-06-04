@@ -38,7 +38,14 @@ export default function ActContact() {
     ];
 
     return (
-        <section className="relative py-32 min-h-[80vh] flex flex-col justify-center overflow-hidden">
+        <section
+            className="section-y relative min-h-[80vh] flex flex-col justify-center overflow-hidden"
+            style={{
+                // Final act: clear the fixed bottom dock so its content/markers
+                // never overlap at 375px, including iOS safe-area inset.
+                paddingBottom: "calc(8rem + env(safe-area-inset-bottom))",
+            }}
+        >
             {/* Background grid — decorative */}
             <div
                 aria-hidden="true"
@@ -103,7 +110,7 @@ export default function ActContact() {
                                         : undefined
                                 }
                                 download={primary.download ? "" : undefined}
-                                className="group glow-primary flex min-h-11 items-center justify-between gap-4 rounded-lg bg-primary px-5 py-4 text-primary-foreground transition-[transform,box-shadow] hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
+                                className="group glow-primary flex min-h-11 items-center justify-between gap-4 rounded-lg bg-primary-cta px-5 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
                             >
                                 <span className="flex min-w-0 items-center gap-3">
                                     <primary.icon
@@ -114,7 +121,7 @@ export default function ActContact() {
                                         <span className="truncate text-2xl font-semibold">
                                             {primary.label}
                                         </span>
-                                        <span className="truncate font-mono text-xs uppercase tracking-widest text-primary-foreground/80">
+                                        <span className="truncate font-mono text-xs uppercase tracking-widest text-white/80">
                                             {primary.displayLabel}
                                         </span>
                                     </span>

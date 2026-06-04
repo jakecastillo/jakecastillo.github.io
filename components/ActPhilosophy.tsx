@@ -38,10 +38,10 @@ function SlideBelief() {
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 DevSecOps Philosophy
             </p>
-            <h2 className="text-5xl font-black leading-[1.05] tracking-tighter text-foreground [overflow-wrap:anywhere]">
-                ENGINEERING
+            <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
+                ENGINEERING RESILIENT
                 <br />
-                <span className="text-primary text-glow">SECURE SYSTEMS.</span>
+                <span className="text-primary text-glow">CLOUD SYSTEMS.</span>
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
                 {resumeData.summary}
@@ -82,13 +82,14 @@ function SlideResult() {
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 The Outcome
             </p>
-            <h2 className="text-8xl font-black leading-[0.95] tracking-tighter text-foreground text-glow [overflow-wrap:anywhere]">
-                HARDENED.
+            <h2 className="text-8xl font-black leading-[0.95] tracking-tight text-foreground text-glow [overflow-wrap:anywhere]">
+                PRECISION.
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
-                Security embedded across the development lifecycle — cloud
-                infrastructure that ships fast, stays type-safe and observable,
-                and holds up against real-world threats in production.
+                I embed security across the development lifecycle — shipping
+                cloud infrastructure that moves fast, stays type-safe and
+                observable, and holds up against real-world threats in
+                production.
             </p>
         </div>
     );
@@ -135,7 +136,7 @@ export default function ActPhilosophy() {
     // opacity-only reveals, no horizontal pin (no scroll-jacking on phones).
     if (prefersReducedMotion || isCompact) {
         return (
-            <section className="container-page py-24">
+            <section className="section-y container-page">
                 <div className="flex flex-col gap-24">
                     <motion.div {...reveal}>
                         <SlideBelief />
@@ -152,7 +153,7 @@ export default function ActPhilosophy() {
     }
 
     return (
-        <section ref={containerRef} className="relative h-[300vh]">
+        <section ref={containerRef} className="section-y relative h-[300vh]">
             <div className="sticky top-0 flex h-screen items-center overflow-hidden">
                 <motion.div
                     style={{ x }}

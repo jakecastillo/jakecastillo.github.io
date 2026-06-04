@@ -5,7 +5,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { navSections, sections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
-import { useBootStore } from "@/store/useBootStore";
 
 // All section ids we observe to determine what's in view. Every section is now
 // a dock item (home, about, exp, skills, contact), so the active-section
@@ -172,10 +171,17 @@ function MagneticButton({
 
 export default function Navigation() {
     const lenis = useScrollStore((state) => state.lenis);
-    const isBootComplete = useBootStore((state) => state.isBootComplete);
     const prefersReducedMotion = useReducedMotion();
     const enableMotion = useEnableMotion();
     const activeId = useActiveSection();
+
+    // Human-readable label for the currently-visible section. Surfaced inline
+    // on mobile so coarse-pointer users (who never see hover tooltips) always
+    // know where they are in the page.
+    const activeLabel =
+        navSections.find((section) => section.id === activeId)?.navLabel ??
+        sections.find((section) => section.id === activeId)?.navLabel ??
+        "";
 
     const handleNavClick =
         (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -194,49 +200,71 @@ export default function Navigation() {
         };
 
     return (
-        <AnimatePresence>
-            {isBootComplete && (
-                <motion.nav
-                    aria-label="Primary"
+        // De-gated from the boot sequence: the dock mounts immediately and
+        // fades/lifts in on its own, so navigation is available before (and
+        // independent of) the terminal boot animation finishing.
+        <motion.nav
+            aria-label="Primary"
+            initial={
+                prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
+            }
+            animate={
+                prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+            }
+            transition={{
+                duration: prefersReducedMotion ? 0.2 : 0.4,
+                ease: [0.16, 1, 0.3, 1],
+            }}
+            className="pointer-events-auto fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
+        >
+            {/* Inline active-section label. Coarse-pointer / touch users never
+                see the hover tooltips, so the current section is surfaced here.
+                Hidden on fine-pointer (md+ desktop) where the icon dock +
+                tooltips already communicate location. */}
+            <AnimatePresence mode="wait">
+                <motion.span
+                    key={activeLabel}
+                    aria-hidden="true"
                     initial={
                         prefersReducedMotion
                             ? { opacity: 0 }
-                            : { opacity: 0, y: 20 }
+                            : { opacity: 0, y: 4 }
                     }
-                    animate={
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={
                         prefersReducedMotion
-                            ? { opacity: 1 }
-                            : { opacity: 1, y: 0 }
+                            ? { opacity: 0 }
+                            : { opacity: 0, y: -4 }
                     }
-                    exit={{ opacity: 0 }}
                     transition={{
-                        duration: 0.5,
-                        delay: 0.4,
+                        duration: prefersReducedMotion ? 0.15 : 0.2,
                         ease: [0.16, 1, 0.3, 1],
                     }}
-                    className="pointer-events-auto fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2"
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-foreground backdrop-blur-xl md:hidden"
                 >
-                    <ul className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl">
-                        {navSections.map((section) => (
-                            <li key={section.id}>
-                                <MagneticButton
-                                    href={`#${section.id}`}
-                                    label={section.navLabel}
-                                    isActive={activeId === section.id}
-                                    enableMotion={enableMotion}
-                                    onClick={handleNavClick(`#${section.id}`)}
-                                >
-                                    <section.icon
-                                        size={20}
-                                        strokeWidth={1.5}
-                                        aria-hidden="true"
-                                    />
-                                </MagneticButton>
-                            </li>
-                        ))}
-                    </ul>
-                </motion.nav>
-            )}
-        </AnimatePresence>
+                    {activeLabel}
+                </motion.span>
+            </AnimatePresence>
+
+            <ul className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl">
+                {navSections.map((section) => (
+                    <li key={section.id}>
+                        <MagneticButton
+                            href={`#${section.id}`}
+                            label={section.navLabel}
+                            isActive={activeId === section.id}
+                            enableMotion={enableMotion}
+                            onClick={handleNavClick(`#${section.id}`)}
+                        >
+                            <section.icon
+                                size={20}
+                                strokeWidth={1.5}
+                                aria-hidden="true"
+                            />
+                        </MagneticButton>
+                    </li>
+                ))}
+            </ul>
+        </motion.nav>
     );
 }
