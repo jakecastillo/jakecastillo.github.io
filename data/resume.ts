@@ -9,6 +9,7 @@ export interface Job {
   companyUrl?: string;
   title: string;
   period: string;
+  context?: string;
   description: string[];
 }
 
@@ -68,6 +69,7 @@ export const resumeData: ResumeData = {
       companyUrl: "https://pacimpactzone.com",
       title: "DevSecOps Software Engineer",
       period: "Oct 2025–Present",
+      context: "Mission-driven platform — securing cloud-native delivery end to end.",
       description: [
         "Lead DevSecOps initiatives, embedding automated dependency, secret, and SAST scanning into CI/CD so vulnerabilities are caught pre-merge instead of in production.",
         "Shift security left across the SDLC with threat modeling and policy-as-code — hardening cloud delivery without slowing release cadence.",
@@ -78,6 +80,7 @@ export const resumeData: ResumeData = {
       companyUrl: "https://www.datahouse.com",
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
+      context: "Hawaiʻi's largest software consultancy — modernizing enterprise & government systems.",
       description: [
         "Modernized a brittle legacy monolith into NestJS microservices — isolating failure domains to enable independent, lower-risk deploys across 4+ products over a 5-year tenure.",
         "Built full-stack features end-to-end with React, NestJS/Prisma, and PostgreSQL, enforcing schema-level type safety to eliminate a class of runtime data bugs.",
@@ -89,6 +92,7 @@ export const resumeData: ResumeData = {
       companyUrl: "https://www.datahouse.com",
       title: "Software Engineer (Part Time)",
       period: "Aug 2020–Jan 2021",
+      context: "Pandemic-response engineering under tight public-health deadlines.",
       description: [
         "Deployed thermal-scanning systems across Hawaii's airports for COVID-19 mitigation — owning installation, field support, and rollout.",
         "Ran regression testing for the LumiSight web and mobile apps and helped shape QA strategy and operational mapping.",
@@ -99,6 +103,7 @@ export const resumeData: ResumeData = {
       companyUrl: "https://www.datahouse.com",
       title: "Engineering Intern",
       period: "Jan 2020–Aug 2020",
+      context: "First engineering role — hardware-meets-software systems for state facilities.",
       description: [
         "Designed and shipped a workflow solution for the Hawaii Animal Quarantine Holding Facility alongside mentors and peers.",
         "Led front-end development and planned and installed critical system hardware.",

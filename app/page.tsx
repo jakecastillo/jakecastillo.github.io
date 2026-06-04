@@ -17,7 +17,7 @@ const reveal = {
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.32, delay: 0.1 + i * 0.06, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.3, delay: 0.04 + i * 0.04, ease: [0.16, 1, 0.3, 1] as const },
   }),
 };
 
@@ -163,7 +163,7 @@ export default function Home() {
           className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground"
         >
           <span className="font-mono text-xs uppercase tracking-widest">Scroll</span>
-          <ArrowDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
+          <ArrowDown className="h-4 w-4 animate-bounce motion-reduce:animate-none" aria-hidden="true" />
         </motion.div>
       </section>
 

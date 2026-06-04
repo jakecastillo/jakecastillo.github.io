@@ -85,13 +85,13 @@
   --text-4xl--line-height: 1.15;
   --text-5xl: clamp(2.25rem, 1.6rem + 2.9vw, 3.4rem);
   --text-5xl--line-height: 1.08;
-  --text-6xl: clamp(2.7rem, 1.7rem + 4.4vw, 4.5rem);
+  --text-6xl: clamp(2.4rem, 1.5rem + 4.2vw, 4.5rem);
   --text-6xl--line-height: 1.04;
-  --text-7xl: clamp(3.1rem, 1.6rem + 6.6vw, 5.75rem);
+  --text-7xl: clamp(2.6rem, 1.3rem + 6vw, 5.75rem);
   --text-7xl--line-height: 1.0;
-  --text-8xl: clamp(3.5rem, 1.2rem + 10vw, 7.5rem);
+  --text-8xl: clamp(2.9rem, 1.0rem + 9vw, 7.5rem);
   --text-8xl--line-height: 0.96;
-  --text-9xl: clamp(4rem, 0.5rem + 15vw, 10rem);
+  --text-9xl: clamp(3.1rem, 0.4rem + 12.5vw, 10rem);
   --text-9xl--line-height: 0.92;
 
   --animate-float: float 6s ease-in-out infinite;
@@ -102,6 +102,8 @@
 /* ----------------------------------------------------------------------- */
 html {
   scroll-behavior: smooth;
+  /* Keep content clear of the fixed bottom dock when scrolled/anchored to. */
+  scroll-padding-bottom: 7rem;
 }
 
 body {
@@ -112,6 +114,11 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Large display headings must never force horizontal scroll at 320px. */
+h1, h2, h3 {
+  overflow-wrap: break-word;
 }
 
 ::selection {
@@ -232,17 +239,43 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ----------------------------------------------------------------------- */
 /*           prefers-reduced-motion — designed calm fallback               */
-/*   Neutralise transforms/loops/scroll-jacking, keep opacity fades only.  */
+/*   Kill looping keyframe animations + transform motion, but PRESERVE     */
+/*   short opacity/colour transitions so the UI still feels alive.         */
 /* ----------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  /* Stop perpetual keyframe loops (float / bounce / pulse / spin). */
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  /* Cap any transition so transform-based motion can't sweep, while a
+     150ms opacity/colour fade still reads as a calm, intentional change. */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 150ms !important;
+  }
   .grain::after { display: none; }
+  .animate-bounce,
+  .animate-pulse { animation: none !important; }
+}
+
+/* ----------------------------------------------------------------------- */
+/*        High-contrast / forced-colors graceful support (WCAG)            */
+/* ----------------------------------------------------------------------- */
+@media (prefers-contrast: more) {
+  :root {
+    --muted-foreground: #c4c4cf;
+    --subtle-foreground: #b0b0bd;
+    --border: rgba(255, 255, 255, 0.22);
+    --border-subtle: rgba(255, 255, 255, 0.14);
+  }
+}
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid CanvasText; }
+  .surface-1, .surface-2 { border: 1px solid CanvasText; }
 }
