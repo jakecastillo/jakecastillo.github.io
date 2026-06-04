@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import Typewriter from "typewriter-effect";
-import { useBootStore } from "@/store/useBootStore";
 import { useDesktopStore, type AppId } from "@/store/useDesktopStore";
+import { useBootStore } from "@/store/useBootStore";
 
 import { resumeData } from "@/data/resume";
+import { projects } from "@/data/projects";
+import { BRAND } from "@/components/desktop/config/brand";
 
 /* -------------------------------------------------------------------------- */
 /*                                 FILE SYSTEM                                */
@@ -16,16 +17,42 @@ type FileSystemNode =
   | { type: "file"; content: string }
   | { type: "dir"; children: Record<string, FileSystemNode> };
 
+// Build the ~/projects directory directly from the Projects app data so that
+// `ls`/`cat` surface the same case studies as `open projects`.
+const projectFiles: Record<string, FileSystemNode> = projects.reduce(
+  (acc, project) => {
+    const topOutcome = project.outcomes[0];
+    const links: string[] = [];
+    if (project.repoUrl) links.push(`Repo: ${project.repoUrl}`);
+    if (project.liveUrl) links.push(`Live: ${project.liveUrl}`);
+
+    const content = [
+      `# ${project.title}`,
+      `${project.role} · ${project.period}`,
+      "",
+      "Problem:",
+      project.problem,
+      ...(topOutcome
+        ? ["", `Outcome: ${topOutcome.value} (${topOutcome.label})`]
+        : []),
+      ...(links.length ? ["", ...links] : []),
+      "",
+      "→ run 'open projects' for the full case study",
+    ].join("\n");
+
+    acc[`${project.slug}.md`] = { type: "file", content };
+    return acc;
+  },
+  {} as Record<string, FileSystemNode>
+);
+
 const fileSystem: Record<string, FileSystemNode> = {
   "~": {
     type: "dir",
     children: {
       "projects": {
         type: "dir",
-        children: {
-          "portfolio.txt": { type: "file", content: "Built with Next.js, Framer Motion, and excessive caffeine." },
-          "client-work.md": { type: "file", content: "Check out the projects section for the real deal." },
-        },
+        children: projectFiles,
       },
       "skills": {
         type: "dir",
@@ -55,20 +82,33 @@ const fileSystem: Record<string, FileSystemNode> = {
 };
 
 export default function TerminalTyping() {
-  const isBootComplete = useBootStore((state) => state.isBootComplete);
-  const [phase, setPhase] = useState<"opening" | "typing" | "complete">("opening");
-
   // Keep track of where we are. Root is "~"
   const [currentPath, setCurrentPath] = useState<string[]>(["~"]);
 
-  const terminalContent = `$ whoami
-Jake Castillo
-$ cat fun-fact.txt
-Uma Musume is one of my favorite games
-$ ls skills/
-TypeScript  React  Node.js  AWS  Next.js
-PostgreSQL  NestJS  Vue  Prisma
-$ `;
+  // Value-forward MOTD: leads with identity + the security thesis, surfaces the
+  // security verbs this shell now understands, and ends on a visible hire prompt.
+  // (Replaces the old video-game fun-fact transcript.) Built from an array so a
+  // missing optional BRAND.availability never leaves a blank line.
+  const terminalContent = useMemo(
+    () =>
+      [
+        "$ whoami",
+        `${BRAND.name} — ${BRAND.role}`,
+        BRAND.whoami,
+        "$ cat /etc/motd",
+        "secure-by-default shell · the secure path is the fast path",
+        BRAND.availability ? `availability: ${BRAND.availability}` : null,
+        "try: audit · scan · privileges · help",
+        "$ ls skills/",
+        "TypeScript  React  Node.js  AWS  Next.js",
+        "PostgreSQL  NestJS  Vue  Prisma",
+        '$ # hiring? type "hire" →',
+        "$ ",
+      ]
+        .filter((line): line is string => line !== null)
+        .join("\n"),
+    []
+  );
 
   const bootTranscript = useMemo(
     () => terminalContent.replace(/\n\$\s*$/, ""),
@@ -85,6 +125,11 @@ $ `;
       "pwd",
       "whoami",
       "whois",
+      "audit",
+      "scan",
+      "privileges",
+      "hire",
+      "resume",
       "copy email",
       "git log",
       "npm install",
@@ -95,24 +140,53 @@ $ `;
     []
   );
 
-  const [outputText, setOutputText] = useState("");
+  const [outputText, setOutputText] = useState(bootTranscript);
   const [inputValue, setInputValue] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
+  // The line the user was typing before they started walking back through
+  // history with ArrowUp. Restored when they ArrowDown past the newest entry,
+  // mirroring readline/bash behaviour so an in-progress draft is never lost.
+  const [historyDraft, setHistoryDraft] = useState("");
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const openWindow = useDesktopStore((s) => s.open);
   const closeWindow = useDesktopStore((s) => s.close);
+  // Re-fire the perimeter SEAL on deliberate secure actions (audit / hire). The
+  // orb owns all reduced-motion + desktop gating, so we just stamp the trigger.
+  const pulseSecure = useDesktopStore((s) => s.pulseSecure);
 
-  const APP_LIST: AppId[] = ["terminal", "about", "career", "stack", "contact"];
+  // The desktop shell is aria-hidden while boot is not interactive, so the
+  // input must not steal focus before then (avoids a focus-in-aria-hidden a11y
+  // violation). Mirrors the `isInteractive` gate in Desktop.tsx.
+  const bootPhase = useBootStore((s) => s.phase);
+  const isInteractive = bootPhase === "ready" || bootPhase === "reveal";
+
+  const APP_LIST: AppId[] = ["readme", "terminal", "about", "career", "stack", "projects", "contact"];
   const APP_ALIASES: Record<string, AppId> = {
+    "readme.md": "readme",
     "about.md": "about",
     "career.app": "career",
     "stack.app": "stack",
     "contact.app": "contact",
+    "projects.app": "projects",
   };
+
+  // `scan` / `nmap localhost` presents the apps as the only "open ports" — a
+  // surface-exposure map that doubles as a sitemap. Ports are arbitrary-but-
+  // memorable (ssh/http/etc.) and the SERVICE column is the app id you can
+  // `open`. Ordered to match the dock / least-attack-surface narrative.
+  const SCAN_PORTS: { port: string; service: AppId; note: string }[] = [
+    { port: "22/tcp", service: "readme", note: "start here" },
+    { port: "80/tcp", service: "terminal", note: "interactive shell" },
+    { port: "443/tcp", service: "about", note: "the thesis" },
+    { port: "8080/tcp", service: "career", note: "audit log" },
+    { port: "5432/tcp", service: "stack", note: "tooling" },
+    { port: "3000/tcp", service: "projects", note: "control evidence" },
+    { port: "587/tcp", service: "contact", note: "secure channel" },
+  ];
 
   const resolveAppId = (raw: string): AppId | null => {
     const lower = raw.toLowerCase();
@@ -136,13 +210,26 @@ $ `;
     });
   };
 
-  const escapeHtml = (value: string) =>
-    value
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
+  // Copy text to the clipboard with a legacy execCommand fallback for browsers
+  // that block the async Clipboard API. Shared by `copy email` and `hire`.
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  };
 
   /* -------------------------------------------------------------------------- */
   /*                                 FILE HELPERS                               */
@@ -219,6 +306,15 @@ $ `;
     const cmd = args[0].toLowerCase();
     const arg1 = args[1] || "";
 
+    // Surface dropped trailing tokens for commands that only consume a fixed
+    // number of args, so input is never silently partially-ignored.
+    const warnExtraArgs = (used: number) => {
+      const extra = args.slice(used);
+      if (extra.length > 0) {
+        appendLines([`${cmd}: ignoring extra operand${extra.length > 1 ? "s" : ""}: ${extra.join(" ")}`]);
+      }
+    };
+
     switch (cmd) {
       case "help":
         appendLines([
@@ -232,41 +328,161 @@ $ `;
         break;
 
       case "pwd":
-        appendLines([currentPath.length === 1 ? "/home/jake" : `/home/jake/${currentPath.slice(1).join("/")}`]);
+        // Use the same `~`-rooted convention as the prompt, command echo, and
+        // cd/cat so the path model is consistent across every surface.
+        appendLines([promptPath]);
+        warnExtraArgs(1);
         break;
 
       case "whoami":
       case "whois":
         if (cmd === "whoami") {
-          appendLines(["jake"]);
+          appendLines([
+            `${BRAND.name} — ${BRAND.role}`,
+            BRAND.whoami,
+          ]);
         } else {
           appendLines([
-            `Name: ${resumeData.name}`,
-            `Role: ${resumeData.summary.split(".")[0]}.`,
-            `Location: ${resumeData.location}`,
+            `Name: ${BRAND.name}`,
+            `Role: ${BRAND.role}`,
+            `Location: ${BRAND.location}`,
             `Status: Online`,
             `Uptime: 26 years`,
           ]);
         }
+        warnExtraArgs(1);
         break;
 
+      case "audit": {
+        // Faux-honest security report. No fabricated CVEs — every line is a
+        // posture statement that's actually true of this static, dependency-
+        // light build. This is the load-bearing security verb.
+        appendLines([
+          "running SAST + dependency audit on jakeOS...",
+          "  [scan] static analysis ............ done",
+          "  [scan] dependency audit .......... done",
+          "  [scan] secret detection .......... done",
+          "",
+          "  0 criticals / 0 high / 0 medium",
+          "  0 hardcoded secrets",
+          "  deps: clean (0 known advisories)",
+          "  secure-by-default: enabled",
+          "  least-privilege: enforced",
+          "",
+          "✓ audit passed — the secure path is the fast path",
+        ]);
+        // R1: a successful audit is a deliberate secure action → re-seal.
+        pulseSecure();
+        break;
+      }
+
+      case "nmap":
+      case "scan": {
+        // `scan` / `nmap localhost` maps the only exposed surface: the apps.
+        // It doubles as a sitemap — every SERVICE is an id you can `open`.
+        if (cmd === "nmap" && arg1 && arg1.toLowerCase() !== "localhost" && arg1.toLowerCase() !== "127.0.0.1") {
+          appendLines([`nmap: ${arg1}: scanning external hosts is out of scope. Try 'nmap localhost'.`]);
+          break;
+        }
+        const colWidth = SCAN_PORTS.reduce((w, p) => Math.max(w, p.service.length), 0);
+        appendLines([
+          "Starting scan against localhost (jakeOS)...",
+          "PORT       STATE  SERVICE",
+          ...SCAN_PORTS.map(
+            (p) =>
+              `${p.port.padEnd(10)} open   ${p.service.padEnd(colWidth)}  ${p.note}`,
+          ),
+          "",
+          `${SCAN_PORTS.length} services exposed — every other port closed by default.`,
+          "→ run 'open <service>' to connect",
+        ]);
+        break;
+      }
+
+      case "privileges":
+      case "groups": {
+        // Standalone least-privilege gag. Kept off whoami (which warns on extra
+        // args) so it reads as its own clean security verb.
+        appendLines([
+          "uid=1000(jake) gid=1000(jake)",
+          "effective privileges (least-privilege model):",
+          "  read:resume        granted",
+          "  open:contact       granted",
+          "  ship:secure-code   granted",
+          "  break:production   denied",
+          "  access:secrets     denied",
+          "→ everything else dropped at startup. exactly what's needed, nothing more.",
+        ]);
+        warnExtraArgs(1);
+        break;
+      }
+
+      case "hire": {
+        // The headline easter egg, now fully delivering: open Contact, copy the
+        // email, and confirm. (`sudo hire` routes here too.)
+        openWindow("contact");
+        const copied = await copyToClipboard(resumeData.email);
+        appendLines([
+          "✓ Contact channel opened.",
+          copied
+            ? `✓ Email copied to clipboard: ${resumeData.email}`
+            : `→ Email: ${resumeData.email}`,
+          "Let's build something secure. ✦",
+        ]);
+        // R1: opening Contact already re-fires the perimeter SEAL via the
+        // store's open()→pulseSecure(), so no explicit pulse is needed here.
+        break;
+      }
+
+      case "resume": {
+        // R5: programmatic download of the static résumé PDF, jakeOS-style.
+        const link = document.createElement("a");
+        link.href = "/resume.pdf";
+        link.download = "jake-castillo-resume.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        appendLines([
+          "↓ downloading resume.pdf ...",
+          "✓ saved jake-castillo-resume.pdf",
+        ]);
+        warnExtraArgs(1);
+        break;
+      }
+
       case "ls": {
-        // Support `ls -la` or just `ls`
-        // We might accept a path arg later, but keep it simple: ls [currentDir]
-        const node = getNode(currentPath);
-        if (node?.type === "dir") {
-          const files = Object.keys(node.children);
-          // If -la or -a, maybe add hidden?
-          // We'll just list them all for now, maybe color directories
-          const formatted = files.map((f) => {
-            const isDir = node.children[f].type === "dir";
-            return isDir ? `${f}/` : f;
-          });
-          if (formatted.length === 0) {
-            appendLines(["(empty)"]);
-          } else {
-            appendLines(["  " + formatted.join("  ")]);
-          }
+        // `ls` lists the current dir; `ls <path>` lists the target dir/file.
+        // Ignore a leading flag token (e.g. `-la`) when picking the path arg.
+        const pathArg = args.slice(1).find((a) => !a.startsWith("-")) ?? "";
+        const resolved = pathArg
+          ? resolvePath(pathArg)
+          : { targetPath: currentPath, node: getNode(currentPath) };
+        const targetPath = resolved.targetPath;
+        const node = resolved.node;
+
+        if (!node) {
+          appendLines([`ls: ${pathArg}: No such file or directory`]);
+          break;
+        }
+        if (node.type === "file") {
+          // `ls <file>` echoes the file name, like real ls.
+          appendLines([pathArg]);
+          break;
+        }
+
+        const files = Object.keys(node.children);
+        const formatted = files.map((f) => {
+          const isDir = node.children[f].type === "dir";
+          return isDir ? `${f}/` : f;
+        });
+        if (formatted.length === 0) {
+          appendLines(["(empty)"]);
+        } else {
+          appendLines(["  " + formatted.join("  ")]);
+        }
+        // Nudge toward the full case studies when listing ~/projects.
+        if (targetPath[targetPath.length - 1] === "projects") {
+          appendLines(["→ run 'open projects' for the full case studies"]);
         }
         break;
       }
@@ -279,6 +495,7 @@ $ `;
         const { targetPath, node } = resolvePath(arg1);
         if (node && node.type === "dir") {
           setCurrentPath(targetPath);
+          warnExtraArgs(2);
         } else if (node && node.type === "file") {
           appendLines([`bash: cd: ${arg1}: Not a directory`]);
         } else {
@@ -288,18 +505,30 @@ $ `;
       }
 
       case "cat": {
-        if (!arg1) {
-          appendLines(["Usage: cat <filename>"]);
+        const targets = args.slice(1).filter((a) => !a.startsWith("-"));
+        if (targets.length === 0) {
+          appendLines(["Usage: cat <filename> [filename...]"]);
           return;
         }
-        const { node } = resolvePath(arg1);
-        if (node && node.type === "file") {
-          appendLines([node.content]);
-        } else if (node && node.type === "dir") {
-          appendLines([`cat: ${arg1}: Is a directory`]);
-        } else {
-          appendLines([`cat: ${arg1}: No such file or directory`]);
+        // Honour every file argument, concatenating output like real `cat`.
+        const lines: string[] = [];
+        for (const target of targets) {
+          // In-world refusal: secrets never leave the vault. Match the path
+          // however it's written (/etc/secrets, ~/etc/secrets, etc/secrets).
+          if (/^(~\/|\/)?etc\/secrets\/?$/.test(target.toLowerCase())) {
+            lines.push("cat: /etc/secrets: permission denied — secrets stay in the vault");
+            continue;
+          }
+          const { node } = resolvePath(target);
+          if (node && node.type === "file") {
+            lines.push(node.content);
+          } else if (node && node.type === "dir") {
+            lines.push(`cat: ${target}: Is a directory`);
+          } else {
+            lines.push(`cat: ${target}: No such file or directory`);
+          }
         }
+        appendLines(lines);
         break;
       }
 
@@ -312,8 +541,8 @@ $ `;
             "Just kidding. Please don't delete my portfolio.",
           ]);
         } else if (arg1 === "hire") {
-          // trigger copy email logic
-          runCommand("copy email");
+          // Route to the full hire flow (open Contact + copy email + confirm).
+          await runCommand("hire");
         } else {
           appendLines(["sudo: permission denied. (You found the easter egg though!)"]);
         }
@@ -348,7 +577,7 @@ $ `;
             "sleep",
           ].map(s => s.toLowerCase());
 
-          if (allSkills.some(s => s.includes(pkg.toLowerCase()))) {
+          if (allSkills.includes(pkg.toLowerCase())) {
             appendLines([
               `npm WARN deprecated ${pkg}@0.0.1: This skill is already mastered.`,
               `+ ${pkg}@latest`,
@@ -368,19 +597,12 @@ $ `;
 
       case "copy":
         if (arg1 === "email") {
-          try {
-            await navigator.clipboard.writeText(resumeData.email);
-            appendLines([`✓ Copied: ${resumeData.email}`]);
-          } catch {
-            // Fallback for some browsers
-            const textarea = document.createElement("textarea");
-            textarea.value = resumeData.email;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textarea);
-            appendLines([`✓ Copied: ${resumeData.email}`]);
-          }
+          const copied = await copyToClipboard(resumeData.email);
+          appendLines([
+            copied
+              ? `✓ Copied: ${resumeData.email}`
+              : `→ Email: ${resumeData.email}`,
+          ]);
         } else {
           appendLines(["Usage: copy email"]);
         }
@@ -388,7 +610,7 @@ $ `;
 
       case "open": {
         if (!arg1) {
-          appendLines(["Usage: open <app>", "Apps: about, career, stack, contact"]);
+          appendLines(["Usage: open <app>", "Apps: readme, about, career, stack, projects, contact"]);
           return;
         }
         const id = resolveAppId(arg1);
@@ -424,180 +646,188 @@ $ `;
     }
   };
 
+  // Focus the input so the user can type immediately — but only once the shell
+  // is interactive. While boot is still running the shell is aria-hidden, and a
+  // focused element inside an aria-hidden subtree is an a11y violation
+  // (WCAG / axe aria-hidden-focus), so we wait for `isInteractive`.
   useEffect(() => {
-    if (phase !== "complete") return;
+    if (!isInteractive) return;
     inputRef.current?.focus();
-  }, [phase]);
-
-  useEffect(() => {
-    if (isBootComplete && typeof window !== "undefined" && window.terminalTypewriter) {
-      window.terminalTypewriter.start();
-    }
-  }, [isBootComplete]);
+  }, [isInteractive]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1, ease: [0.25, 0.4, 0.25, 1] }}
-      onAnimationComplete={() => setPhase("typing")}
       onClick={() => inputRef.current?.focus()}
-      className="bg-[#1c1c1c] text-[#f1f1f1] border border-[#3a3a3a] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text shadow-2xl text-left"
-      style={{
-        height: "360px", // Increased height slightly for better scroll space
-        boxShadow: "0 20px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace"
-      }}
+      className="bg-[#0a0a18] text-foreground font-mono text-sm w-full h-full min-w-0 overflow-hidden flex flex-col cursor-text text-left"
     >
-      {/* Window chrome */}
-      <div className="relative flex items-center h-7 px-3 bg-[#3a3a3a] border-b border-[#2a2a2a] shrink-0">
-        <div className="flex gap-2 absolute left-3">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e]" />
-          <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24]" />
-          <div className="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29]" />
-        </div>
-        <div className="w-full text-center">
-          <span className="text-[#999] text-xs font-semibold flex items-center justify-center gap-1.5 opacity-80">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z" /></svg>
-            jake — -zsh
-          </span>
+      {/* Interactive terminal body */}
+      <div className="p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-xs leading-relaxed scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+        >
+          {/* Neofetch-style identity banner — mobile only, fills the void above the prompt */}
+          <div
+            className="md:hidden flex items-start gap-3 mb-3 select-none"
+            aria-hidden="true"
+          >
+            {/* Compact VOID/LASER 'J' glyph (violet/cyan) — kept narrow so it never wraps */}
+            <pre className="text-[10px] leading-[1.15] shrink-0 m-0 whitespace-pre">
+              <span className="text-primary">{"·▄▄▄▄ ▄▄▄▄▄\n"}</span>
+              <span className="text-primary">{"   ▐█    █ \n"}</span>
+              <span className="text-accent">{"   ▐█    █ \n"}</span>
+              <span className="text-accent">{"▐█▌▐█    █ \n"}</span>
+              <span className="text-accent">{" ▀▀▘  ▀▀▀  "}</span>
+            </pre>
+            {/* Aligned key:value facts — short values to avoid wrapping at 360px */}
+            <dl className="text-[10px] leading-[1.15] m-0 min-w-0">
+              <div className="flex gap-1 min-w-0">
+                <dt className="text-primary">user:</dt>
+                <dd className="text-foreground/90 truncate">jake</dd>
+              </div>
+              <div className="flex gap-1 min-w-0">
+                <dt className="text-primary">role:</dt>
+                <dd className="text-foreground/90 truncate">{BRAND.role}</dd>
+              </div>
+              <div className="flex gap-1 min-w-0">
+                <dt className="text-accent">host:</dt>
+                <dd className="text-foreground/90 truncate">jakeOS</dd>
+              </div>
+              <div className="flex gap-1 min-w-0">
+                <dt className="text-accent">loc:</dt>
+                <dd className="text-foreground/90 truncate">Honolulu</dd>
+              </div>
+              <div className="flex gap-1 min-w-0">
+                <dt className="text-accent">certs:</dt>
+                <dd className="text-foreground/90 truncate">AWS SAA</dd>
+              </div>
+              <div className="flex gap-1 min-w-0">
+                <dt className="text-accent">shell:</dt>
+                <dd className="text-foreground/90 truncate">zsh</dd>
+              </div>
+            </dl>
+          </div>
+
+          {outputText}
+
+          <div className="md:hidden flex gap-1 mb-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {["help", "ls", "whoami", "open projects", "open about", "copy email"].map((cmd) => (
+                  <button
+                      key={cmd}
+                      type="button"
+                      onClick={async () => {
+                          setInputValue("");
+                          if (cmd.toLowerCase() !== "clear") {
+                              setHistory((prev) => [...prev, cmd]);
+                          }
+                          await runCommand(cmd);
+                      }}
+                      className="shrink-0 px-2 py-1 text-[10px] rounded border border-white/10 text-muted-foreground bg-white/5 hover:bg-white/10 transition-colors font-mono"
+                  >
+                      {cmd}
+                  </button>
+              ))}
+          </div>
+
+          {/* Input area attached to bottom of output */}
+          <form
+            className="flex items-center gap-2 min-w-0 pt-0" // removed border-t
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const value = inputValue;
+              setInputValue("");
+              setHistoryIndex(null);
+              setHistoryDraft("");
+              if (!value.trim()) return;
+              // `clear` wipes the screen, so keeping it in recallable history
+              // just makes ArrowUp re-offer a screen-clear — skip it.
+              if (value.trim().toLowerCase() !== "clear") {
+                setHistory((prev) => [...prev, value]);
+              }
+              await runCommand(value);
+            }}
+          >
+            <span className="text-primary select-none shrink-0 text-xs font-semibold">
+              {currentPath.length === 1 ? "~" : `~/${currentPath.slice(1).join("/")}`} $
+            </span>
+            <input
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  if (history.length === 0) return;
+                  // First step into history: stash the line being typed so
+                  // ArrowDown can restore it later (readline behaviour).
+                  if (historyIndex === null) {
+                    setHistoryDraft(inputValue);
+                  }
+                  const nextIndex =
+                    historyIndex === null
+                      ? history.length - 1
+                      : Math.max(0, historyIndex - 1);
+                  setHistoryIndex(nextIndex);
+                  setInputValue(history[nextIndex] ?? "");
+                  return;
+                }
+
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  if (history.length === 0) return;
+                  if (historyIndex === null) return;
+                  const nextIndex = historyIndex + 1;
+                  if (nextIndex >= history.length) {
+                    // Past the newest entry: restore the stashed draft instead
+                    // of blanking the line.
+                    setHistoryIndex(null);
+                    setInputValue(historyDraft);
+                    return;
+                  }
+                  setHistoryIndex(nextIndex);
+                  setInputValue(history[nextIndex] ?? "");
+                  return;
+                }
+
+                // Tab = autocomplete, but only when there is actually something
+                // to complete. Otherwise (empty input, no match, or Shift+Tab)
+                // let the browser move focus so the input is not a keyboard
+                // trap (WCAG 2.1.2 No Keyboard Trap).
+                if (e.key === "Tab" && !e.shiftKey) {
+                  const current = inputValue.trimStart();
+                  if (!current) return; // nothing to complete → allow focus to advance
+                  const matches = availableCommands.filter((c) =>
+                    c.startsWith(current.toLowerCase())
+                  );
+                  if (matches.length > 0 && matches[0] !== current.toLowerCase()) {
+                    e.preventDefault();
+                    setInputValue(matches[0]);
+                  }
+                  // No (further) completion → don't swallow Tab; focus advances.
+                  return;
+                }
+
+                // Ctrl+L to clear
+                if (e.ctrlKey && e.key === "l") {
+                  e.preventDefault();
+                  setOutputText("");
+                }
+              }}
+              spellCheck={false}
+              autoCapitalize="none"
+              autoComplete="off"
+              placeholder=""
+              className="flex-1 min-w-0 bg-transparent outline-none text-foreground text-xs placeholder:text-muted-foreground placeholder:opacity-50"
+              aria-label="Terminal input"
+            />
+          </form>
+          {/* Dummy element to force scroll to bottom? No, scrollTop setting is better */}
+          <div className="h-2"></div>
         </div>
       </div>
-
-      {/* Typing phase */}
-      {phase === "typing" && (
-        <div className="p-3 whitespace-pre-wrap break-words flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 text-xs leading-relaxed [&_.Typewriter__wrapper]:whitespace-pre-wrap [&_.Typewriter__wrapper]:break-words [&_.Typewriter__wrapper]:[overflow-wrap:anywhere] [&_.Typewriter__wrapper]:block [&_.Typewriter__cursor]:text-primary">
-          <Typewriter
-            options={{
-              autoStart: false,
-              loop: false,
-              delay: 25,
-              cursor: "▋",
-            }}
-            onInit={(typewriter) => {
-              typewriter
-                .typeString(escapeHtml(terminalContent).replaceAll("\n", "<br/>"))
-                .callFunction(() => {
-                  setOutputText(bootTranscript);
-                  setPhase("complete");
-                });
-
-              if (typeof window !== "undefined") {
-                window.terminalTypewriter = typewriter;
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {/* Interactive phase */}
-      {phase === "complete" && (
-        <div className="p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div
-            ref={scrollContainerRef}
-            className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-xs leading-relaxed scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
-          >
-            {outputText}
-
-            <div className="md:hidden flex gap-1 mb-2 overflow-x-auto pb-1 -mx-1 px-1">
-                {["help", "ls", "whoami", "open about", "copy email"].map((cmd) => (
-                    <button
-                        key={cmd}
-                        type="button"
-                        onClick={async () => {
-                            setInputValue("");
-                            setHistory((prev) => [...prev, cmd]);
-                            await runCommand(cmd);
-                        }}
-                        className="shrink-0 px-2 py-1 text-[10px] rounded border border-white/10 text-gray-300 bg-white/5 hover:bg-white/10 transition-colors font-mono"
-                    >
-                        {cmd}
-                    </button>
-                ))}
-            </div>
-
-            {/* Input area attached to bottom of output */}
-            <form
-              className="flex items-center gap-2 min-w-0 pt-0" // removed border-t
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const value = inputValue;
-                setInputValue("");
-                setHistoryIndex(null);
-                if (!value.trim()) return;
-                setHistory((prev) => [...prev, value]);
-                await runCommand(value);
-              }}
-            >
-              <span className="text-primary select-none shrink-0 text-xs font-semibold">
-                {currentPath.length === 1 ? "~" : currentPath[currentPath.length - 1]} $
-              </span>
-              <input
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    if (history.length === 0) return;
-                    const nextIndex =
-                      historyIndex === null
-                        ? history.length - 1
-                        : Math.max(0, historyIndex - 1);
-                    setHistoryIndex(nextIndex);
-                    setInputValue(history[nextIndex] ?? "");
-                    return;
-                  }
-
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    if (history.length === 0) return;
-                    if (historyIndex === null) return;
-                    const nextIndex = historyIndex + 1;
-                    if (nextIndex >= history.length) {
-                      setHistoryIndex(null);
-                      setInputValue("");
-                      return;
-                    }
-                    setHistoryIndex(nextIndex);
-                    setInputValue(history[nextIndex] ?? "");
-                    return;
-                  }
-
-                  if (e.key === "Tab") {
-                    e.preventDefault();
-                    const current = inputValue.trimStart();
-                    // Basic autocomplete for commands only for now
-                    if (!current) {
-                      return;
-                    }
-                    const matches = availableCommands.filter((c) =>
-                      c.startsWith(current.toLowerCase())
-                    );
-                    if (matches.length > 0) {
-                      setInputValue(matches[0]);
-                    }
-                  }
-
-                  // Ctrl+L to clear
-                  if (e.ctrlKey && e.key === "l") {
-                    e.preventDefault();
-                    setOutputText("");
-                  }
-                }}
-                spellCheck={false}
-                autoCapitalize="none"
-                autoComplete="off"
-                placeholder=""
-                className="flex-1 min-w-0 bg-transparent outline-none text-[#f1f1f1] text-xs placeholder:text-gray-500 placeholder:opacity-50"
-                aria-label="Terminal input"
-              />
-            </form>
-            {/* Dummy element to force scroll to bottom? No, scrollTop setting is better */}
-            <div className="h-2"></div>
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 }
