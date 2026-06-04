@@ -40,7 +40,7 @@ export default function Home() {
             <motion.div
               custom={0}
               variants={reveal}
-              initial="hidden"
+              initial={false}
               animate="show"
               className="flex items-center gap-3"
             >
@@ -65,14 +65,14 @@ export default function Home() {
               </span>
             </motion.div>
 
-            <motion.div custom={1} variants={reveal} initial="hidden" animate="show">
+            <motion.div custom={1} variants={reveal} initial={false} animate="show">
               <HeaderTypewriter />
             </motion.div>
 
             <motion.p
               custom={2}
               variants={reveal}
-              initial="hidden"
+              initial={false}
               animate="show"
               className="measure text-balance text-xl font-medium text-foreground sm:text-2xl"
             >
@@ -82,7 +82,7 @@ export default function Home() {
             <motion.p
               custom={3}
               variants={reveal}
-              initial="hidden"
+              initial={false}
               animate="show"
               className="measure text-base text-muted-foreground"
             >
@@ -116,7 +116,7 @@ export default function Home() {
             >
               <a
                 href={`mailto:${resumeData.email}`}
-                className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-colors hover:bg-primary-hover"
+                className="group inline-flex items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-colors hover:bg-primary-cta-hover"
               >
                 <Mail size={18} strokeWidth={2} aria-hidden="true" />
                 Email me
@@ -159,7 +159,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.4, duration: 1 }}
+          transition={{ delay: 0.9, duration: 0.4 }}
           className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground"
         >
           <span className="font-mono text-xs uppercase tracking-widest">Scroll</span>

@@ -22,8 +22,10 @@
   --subtle-foreground: #8a8a98;
 
   /* ---- Laser: the single dominant accent (violet) --------------------- */
-  --primary: #8b5cf6;         /* violet 500 */
+  --primary: #8b5cf6;         /* violet 500 — accents, links, focus, hairlines */
   --primary-hover: #a78bfa;   /* lighter for dark-mode hover (less vibration) */
+  --primary-cta: #6d28d9;     /* violet 700 — filled buttons: white text clears 4.5:1 */
+  --primary-cta-hover: #7c3aed;
   --primary-foreground: #ffffff;
   --primary-muted: rgba(139, 92, 246, 0.16);
 
@@ -42,8 +44,8 @@
 
   /* ---- Ambient depth: glows + radial atmosphere (no black shadows) ----- */
   --gradient-hero: radial-gradient(120% 90% at 50% -10%, rgba(139, 92, 246, 0.16) 0%, rgba(6, 6, 8, 0) 55%);
-  --shadow-elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px -16px rgba(0, 0, 0, 0.8);
-  --shadow-elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 18px 48px -24px rgba(0, 0, 0, 0.85);
+  --shadow-elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px -18px rgba(0, 0, 0, 0.5);
+  --shadow-elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 18px 48px -28px rgba(0, 0, 0, 0.55), 0 0 60px -30px rgba(139, 92, 246, 0.25);
   --glow-primary: 0 0 40px -8px rgba(139, 92, 246, 0.45);
   --glow-accent: 0 0 40px -10px rgba(45, 212, 191, 0.35);
 
@@ -66,6 +68,8 @@
   --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-cta: var(--primary-cta);
+  --color-primary-cta-hover: var(--primary-cta-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-muted: var(--primary-muted);
   --color-accent: var(--accent);
@@ -169,6 +173,9 @@ h1, h2, h3 {
 /* ----------------------------------------------------------------------- */
 /*                              Utilities                                   */
 /* ----------------------------------------------------------------------- */
+
+/* Consistent vertical rhythm between major acts (8pt-derived, fluid). */
+.section-y { padding-block: clamp(5rem, 4rem + 5vw, 8rem); }
 
 /* Constrain body copy to a readable 45–75ch measure */
 .measure { max-width: 66ch; }

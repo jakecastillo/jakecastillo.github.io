@@ -32,7 +32,7 @@ export default function QuantumLoader() {
 
     // Keep the cinematic flash brief so the hero paints fast (LCP < ~1s).
     const [displayProgress, setDisplayProgress] = useState(0);
-    const minLoadTimeMs = 250;
+    const minLoadTimeMs = 150;
     const startTimeRef = useRef(0);
 
     // Reduced-motion (and a manual Skip) bypass the boot entirely.
@@ -131,7 +131,7 @@ export default function QuantumLoader() {
             {phase !== "done" && (
                 <motion.div
                     className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden font-mono text-sm sm:text-base"
-                    style={{ background: "rgba(6,6,8,0.92)" }}
+                    style={{ background: "rgba(6,6,8,0.82)" }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.4, ease: [0.4, 0, 1, 1] }}
                 >

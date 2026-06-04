@@ -141,6 +141,30 @@ export default function RootLayout({
           Skip to content
         </a>
 
+        {/* Persistent brand mark (orbital glyph wordmark) */}
+        <header className="fixed left-5 top-5 z-40">
+          <a
+            href="#home"
+            aria-label="Jake Castillo — home"
+            className="flex items-center gap-2 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+          >
+            <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+              <defs>
+                <linearGradient id="brandmark" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#8b5cf6" />
+                  <stop offset="1" stopColor="#2dd4bf" />
+                </linearGradient>
+              </defs>
+              <circle cx="13" cy="13" r="11" fill="none" stroke="url(#brandmark)" strokeWidth="2" />
+              <ellipse cx="13" cy="13" rx="11" ry="4.6" fill="none" stroke="#2dd4bf" strokeOpacity="0.55" />
+              <circle cx="13" cy="13" r="3.6" fill="#8b5cf6" />
+            </svg>
+            <span className="hidden font-mono text-[11px] uppercase tracking-[0.3em] text-foreground/80 sm:inline">
+              Jake Castillo
+            </span>
+          </a>
+        </header>
+
         <QuantumLoader />
         <SmoothScroll />
 
