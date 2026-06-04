@@ -1,6 +1,5 @@
 "use client";
 
-import { useProgress } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBootStore } from "@/store/useBootStore";
@@ -12,6 +11,7 @@ const BASE_LOGS = [
     "[  OK  ] Started Network Manager.",
     "[  OK  ] Started WPA supplicant.",
     "[  OK  ] Reached target Network.",
+    "[  OK  ] Secure perimeter established.",
     "Mounting /sys/kernel/debug...",
     "[  OK  ] Mounted /sys/kernel/debug.",
     "Starting WebGL Context Initialization...",
@@ -26,7 +26,6 @@ const BASE_LOGS = [
 ];
 
 export default function QuantumLoader() {
-    const { progress, active } = useProgress();
     const storeSetPhase = useBootStore((s) => s.setPhase);
     const storePhase = useBootStore((s) => s.phase);
     const [localPhase, setLocalPhase] = useState<"loading" | "booting">("loading");
@@ -34,22 +33,56 @@ export default function QuantumLoader() {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [displayProgress, setDisplayProgress] = useState(0);
-    const minLoadTimeMs = 2500;
+    // The boot loader is intentionally time-based: <Scene/> is deferred behind
+    // SceneLoader's idle callback and only fades in at the reveal phase, so there
+    // is no in-flight Canvas Suspense load to gate on while the terminal paints.
+    // A fixed minimum dwell gives the boot CRT its beat without ever hanging.
+    const minLoadTimeMs = 500;
     const startTimeRef = useRef(0);
+    // Set when the skip fast-path or reduced-motion guard short-circuits the boot.
+    // The loading interval reads this each tick and bails, so it can never revert
+    // a later phase (reveal/ready) back to "booting". A ref (not state) is used so
+    // we never call setState synchronously inside an effect body.
+    const fastPathRef = useRef(false);
 
-    // Honor ?skip=1 fast-path boot parameter
+    // Honor ?skip=1 (and deep-links) fast-path boot parameter. Mark the fast path
+    // so the loading interval bails and never clobbers "reveal" back to "booting".
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         if (params.get("skip") === "1" || params.has("open") || params.has("focus")) {
+            fastPathRef.current = true;
             storeSetPhase("reveal");
-            setTimeout(() => {
-                setLocalPhase("booting"); // keep local state consistent so timers don't fire
-                storeSetPhase("ready");
-            }, 800);
+            const id = setTimeout(() => storeSetPhase("ready"), 800);
+            return () => clearTimeout(id);
         }
     }, [storeSetPhase]);
 
-    // Simulate progress and logs
+    // Reduced-motion users skip the boot entirely; any interaction skips it too.
+    useEffect(() => {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            // Mark the fast path so the loading interval can't revert to "booting"
+            // and replay the full reveal->ready animation over the live desktop.
+            fastPathRef.current = true;
+            storeSetPhase("ready");
+            return;
+        }
+        const skip = () => {
+            if (useBootStore.getState().phase !== "ready") {
+                fastPathRef.current = true;
+                storeSetPhase("ready");
+            }
+        };
+        window.addEventListener("pointerdown", skip);
+        window.addEventListener("keydown", skip);
+        window.addEventListener("wheel", skip, { passive: true });
+        return () => {
+            window.removeEventListener("pointerdown", skip);
+            window.removeEventListener("keydown", skip);
+            window.removeEventListener("wheel", skip);
+        };
+    }, [storeSetPhase]);
+
+    // Simulate progress and logs (time-based; see minLoadTimeMs note above).
     useEffect(() => {
         if (localPhase !== "loading") return;
         if (startTimeRef.current === 0) {
@@ -57,10 +90,16 @@ export default function QuantumLoader() {
         }
 
         const interval = setInterval(() => {
+            // A fast path (skip / reduced-motion / interaction) already drove the
+            // phase forward — stop here so we never revert it to "booting".
+            if (fastPathRef.current) {
+                clearInterval(interval);
+                return;
+            }
+
             const elapsed = Date.now() - startTimeRef.current;
             const timeProgress = Math.min((elapsed / minLoadTimeMs) * 100, 100);
-            const visualProgress = elapsed > minLoadTimeMs ? Math.max(progress, 100) : timeProgress;
-            setDisplayProgress(visualProgress);
+            setDisplayProgress(timeProgress);
 
             setLogs((prev) => {
                 if (Math.random() > 0.7) return prev;
@@ -68,7 +107,8 @@ export default function QuantumLoader() {
                 return [...prev, newLog].slice(-30);
             });
 
-            if ((progress === 100 || !active) && elapsed >= minLoadTimeMs) {
+            // Hand off to the booting beat once the minimum dwell has elapsed.
+            if (elapsed >= minLoadTimeMs) {
                 clearInterval(interval);
                 setLocalPhase("booting");
                 storeSetPhase("booting");
@@ -76,20 +116,18 @@ export default function QuantumLoader() {
         }, 80);
 
         return () => clearInterval(interval);
-    }, [progress, active, localPhase, storeSetPhase]);
+    }, [localPhase, storeSetPhase]);
 
     // Handle booting phase text sequence
     useEffect(() => {
         if (localPhase !== "booting") return;
 
         const ids: ReturnType<typeof setTimeout>[] = [];
-        ids.push(setTimeout(() => setLogs(p => [...p, ""]), 100));
-        ids.push(setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 300));
-        ids.push(setTimeout(() => setLogs(p => [...p, "Boot sequence complete."]), 600));
-        ids.push(setTimeout(() => setLogs(p => [...p, "$ login --user jake"]), 950));
-        ids.push(setTimeout(() => setLogs(p => [...p, "welcome back, jake_"]), 1300));
-        ids.push(setTimeout(() => storeSetPhase("reveal"), 1700));
-        ids.push(setTimeout(() => storeSetPhase("ready"), 2700));
+        ids.push(setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 80));
+        ids.push(setTimeout(() => setLogs(p => [...p, "$ login --user jake"]), 200));
+        ids.push(setTimeout(() => setLogs(p => [...p, "welcome back, jake_"]), 360));
+        ids.push(setTimeout(() => storeSetPhase("reveal"), 480));
+        ids.push(setTimeout(() => storeSetPhase("ready"), 1000));
 
         return () => {
             ids.forEach((id) => clearTimeout(id));
@@ -108,15 +146,35 @@ export default function QuantumLoader() {
         if (log.startsWith("[  OK  ]")) {
             return (
                 <div key={index} className="opacity-90 flex gap-2">
-                    <span className="text-white">[</span>
-                    <span className="text-green-500 font-bold">  OK  </span>
-                    <span className="text-white">]</span>
-                    <span className="text-gray-300">{log.substring(8)}</span>
+                    <span className="text-foreground/50">[</span>
+                    <span className="text-accent font-bold">  OK  </span>
+                    <span className="text-foreground/50">]</span>
+                    <span className="text-muted-foreground">{log.substring(8)}</span>
+                </div>
+            );
+        }
+        if (log.startsWith("$ ")) {
+            // command echo — laser violet
+            return (
+                <div key={index} className="opacity-90 text-primary">
+                    {log}
+                </div>
+            );
+        }
+        if (log.startsWith("welcome")) {
+            // login confirmation — cyan with glow
+            return (
+                <div
+                    key={index}
+                    className="text-accent"
+                    style={{ textShadow: "0 0 12px rgba(34,211,238,0.45)" }}
+                >
+                    {log}
                 </div>
             );
         }
         return (
-            <div key={index} className="opacity-90 text-gray-300">
+            <div key={index} className="opacity-90 text-muted-foreground">
                 {log}
             </div>
         );
@@ -126,10 +184,15 @@ export default function QuantumLoader() {
         <AnimatePresence>
             {storePhase !== "ready" && storePhase !== "reveal" && (
                 <motion.div
-                    layoutId="terminal-window"
-                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-black font-mono text-sm sm:text-base"
-                    exit={{ opacity: 0.0001 }}
-                    transition={{ duration: 0.8, ease: "easeInOut", layout: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }}
+                    // No shared-layout morph: there is no destination element with
+                    // a matching layoutId, so a lone layoutId here only drove a
+                    // spurious layout transition that re-inflated the overlay and
+                    // stalled AnimatePresence's unmount. The overlay simply fades.
+                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none overflow-hidden bg-[#020617] font-mono text-sm sm:text-base"
+                    // Exit fully to opacity 0 (not 0.0001) so AnimatePresence fires
+                    // exit-complete and unmounts the fixed z-50 node promptly.
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
                 >
                     {/* Background terminal overlay */}
                     <div
@@ -139,25 +202,25 @@ export default function QuantumLoader() {
                         {logs.map((log, i) => formatLog(log, i))}
 
                         {localPhase === "loading" && (
-                            <div className="mt-4 border-t border-gray-800 pt-4 flex items-center gap-4 text-gray-300">
-                                <span className="font-bold text-gray-400">root@system:~#</span>
-                                <div className="flex-1 h-1 bg-gray-900 overflow-hidden relative opacity-50">
+                            <div className="mt-4 border-t border-white/10 pt-4 flex items-center gap-4 text-muted-foreground">
+                                <span className="font-bold text-primary">root@system:~#</span>
+                                <div className="flex-1 h-1 bg-white/5 overflow-hidden relative rounded-full">
                                     <div
-                                        className="absolute left-0 top-0 bottom-0 bg-white"
+                                        className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-primary to-accent"
                                         style={{ width: `${displayProgress}%`, transition: "width 0.1s linear" }}
                                     />
                                 </div>
-                                <span className="opacity-50">[{Math.floor(displayProgress)}%]</span>
+                                <span className="text-accent/70">[{Math.floor(displayProgress)}%]</span>
                             </div>
                         )}
                     </div>
 
                     {/* CRT scanline overlay */}
                     <div
-                        className="absolute inset-0 pointer-events-none opacity-20"
+                        className="absolute inset-0 pointer-events-none opacity-[0.12]"
                         style={{
-                            background: "linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))",
-                            backgroundSize: "100% 2px, 3px 100%"
+                            background: "linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(34,211,238,0.04), rgba(139,92,246,0.03))",
+                            backgroundSize: "100% 2px, 100% 100%"
                         }}
                     />
                 </motion.div>
