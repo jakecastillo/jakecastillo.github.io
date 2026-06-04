@@ -6,16 +6,40 @@ import { Sphere, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import { useScrollStore } from "@/hooks/useScrollStore";
 
+// Brand palette: violet is the dominant accent, cyan is a rare secondary tint.
+const BRAND_VIOLET = "#8b5cf6";
+const BRAND_CYAN = "#38bdf8";
+
 export default function QuantumOrb() {
     const orbRef = useRef<THREE.Mesh>(null);
     const outerRingRef = useRef<THREE.Mesh>(null);
     const scrollOffset = useScrollStore((state) => state.offset);
+
+    // Read the reduced-motion preference exactly once. BackgroundScene already
+    // skips mounting this for reduced-motion users, but we stay defensive so the
+    // orb settles into a calm static pose if it ever renders in that mode.
+    const reducedMotionRef = useRef(
+        typeof window !== "undefined" &&
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
 
     // Stable phase offset to keep motion organic without impure render-time randomness
     const phaseOffset = Math.PI * 0.61803398875;
 
     useFrame((state) => {
         if (!orbRef.current || !outerRingRef.current) return;
+
+        // Reduced motion: freeze to a static, level pose — no rotation, hover, or pulse.
+        if (reducedMotionRef.current) {
+            orbRef.current.rotation.set(phaseOffset, phaseOffset, 0);
+            outerRingRef.current.rotation.set(-phaseOffset * 1.5, 0, phaseOffset * 1.2);
+            orbRef.current.position.y = 0;
+            outerRingRef.current.position.y = 0;
+            orbRef.current.scale.setScalar(1);
+            outerRingRef.current.scale.setScalar(1);
+            return;
+        }
 
         const time = state.clock.getElapsedTime();
 
@@ -30,7 +54,7 @@ export default function QuantumOrb() {
         orbRef.current.rotation.y = baseRotY + scrollFactor * 3;
 
         // OUTER RING ROTATION
-        // Keep the scroll rotation subtle to prevent the wireframe from 
+        // Keep the scroll rotation subtle to prevent the wireframe from
         // clipping through the distorted inner core at extreme scroll depths
         outerRingRef.current.rotation.x = -baseRotX * 1.5 - scrollFactor * 0.5;
         outerRingRef.current.rotation.z = baseRotY * 1.2 + scrollFactor * 0.5;
@@ -49,26 +73,30 @@ export default function QuantumOrb() {
 
     return (
         <group position={[0, 0, -2]}>
-            {/* Inner Core */}
-            <Sphere ref={orbRef} args={[1.0, 32, 32]}>  {/* Reduced segments from 64 to 32 for performance */}
+            {/* Inner Core — deep violet-tinted slate. Emissive kept very low so the
+                core reads as atmosphere and never competes with foreground copy. */}
+            <Sphere ref={orbRef} args={[1.0, 32, 32]}>
                 <MeshDistortMaterial
-                    color="#0f172a"
-                    emissive="#1e293b"
-                    emissiveIntensity={0.2}
-                    roughness={0.2}
+                    color="#1a1633"
+                    emissive={BRAND_VIOLET}
+                    emissiveIntensity={0.08}
+                    roughness={0.25}
                     metalness={0.8}
                     distort={0.3}
                     speed={2}
                 />
             </Sphere>
 
-            {/* Outer Wireframe / Energy containment field */}
-            <Sphere ref={outerRingRef} args={[2.2, 16, 16]}> {/* Reduced segments from 32 to 16 for performance */}
+            {/* Outer Wireframe / Energy containment field — brand violet, dialed
+                down to a faint premium halo behind text. Fewer segments for perf. */}
+            <Sphere ref={outerRingRef} args={[2.2, 12, 12]}>
                 <meshStandardMaterial
-                    color="#38bdf8"
+                    color={BRAND_VIOLET}
+                    emissive={BRAND_CYAN}
+                    emissiveIntensity={0.15}
                     wireframe
                     transparent
-                    opacity={0.08}
+                    opacity={0.045}
                     side={THREE.DoubleSide}
                 />
             </Sphere>

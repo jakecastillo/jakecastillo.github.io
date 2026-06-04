@@ -19,11 +19,12 @@ const fileSystem: Record<string, FileSystemNode> = {
   "~": {
     type: "dir",
     children: {
-      "projects": {
+      "work": {
         type: "dir",
         children: {
           "portfolio.txt": { type: "file", content: "Built with Next.js, Framer Motion, and excessive caffeine." },
-          "client-work.md": { type: "file", content: "Check out the projects section for the real deal." },
+          "experience.md": { type: "file", content: "Scroll to the EXPERIENCE act for the real deal — or run 'cd experience && ls' here." },
+          "resume.pdf": { type: "file", content: "Full résumé available — download it from /resume.pdf." },
         },
       },
       "skills": {
@@ -94,6 +95,7 @@ $ `;
 
   const [outputText, setOutputText] = useState("");
   const [inputValue, setInputValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
 
@@ -224,7 +226,7 @@ $ `;
             `Role: ${resumeData.summary.split(".")[0]}.`,
             `Location: ${resumeData.location}`,
             `Status: Online`,
-            `Uptime: 26 years`,
+            `Uptime: 5+ yrs in industry`,
           ]);
         }
         break;
@@ -285,7 +287,7 @@ $ `;
       case "sudo":
         if (arg1 === "rm" && args.includes("-rf") && (args.includes("/") || args.includes(".") || args.includes("*"))) {
           appendLines([
-            "WARNING: SYSTEM CRYTICAL OPERATION DETECTED.",
+            "WARNING: SYSTEM CRITICAL OPERATION DETECTED.",
             "Deleting system32...",
             "...",
             "Just kidding. Please don't delete my portfolio.",
@@ -391,10 +393,17 @@ $ `;
       transition={{ duration: 0.5, delay: 0.1, ease: [0.25, 0.4, 0.25, 1] }}
       onAnimationComplete={() => setPhase("typing")}
       onClick={() => inputRef.current?.focus()}
-      className="bg-[#1c1c1c] text-[#f1f1f1] border border-[#3a3a3a] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text shadow-2xl text-left"
+      className={`bg-[#1c1c1c] text-[#f1f1f1] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
+        isFocused
+          ? "ring-2 ring-[color:var(--primary-hover)] border border-border-strong"
+          : "border border-border"
+      }`}
       style={{
         height: "360px", // Increased height slightly for better scroll space
-        boxShadow: "0 20px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+        // Luminance/border-based elevation: soft ambient shadow + faint inner highlight,
+        // instead of a heavy black drop shadow.
+        boxShadow:
+          "0 8px 24px -12px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
         fontFamily: "Menlo, Monaco, 'Courier New', monospace"
       }}
     >
@@ -468,6 +477,8 @@ $ `;
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 onKeyDown={(e) => {
                   if (e.key === "ArrowUp") {
                     e.preventDefault();
@@ -521,7 +532,7 @@ $ `;
                 autoCapitalize="none"
                 autoComplete="off"
                 placeholder=""
-                className="flex-1 min-w-0 bg-transparent outline-none text-[#f1f1f1] text-xs placeholder:text-gray-500 placeholder:opacity-50"
+                className="flex-1 min-w-0 bg-transparent text-[#f1f1f1] text-xs placeholder:text-gray-500 placeholder:opacity-50"
                 aria-label="Terminal input"
               />
             </form>

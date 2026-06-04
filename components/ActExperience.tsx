@@ -1,60 +1,117 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { resumeData, type Job } from "@/data/resume";
 import { ArrowRight } from "lucide-react";
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
 export default function ActExperience() {
     const targetRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-    });
+    const prefersReducedMotion = useReducedMotion();
 
+    const { scrollYProgress } = useScroll({ target: targetRef });
     const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
+
+    // Reduced-motion: render a static, vertical case-study list — no pin, no
+    // horizontal transform, opacity-only reveals.
+    if (prefersReducedMotion) {
+        return (
+            <section className="container-page py-24">
+                <h2 className="sr-only">Experience</h2>
+                <ol className="relative flex flex-col gap-16 border-l border-border-subtle pl-8 sm:pl-10">
+                    {resumeData.experience.map((job, index) => (
+                        <motion.li
+                            key={index}
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true, amount: 0.2 }}
+                            transition={{ duration: 0.5, ease: EASE }}
+                        >
+                            <TimelineNode job={job} index={index} variant="vertical" />
+                        </motion.li>
+                    ))}
+                </ol>
+            </section>
+        );
+    }
 
     return (
         <section ref={targetRef} className="relative h-[300vh]">
+            <h2 className="sr-only">Experience</h2>
             <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-                <div className="absolute lg:bottom-12 lg:left-12 bottom-6 left-6 z-20 text-muted-foreground font-mono text-xs tracking-widest flex items-center gap-2">
-                    SCROLL TO EXPLORE <ArrowRight className="w-4 h-4" />
+                <div className="container-page absolute inset-x-0 bottom-6 z-20 flex items-center gap-2 font-mono text-xs tracking-widest text-muted-foreground lg:bottom-12">
+                    SCROLL TO EXPLORE <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </div>
 
-                <motion.div style={{ x }} className="flex gap-12 md:gap-24 px-12 md:px-24 relative">
-                    {/* Continuous Timeline Line */}
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-border -translate-y-12 hidden md:block" />
+                <motion.div style={{ x }} className="relative flex gap-12 px-6 sm:px-12 md:gap-24 md:px-24">
+                    {/* Continuous timeline line */}
+                    <div className="absolute left-0 top-0 hidden h-[1px] w-full -translate-y-12 bg-border md:block" aria-hidden="true" />
 
                     {/* Intro spacer */}
-                    <div className="w-0 md:w-[8vw] shrink-0" />
+                    <div className="w-0 shrink-0 md:w-[8vw]" />
 
                     {resumeData.experience.map((job, index) => (
-                        <TimelineNode key={index} job={job} index={index} />
+                        <TimelineNode key={index} job={job} index={index} variant="horizontal" />
                     ))}
 
-                    {/* Outro spacer */}
-                    <div className="w-[16vw] md:w-[20vw] shrink-0" />
+                    {/* Outro spacer — wide enough to fully reveal the last node at -70% */}
+                    <div className="w-[24vw] shrink-0 md:w-[28vw]" />
                 </motion.div>
             </div>
         </section>
     );
 }
 
-function TimelineNode({ job, index }: { job: Job; index: number }) {
+function TimelineNode({
+    job,
+    index,
+    variant,
+}: {
+    job: Job;
+    index: number;
+    variant: "horizontal" | "vertical";
+}) {
+    const numeral = index + 1 < 10 ? `0${index + 1}` : `${index + 1}`;
+    const isHorizontal = variant === "horizontal";
+
     return (
-        <div className="flex flex-col justify-start relative w-[80vw] md:w-[60vw] lg:w-[40vw] shrink-0">
-            {/* Timeline Dot Visual */}
-            <div className="absolute top-0 left-0 w-3 h-3 bg-primary rounded-full -translate-y-[calc(3rem+5px)] hidden md:block" />
+        <div
+            className={
+                isHorizontal
+                    ? "relative flex w-[82vw] shrink-0 flex-col justify-start sm:w-[80vw] md:w-[60vw] lg:w-[44vw]"
+                    : "relative flex flex-col justify-start"
+            }
+        >
+            {/* Timeline dot */}
+            <div
+                className={
+                    isHorizontal
+                        ? "absolute left-0 top-0 hidden h-3 w-3 -translate-y-[calc(3rem+5px)] rounded-full bg-primary glow-primary md:block"
+                        : "absolute left-0 top-1.5 h-3 w-3 -translate-x-[calc(2rem+6.5px)] rounded-full bg-primary glow-primary sm:-translate-x-[calc(2.5rem+6.5px)]"
+                }
+                aria-hidden="true"
+            />
 
+            {/* Role / period / company hierarchy — reads as a STAR case-study header */}
+            <header className="mb-6 flex flex-col gap-2">
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">{job.period}</span>
+                <h3 className="text-4xl font-bold leading-[1.05] tracking-tighter text-foreground text-glow">
+                    {job.title}
+                </h3>
+                <p className="font-mono text-base text-muted-foreground">
+                    <span className="text-subtle-foreground">@ </span>
+                    {job.company}
+                </p>
+            </header>
 
-            <div className="mb-6">
-                <span className="font-mono text-sm text-primary tracking-widest mb-2 block">{job.period}</span>
-                <h3 className="text-3xl md:text-5xl font-bold text-foreground mb-2 leading-tight">{job.title}</h3>
-                <h4 className="text-xl font-mono text-muted-foreground">{job.company}</h4>
-            </div>
-
-            <ul className="space-y-4 mb-8 border-l-2 border-border/50 pl-6">
+            <ul className="mb-8 space-y-4 border-l border-border-subtle pl-6">
                 {job.description.map((desc, i) => (
-                    <li key={i} className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                    <li
+                        key={i}
+                        className="measure-narrow text-base leading-relaxed text-muted-foreground"
+                    >
                         {desc}
                     </li>
                 ))}
@@ -65,14 +122,18 @@ function TimelineNode({ job, index }: { job: Job; index: number }) {
                     href={job.companyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-mono tracking-wider text-foreground hover:text-primary transition-colors border border-border px-4 py-2 rounded-full w-fit hover:bg-surface-elevated"
+                    className="inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-border px-5 py-2.5 font-mono text-sm tracking-wider text-foreground transition-[color,background-color,transform] duration-150 hover:bg-surface-elevated hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
                 >
-                    [ VIEW COMPANY ] <ArrowRight className="w-3 h-3" />
+                    VIEW COMPANY <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
             )}
 
-            <div className="absolute -bottom-12 left-0 text-[10rem] font-bold text-input opacity-10 select-none pointer-events-none -z-10">
-                {index + 1 < 10 ? `0${index + 1}` : index + 1}
+            {/* Faint watermark numeral — kept subtle behind the content */}
+            <div
+                className="pointer-events-none absolute -bottom-8 left-0 -z-10 select-none text-9xl font-bold leading-none text-input opacity-[0.08]"
+                aria-hidden="true"
+            >
+                {numeral}
             </div>
         </div>
     );
