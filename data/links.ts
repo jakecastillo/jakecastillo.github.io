@@ -1,30 +1,47 @@
 import type { LucideIcon } from "lucide-react";
-import { Linkedin, Mail } from "lucide-react";
+import { Download, Github, Linkedin, Mail } from "lucide-react";
 import { resumeData } from "@/data/resume";
 
 export type ContactLink = {
-  key: "email" | "linkedin";
-  label: string;
-  displayLabel: string;
+  key: "email" | "linkedin" | "github" | "resume";
+  label: string; // human, action-verb primary label
+  displayLabel: string; // mono "signal" caption
   href: string;
   icon: LucideIcon;
   external?: boolean;
+  download?: boolean;
 };
 
 export const contactLinks: ContactLink[] = [
   {
     key: "email",
-    label: "Email",
+    label: "Email me",
     displayLabel: "EMAIL_UPLINK",
     href: `mailto:${resumeData.email}`,
     icon: Mail,
   },
   {
+    key: "github",
+    label: "View GitHub",
+    displayLabel: "GITHUB_REPO",
+    href: resumeData.github,
+    icon: Github,
+    external: true,
+  },
+  {
     key: "linkedin",
-    label: "LinkedIn",
+    label: "Connect on LinkedIn",
     displayLabel: "LINKEDIN_SIGNAL",
     href: resumeData.linkedin,
     icon: Linkedin,
     external: true,
+  },
+  {
+    key: "resume",
+    label: "Download résumé",
+    displayLabel: "RESUME.PDF",
+    href: "/resume.pdf",
+    icon: Download,
+    download: true,
   },
 ];

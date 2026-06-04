@@ -1,56 +1,54 @@
 @import "tailwindcss";
 
+/* =========================================================================
+   VOID & LASER — design system
+   Near-monochrome void base + a single dominant violet accent ("laser"),
+   with cyan reserved as a rare mono "signal" tint. Depth from luminance
+   elevation + ambient glow, never black drop-shadows. Fluid, rem-anchored
+   type so text survives browser zoom. Motion respects reduced-motion.
+   ========================================================================= */
+
 :root {
-  /* VOID & LASER PALETTE */
   color-scheme: dark;
 
-  /* Void: Deep, rich blacks and charcoals */
-  --background: #050505;
-  /* Near black */
-  --foreground: #e0e0e0;
-  /* Off-white for readability */
-  --surface: #0a0a0a;
-  /* Slightly lighter void */
-  --surface-elevated: #121212;
-  --muted: #1a1a1a;
-  --muted-foreground: #a1a1aa;
+  /* ---- Void: layered near-blacks (each ~5-7% lighter than the one below) -- */
+  --background: #060608;      /* near-black, not pure #000 (avoids halation) */
+  --surface: #0c0c10;         /* base card */
+  --surface-elevated: #14141a;/* elevated card */
+  --surface-overlay: #1c1c24; /* nested / hover / overlay */
+  --foreground: #ededf2;      /* off-white body (not pure #fff) */
+  --muted: #16161c;
+  --muted-foreground: #a7a7b4;/* secondary text — clears 4.5:1 on --background */
+  --subtle-foreground: #8a8a98;
 
-  /* Laser: Luminous accents */
-  /* Primary: Electric Purple */
-  /* --primary: #7c3aed;  Violet 600 */
-  --primary: #8b5cf6;
-  /* Violet 500 - brighter */
-  --primary-hover: #7c3aed;
+  /* ---- Laser: the single dominant accent (violet) --------------------- */
+  --primary: #8b5cf6;         /* violet 500 */
+  --primary-hover: #a78bfa;   /* lighter for dark-mode hover (less vibration) */
   --primary-foreground: #ffffff;
-  --primary-muted: rgba(139, 92, 246, 0.15);
-  /* Glow base */
+  --primary-muted: rgba(139, 92, 246, 0.16);
 
-  /* Accent: Neon Cyan */
-  --accent: #22d3ee;
-  /* Cyan 400 */
-  --accent-hover: #06b6d4;
-  --accent-foreground: #000000;
-  --accent-muted: rgba(34, 211, 238, 0.15);
+  /* ---- Signal: rare secondary tint (cyan) — labels / mono accents ----- */
+  --accent: #2dd4bf;          /* slightly desaturated teal-cyan for dark mode */
+  --accent-hover: #5eead4;
+  --accent-foreground: #04110f;
+  --accent-muted: rgba(45, 212, 191, 0.14);
 
-  /* Borders: Very subtle, almost invisible */
-  --border: #27272a;
-  --border-subtle: #18181b;
+  /* ---- Lines: low-opacity light strokes, never solid dark lines ------- */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.06);   /* used by faint watermark numerals */
+  --terminal-border: rgba(255, 255, 255, 0.12);
 
-  /* Gradients */
-  --gradient-subtle: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(34, 211, 238, 0.05) 100%);
-  --gradient-hero: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 70%);
+  /* ---- Ambient depth: glows + radial atmosphere (no black shadows) ----- */
+  --gradient-hero: radial-gradient(120% 90% at 50% -10%, rgba(139, 92, 246, 0.16) 0%, rgba(6, 6, 8, 0) 55%);
+  --shadow-elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+  --shadow-elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 18px 48px -24px rgba(0, 0, 0, 0.85);
+  --glow-primary: 0 0 40px -8px rgba(139, 92, 246, 0.45);
+  --glow-accent: 0 0 40px -10px rgba(45, 212, 191, 0.35);
 
-  /* Shadows: Colored glows rather than black shadows */
-  --shadow-sm: 0 0 0 1px var(--border);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border);
-  --shadow-lg: 0 10px 40px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--border);
-  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
-  --shadow-glow-accent: 0 0 20px rgba(34, 211, 238, 0.3);
-
-  /* Typography Variables (To be mapped in Tailwind) */
-  --font-display: var(--font-geist-sans);
-  /* Placeholder for now */
   --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans);
 }
 
 @theme inline {
@@ -58,10 +56,14 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-surface-overlay: var(--surface-overlay);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
@@ -70,61 +72,176 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-muted: var(--accent-muted);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Custom Utilities */
+  /* Fluid, rem-anchored display scale (min @ ~360px, max @ ~1440px).
+     rem min/max means Cmd/Ctrl+ zoom still enlarges the text. Existing
+     Tailwind classes (text-4xl … text-9xl) pick these up automatically. */
+  --text-3xl: clamp(1.5rem, 1.25rem + 1.1vw, 1.95rem);
+  --text-3xl--line-height: 1.2;
+  --text-4xl: clamp(1.85rem, 1.45rem + 1.8vw, 2.6rem);
+  --text-4xl--line-height: 1.15;
+  --text-5xl: clamp(2.25rem, 1.6rem + 2.9vw, 3.4rem);
+  --text-5xl--line-height: 1.08;
+  --text-6xl: clamp(2.7rem, 1.7rem + 4.4vw, 4.5rem);
+  --text-6xl--line-height: 1.04;
+  --text-7xl: clamp(3.1rem, 1.6rem + 6.6vw, 5.75rem);
+  --text-7xl--line-height: 1.0;
+  --text-8xl: clamp(3.5rem, 1.2rem + 10vw, 7.5rem);
+  --text-8xl--line-height: 0.96;
+  --text-9xl: clamp(4rem, 0.5rem + 15vw, 10rem);
+  --text-9xl--line-height: 0.92;
+
   --animate-float: float 6s ease-in-out infinite;
 }
 
-/* Global Reset & Base */
+/* ----------------------------------------------------------------------- */
+/*                               Base                                       */
+/* ----------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: hidden;
-  /* Prevent horizontal scroll from animations */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Lenis Recommended CSS */
-html.lenis,
-html.lenis body {
-  height: auto;
+::selection {
+  background: var(--primary-muted);
+  color: #fff;
 }
 
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
+/* Slim, on-brand scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ----------------------------------------------------------------------- */
+/*                       Accessibility primitives                          */
+/* ----------------------------------------------------------------------- */
+
+/* Global keyboard focus ring (>=3:1, never removed without replacement) */
+:focus-visible {
+  outline: 2px solid var(--primary-hover);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+/* Don't show the ring for mouse users that trigger :focus only */
+:focus:not(:focus-visible) { outline: none; }
+
+/* Skip-to-content link */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--surface-overlay);
+  color: var(--foreground);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.875rem;
+  transform: translateY(-150%);
+  transition: transform 0.18s ease-out;
+}
+.skip-link:focus { transform: translateY(0); }
+
+/* ----------------------------------------------------------------------- */
+/*                              Utilities                                   */
+/* ----------------------------------------------------------------------- */
+
+/* Constrain body copy to a readable 45–75ch measure */
+.measure { max-width: 68ch; }
+.measure-narrow { max-width: 52ch; }
+.measure-wide { max-width: 80ch; }
+
+/* Shared page container + outer gutters (keeps gutters consistent per act) */
+.container-page {
+  width: 100%;
+  max-width: 80rem; /* 1280px */
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 0.5rem + 3vw, 4rem);
 }
 
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
+/* Luminance elevation surfaces (replace black drop-shadows on dark) */
+.surface-1 { background: var(--surface); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-elev-1); }
+.surface-2 { background: var(--surface-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-elev-2); }
+.glow-primary { box-shadow: var(--glow-primary); }
+.glow-accent { box-shadow: var(--glow-accent); }
 
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
+.text-glow { text-shadow: 0 0 24px rgba(139, 92, 246, 0.35); }
+.text-glow-accent { text-shadow: 0 0 24px rgba(45, 212, 191, 0.3); }
 
-.lenis.lenis-scrolling iframe {
+/* Film-grain + vignette atmosphere (decorative, pointer-events-none) */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 120% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-/* Cinematic Utilities */
-.text-glow {
-  text-shadow: 0 0 20px var(--primary-muted);
+/* Animated gradient text for the hero accent line */
+.text-laser {
+  background: linear-gradient(110deg, var(--primary-hover) 0%, #c4b5fd 40%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.border-glow {
-  box-shadow: 0 0 10px var(--terminal-border);
-}
+/* ----------------------------------------------------------------------- */
+/*                          Lenis (smooth scroll)                          */
+/* ----------------------------------------------------------------------- */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }
 
+/* ----------------------------------------------------------------------- */
+/*                              Keyframes                                   */
+/* ----------------------------------------------------------------------- */
 @keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
 
-  0%,
-  100% {
-    transform: translateY(0);
+/* ----------------------------------------------------------------------- */
+/*           prefers-reduced-motion — designed calm fallback               */
+/*   Neutralise transforms/loops/scroll-jacking, keep opacity fades only.  */
+/* ----------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
-
-  50% {
-    transform: translateY(-10px);
-  }
+  .grain::after { display: none; }
 }

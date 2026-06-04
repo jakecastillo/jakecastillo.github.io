@@ -1,42 +1,15 @@
 "use client";
 
-import Typewriter from "typewriter-effect";
-import { useBootStore } from "@/store/useBootStore";
-import { useEffect } from "react";
-
+// The hero H1 is now STATIC and server-rendered so the value paints within ~1s
+// and is readable to crawlers / AI screeners (no JS-gated typewriter on the
+// LCP headline). The typed "signature" lives in the interactive terminal.
 export default function HeaderTypewriter() {
-    const isBootComplete = useBootStore((state) => state.isBootComplete);
-
-    useEffect(() => {
-        if (isBootComplete && typeof window !== "undefined" && window.headerTypewriter) {
-            window.headerTypewriter.start();
-        }
-    }, [isBootComplete]);
-
-    return (
-        <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-[0.9] text-foreground mix-blend-difference">
-            <Typewriter
-                options={{
-                    autoStart: false,
-                    loop: false,
-                    delay: 60,
-                    cursor: " ", // Transparent or space as we don't want a permanent blinking cursor after finish
-                }}
-                onInit={(typewriter) => {
-                    typewriter
-                        .typeString("SOFTWARE<br />DEVLOPER.")
-                        .pauseFor(800)
-                        .deleteChars(6) // Deletes "LOPER." leaving "SOFTWARE<br />DEV"
-                        .typeString("ELOPER.") // Result: "SOFTWARE<br />DEVELOPER."
-                        .pauseFor(800)
-                        .deleteChars(10) // Deletes "DEVELOPER." leaving "SOFTWARE<br />"
-                        .typeString("ENGINEER.");
-
-                    if (typeof window !== "undefined") {
-                        window.headerTypewriter = typewriter;
-                    }
-                }}
-            />
-        </h1>
-    );
+  return (
+    <h1 className="font-black uppercase leading-[0.92] tracking-tighter text-foreground">
+      <span className="block text-[clamp(2.75rem,1.2rem+7vw,6rem)]">
+        <span className="text-laser text-glow">DevSecOps</span>
+      </span>
+      <span className="block text-[clamp(2.75rem,1.2rem+7vw,6rem)]">Engineer.</span>
+    </h1>
+  );
 }

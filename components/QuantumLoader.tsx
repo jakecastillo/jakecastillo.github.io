@@ -32,10 +32,22 @@ export default function QuantumLoader() {
     const [logs, setLogs] = useState<string[]>(["Initializing boot sequence..."]);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // We want to enforce a minimum loading time for the cinematic effect
+    // Keep the cinematic flash brief so the hero paints fast (LCP < ~1s).
     const [displayProgress, setDisplayProgress] = useState(0);
-    const minLoadTimeMs = 2500;
+    const minLoadTimeMs = 500;
     const startTimeRef = useRef(0);
+
+    // Reduced-motion (and a manual Skip) bypass the boot entirely.
+    const finish = () => {
+        setPhase("done");
+        setBootComplete(true);
+    };
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            finish();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Simulate progress and logs
     useEffect(() => {
@@ -73,17 +85,13 @@ export default function QuantumLoader() {
     // Handle booting phase text sequence
     useEffect(() => {
         if (phase === "booting") {
-            // Sequence of final terminal commands before entering UI
-            setTimeout(() => setLogs(p => [...p, ""]), 100);
-            setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 300);
-            setTimeout(() => setLogs(p => [...p, "Boot sequence complete."]), 600);
-            setTimeout(() => setLogs(p => [...p, "Starting UI session..._"]), 1000);
-            // End the sequence
-            setTimeout(() => {
-                setPhase("done");
-                setBootComplete(true);
-            }, 1600);
+            // Brief epilogue before entering the UI (kept tight for fast LCP).
+            const t1 = setTimeout(() => setLogs(p => [...p, "[  OK  ] All services started successfully."]), 90);
+            const t2 = setTimeout(() => setLogs(p => [...p, "Starting UI session..._"]), 220);
+            const t3 = setTimeout(finish, 420);
+            return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [phase, setBootComplete]);
 
     // Scroll to bottom of logs when new ones arrive
@@ -149,6 +157,15 @@ export default function QuantumLoader() {
                             backgroundSize: "100% 2px, 3px 100%"
                         }}
                     />
+
+                    {/* Skip control */}
+                    <button
+                        type="button"
+                        onClick={finish}
+                        className="pointer-events-auto absolute bottom-5 right-5 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 font-mono text-xs text-gray-300 transition-colors hover:border-white/30 hover:text-white"
+                    >
+                        Skip intro →
+                    </button>
                 </motion.div>
             )}
         </AnimatePresence>

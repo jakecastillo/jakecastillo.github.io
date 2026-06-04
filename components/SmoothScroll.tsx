@@ -9,12 +9,18 @@ export default function SmoothScroll() {
     const setLenis = useScrollStore((state) => state.setLenis);
 
     useEffect(() => {
+        // Respect reduced-motion: skip smooth-scroll hijacking entirely.
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            return;
+        }
+
         const lenis = new Lenis({
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: "vertical",
             gestureOrientation: "vertical",
             smoothWheel: true,
+            syncTouch: false, // never smooth/hijack native touch scrolling
             wheelMultiplier: 1,
             touchMultiplier: 2,
         });

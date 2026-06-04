@@ -8,9 +8,9 @@ import LiquidGlass from "./canvas/LiquidGlass";
 
 export default function Scene() {
     return (
-        <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0">
             <Canvas
-                gl={{ antialias: true, alpha: true }}
+                gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
                 dpr={[1, 1.5]}
                 camera={{ position: [0, 0, 5], fov: 45 }}
             >

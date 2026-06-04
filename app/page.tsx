@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowDown } from "lucide-react";
-import Image from "next/image";
+import { ArrowDown, ArrowUpRight, Download, Github, Mail } from "lucide-react";
 import TerminalTyping from "@/components/TerminalTyping";
 import StageManager from "@/components/StageManager";
 import ActPhilosophy from "@/components/ActPhilosophy";
@@ -10,64 +9,151 @@ import ActExperience from "@/components/ActExperience";
 import ActSkills from "@/components/ActSkills";
 import ActContact from "@/components/ActContact";
 import HeaderTypewriter from "@/components/HeaderTypewriter";
-import { useBootStore } from "@/store/useBootStore";
+import Container from "@/components/Container";
+import { resumeData } from "@/data/resume";
+
+const reveal = {
+  hidden: { opacity: 0, y: 18 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, delay: 0.15 + i * 0.08, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+};
+
+const pills = ["AWS Solutions Architect", "5+ yrs shipping software", "Honolulu, HI"];
 
 export default function Home() {
-  const isBootComplete = useBootStore((state) => state.isBootComplete);
-
   return (
     <div className="relative w-full">
       <StageManager />
-      {/* Act I: The Statement */}
-      <section id="home" className="relative min-h-screen py-24 flex flex-col items-center justify-center text-center px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isBootComplete ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="z-10 w-full max-w-6xl mx-auto flex flex-col items-center gap-12"
-        >
-          {/* Profile & Identity */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-br from-primary to-accent">
-              <div className="w-full h-full rounded-full overflow-hidden border-4 border-background relative">
-                <Image
-                  src="/jake-portrait.jpeg"
-                  alt="Jake Castillo"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <h2 className="text-sm font-mono tracking-[0.3em] text-accent uppercase">
-                Jake Castillo
-              </h2>
+      {/* Act I: The Statement */}
+      <section
+        id="home"
+        aria-label="Introduction"
+        className="relative flex min-h-screen items-center py-24"
+      >
+        <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
+          {/* Identity + CTAs */}
+          <div className="flex flex-col items-start gap-6 text-left lg:col-span-7">
+            <motion.div
+              custom={0}
+              variants={reveal}
+              initial="hidden"
+              animate="show"
+              className="flex items-center gap-3"
+            >
+              <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-accent p-[2px]">
+                <span className="block h-full w-full overflow-hidden rounded-full border-2 border-background">
+                  <picture>
+                    <source srcSet="/portrait/jake-320.avif" type="image/avif" />
+                    <source srcSet="/portrait/jake-320.webp" type="image/webp" />
+                    <img
+                      src="/portrait/jake-320.jpg"
+                      alt="Jake Castillo"
+                      width={44}
+                      height={44}
+                      fetchPriority="high"
+                      className="h-full w-full object-cover"
+                    />
+                  </picture>
+                </span>
+              </span>
+              <span className="font-mono text-sm uppercase tracking-[0.35em] text-accent">
+                {resumeData.name}
+              </span>
+            </motion.div>
+
+            <motion.div custom={1} variants={reveal} initial="hidden" animate="show">
               <HeaderTypewriter />
-            </div>
+            </motion.div>
+
+            <motion.p
+              custom={2}
+              variants={reveal}
+              initial="hidden"
+              animate="show"
+              className="measure text-lg text-muted-foreground sm:text-xl"
+            >
+              Software engineer securing cloud-native AWS platforms — embedding security
+              into the development lifecycle, from the pipeline to production.
+            </motion.p>
+
+            <motion.ul
+              custom={3}
+              variants={reveal}
+              initial="hidden"
+              animate="show"
+              className="flex flex-wrap gap-2"
+            >
+              {pills.map((p) => (
+                <li
+                  key={p}
+                  className="rounded-full border border-border-subtle bg-surface/60 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm"
+                >
+                  {p}
+                </li>
+              ))}
+            </motion.ul>
+
+            <motion.div
+              custom={4}
+              variants={reveal}
+              initial="hidden"
+              animate="show"
+              className="flex flex-wrap items-center gap-3 pt-1"
+            >
+              <a
+                href={`mailto:${resumeData.email}`}
+                className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-colors hover:bg-primary-hover"
+              >
+                <Mail size={18} strokeWidth={2} aria-hidden="true" />
+                Email me
+              </a>
+              <a
+                href="/resume.pdf"
+                download
+                className="inline-flex items-center gap-2 rounded-full border border-border-strong px-6 py-3 font-medium text-foreground transition-colors hover:border-primary hover:text-primary"
+              >
+                <Download size={18} strokeWidth={2} aria-hidden="true" />
+                Résumé
+              </a>
+              <a
+                href={resumeData.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View GitHub profile"
+                className="inline-flex items-center gap-2 rounded-full px-4 py-3 font-mono text-sm text-muted-foreground transition-colors hover:text-primary"
+              >
+                <Github size={18} strokeWidth={2} aria-hidden="true" />
+                GitHub
+                <ArrowUpRight size={14} aria-hidden="true" />
+              </a>
+            </motion.div>
           </div>
 
-          {/* Terminal Interface */}
+          {/* Signature: interactive terminal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isBootComplete ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="w-full max-w-2xl"
+            custom={5}
+            variants={reveal}
+            initial="hidden"
+            animate="show"
+            className="w-full lg:col-span-5"
           >
             <TerminalTyping />
           </motion.div>
-        </motion.div>
+        </Container>
 
-        {/* Scroll Indicator */}
+        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={isBootComplete ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ delay: 1.5, duration: 1 }}
-          className="absolute bottom-8 flex flex-col items-center gap-2 text-muted-foreground"
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.4, duration: 1 }}
+          className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground"
         >
-          <span className="text-[10px] uppercase tracking-widest font-mono">Initialize Scroll</span>
-          <ArrowDown className="w-4 h-4 animate-bounce" />
+          <span className="font-mono text-[11px] uppercase tracking-widest">Scroll</span>
+          <ArrowDown className="h-4 w-4 animate-bounce" aria-hidden="true" />
         </motion.div>
       </section>
 
