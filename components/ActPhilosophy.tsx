@@ -38,7 +38,7 @@ function SlideBelief() {
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 DevSecOps Philosophy
             </p>
-            <h2 className="text-5xl font-black leading-[1.05] tracking-tighter text-foreground">
+            <h2 className="text-5xl font-black leading-[1.05] tracking-tighter text-foreground [overflow-wrap:anywhere]">
                 ENGINEERING
                 <br />
                 <span className="text-primary text-glow">SECURE SYSTEMS.</span>
@@ -82,7 +82,7 @@ function SlideResult() {
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 The Outcome
             </p>
-            <h2 className="text-8xl font-black leading-[0.95] tracking-tighter text-foreground text-glow">
+            <h2 className="text-8xl font-black leading-[0.95] tracking-tighter text-foreground text-glow [overflow-wrap:anywhere]">
                 HARDENED.
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
@@ -124,6 +124,13 @@ export default function ActPhilosophy() {
     // (fully visible) rather than clipping it as the old -50% range did.
     const x = useTransform(scrollYProgress, [0.12, 0.92], ["0%", "-66%"]);
 
+    // Scroll affordance (normal-motion only — the early return below covers
+    // reduced-motion/touch). A thin progress rail tracks how far through the
+    // pin we are; the "scroll" hint fades out once travel begins so it never
+    // lingers over the final slide.
+    const progressScaleX = useTransform(scrollYProgress, [0.12, 0.92], [0, 1]);
+    const hintOpacity = useTransform(scrollYProgress, [0, 0.1, 0.22], [1, 1, 0]);
+
     // Reduced motion OR touch/coarse/narrow: a static vertical stack,
     // opacity-only reveals, no horizontal pin (no scroll-jacking on phones).
     if (prefersReducedMotion || isCompact) {
@@ -161,6 +168,28 @@ export default function ActPhilosophy() {
                         <SlideResult />
                     </div>
                 </motion.div>
+
+                {/* Scroll affordance — hints that horizontal content exists.
+                    Decorative only; gated to normal-motion users by the early
+                    return above. */}
+                <motion.div
+                    aria-hidden="true"
+                    style={{ opacity: hintOpacity }}
+                    className="container-page pointer-events-none absolute bottom-8 left-0 right-0 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.3em] text-subtle-foreground"
+                >
+                    Scroll
+                    <span aria-hidden="true">&rarr;</span>
+                </motion.div>
+
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-border"
+                >
+                    <motion.div
+                        style={{ scaleX: progressScaleX }}
+                        className="h-full origin-left bg-primary"
+                    />
+                </div>
             </div>
         </section>
     );

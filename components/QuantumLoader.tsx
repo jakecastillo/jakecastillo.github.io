@@ -1,6 +1,5 @@
 "use client";
 
-import { useProgress } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBootStore } from "@/store/useBootStore";
@@ -26,7 +25,6 @@ const BASE_LOGS = [
 ];
 
 export default function QuantumLoader() {
-    const { progress, active } = useProgress();
     const setBootComplete = useBootStore((state) => state.setBootComplete);
     const [phase, setPhase] = useState<"loading" | "booting" | "done">("loading");
     const [logs, setLogs] = useState<string[]>(["Initializing boot sequence..."]);
@@ -60,8 +58,7 @@ export default function QuantumLoader() {
             const elapsed = Date.now() - startTimeRef.current;
             const timeProgress = Math.min((elapsed / minLoadTimeMs) * 100, 100);
 
-            const visualProgress = elapsed > minLoadTimeMs ? Math.max(progress, 100) : timeProgress;
-            setDisplayProgress(visualProgress);
+            setDisplayProgress(timeProgress);
 
             // Add a realistic log line
             setLogs((prev) => {
@@ -72,15 +69,16 @@ export default function QuantumLoader() {
                 return newLogs.slice(-30);
             });
 
-            // Check for completion
-            if ((progress === 100 || !active) && elapsed >= minLoadTimeMs) {
+            // Time-only completion: the orb loads lazily in the background, so we
+            // drive the boot purely off elapsed time instead of three.js progress.
+            if (elapsed >= minLoadTimeMs) {
                 clearInterval(interval);
                 setPhase("booting");
             }
         }, 80);
 
         return () => clearInterval(interval);
-    }, [progress, active, phase]);
+    }, [phase]);
 
     // Handle booting phase text sequence
     useEffect(() => {

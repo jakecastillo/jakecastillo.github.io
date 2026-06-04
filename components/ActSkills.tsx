@@ -47,7 +47,7 @@ export default function ActSkills() {
                     transition={{ duration: 0.3, ease: EASE }}
                     className="mb-20 max-w-3xl"
                 >
-                    <p className="text-xs font-mono tracking-[0.5em] text-accent mb-4">
+                    <p className="text-xs font-mono tracking-[0.3em] text-primary mb-4">
                         02 / CAPABILITIES
                     </p>
                     <h2 className="text-7xl font-bold tracking-tighter leading-[0.95] -ml-1">
@@ -97,7 +97,7 @@ export default function ActSkills() {
                 </div>
 
                 <div className="mt-24 pt-12 border-t border-border">
-                    <h3 className="text-xs font-mono tracking-[0.5em] text-accent mb-8">CERTIFICATIONS</h3>
+                    <h3 className="text-xs font-mono tracking-[0.3em] text-muted-foreground mb-8">CERTIFICATIONS</h3>
                     <motion.div
                         variants={groupContainer}
                         initial="hidden"

@@ -395,15 +395,17 @@ $ `;
       onClick={() => inputRef.current?.focus()}
       className={`bg-[#1c1c1c] text-[#f1f1f1] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
         isFocused
-          ? "ring-2 ring-[color:var(--primary-hover)] border border-border-strong"
+          ? "ring-2 ring-offset-2 ring-offset-background ring-[color:var(--primary-hover)] border border-border-strong"
           : "border border-border"
       }`}
       style={{
         height: "360px", // Increased height slightly for better scroll space
-        // Luminance/border-based elevation: soft ambient shadow + faint inner highlight,
-        // instead of a heavy black drop shadow.
-        boxShadow:
-          "0 8px 24px -12px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
+        // Luminance/border-based elevation: faint inner highlight + a soft ambient
+        // glow (primary-tinted) instead of a heavy black drop shadow. On focus the
+        // ambient glow intensifies, reinforcing the keyboard focus ring.
+        boxShadow: isFocused
+          ? "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(139, 92, 246, 0.20), 0 0 40px -8px rgba(139, 92, 246, 0.45)"
+          : "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 1px 1px 0 rgba(0, 0, 0, 0.25), 0 0 32px -14px rgba(139, 92, 246, 0.30)",
         fontFamily: "Menlo, Monaco, 'Courier New', monospace"
       }}
     >
@@ -424,7 +426,7 @@ $ `;
 
       {/* Typing phase */}
       {phase === "typing" && (
-        <div className="p-3 whitespace-pre-wrap break-words flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 text-xs leading-relaxed [&_.Typewriter__wrapper]:whitespace-pre-wrap [&_.Typewriter__wrapper]:break-words [&_.Typewriter__wrapper]:[overflow-wrap:anywhere] [&_.Typewriter__wrapper]:block [&_.Typewriter__cursor]:text-primary">
+        <div className="p-3 whitespace-pre-wrap break-words flex-1 min-w-0 overflow-auto overflow-x-hidden min-h-0 pr-2 text-xs leading-relaxed [&_.Typewriter__wrapper]:whitespace-pre-wrap [&_.Typewriter__wrapper]:break-words [&_.Typewriter__wrapper]:[overflow-wrap:anywhere] [&_.Typewriter__wrapper]:block [&_.Typewriter__cursor]:text-[color:var(--primary-hover)]">
           <Typewriter
             options={{
               autoStart: false,
@@ -470,7 +472,7 @@ $ `;
                 await runCommand(value);
               }}
             >
-              <span className="text-primary select-none shrink-0 text-xs font-semibold">
+              <span className="text-[color:var(--primary-hover)] select-none shrink-0 text-xs font-semibold">
                 {currentPath.length === 1 ? "~" : currentPath[currentPath.length - 1]} $
               </span>
               <input

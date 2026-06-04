@@ -58,7 +58,7 @@ export default function ActExperience() {
     // case-study list — no pin, no horizontal transform, opacity-only reveals.
     if (!immersive) {
         return (
-            <section className="container-page py-24">
+            <section className="container-page pt-24 pb-28 [padding-bottom:calc(7rem+env(safe-area-inset-bottom))]">
                 <h2 className="sr-only">Experience</h2>
                 <p className="mb-12 font-mono text-xs tracking-widest text-muted-foreground">
                     {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
@@ -169,7 +169,7 @@ function TimelineNode({
             <div className="rounded-xl bg-background/70 px-4 py-3 backdrop-blur-sm">
                 {/* Role / period / company hierarchy — reads as a STAR case-study header */}
                 <header className="mb-6 flex flex-col gap-2">
-                    <span className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+                    <span className="font-mono text-xs uppercase tracking-[0.2em] text-subtle-foreground">
                         {job.period} <span className="text-subtle-foreground">· {numeral} / {format(total)}</span>
                     </span>
                     <h3 className="text-4xl font-bold leading-[1.05] tracking-tighter text-foreground text-glow">
@@ -179,6 +179,12 @@ function TimelineNode({
                         <span className="text-subtle-foreground">@ </span>
                         {job.company}
                     </p>
+                    {/* STAR "situation": one-line context that frames the role. */}
+                    {job.context && (
+                        <p className="measure-narrow text-sm italic leading-relaxed text-muted-foreground">
+                            {job.context}
+                        </p>
+                    )}
                 </header>
 
                 <ul className="space-y-4 border-l border-border-subtle pl-6">

@@ -149,7 +149,7 @@ function MagneticButton({
                 aria-current={isActive ? "page" : undefined}
                 className={`relative flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-white/10 ${
                     isActive
-                        ? "text-primary duration-200"
+                        ? "bg-primary-muted text-primary duration-200 hover:bg-primary-muted"
                         : "text-muted-foreground duration-[140ms] hover:text-primary"
                 }`}
             >
@@ -214,7 +214,7 @@ export default function Navigation() {
                         delay: 0.4,
                         ease: [0.16, 1, 0.3, 1],
                     }}
-                    className="pointer-events-auto fixed bottom-8 left-1/2 z-50 -translate-x-1/2"
+                    className="pointer-events-auto fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2"
                 >
                     <ul className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl">
                         {navSections.map((section) => (

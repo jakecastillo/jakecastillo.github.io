@@ -29,6 +29,18 @@ export default function ActContact() {
     const primary = contactLinks.find((link) => link.primary);
     const secondary = contactLinks.filter((link) => !link.primary);
 
+    // Verifiable credibility markers derived from resumeData — no synthetic values.
+    const awsCertCount = resumeData.certifications.filter((cert) =>
+        cert.name.startsWith("AWS")
+    ).length;
+
+    const credibility = [
+        `AWS ×${awsCertCount} CERTIFIED`,
+        "5+ YRS EXPERIENCE",
+        "4+ PRODUCTS SHIPPED",
+        resumeData.location.toUpperCase(),
+    ];
+
     return (
         <section className="relative py-32 min-h-[80vh] flex flex-col justify-center overflow-hidden">
             {/* Background grid — decorative */}
@@ -46,31 +58,36 @@ export default function ActContact() {
                 {/* Asymmetric focal hierarchy: heading + intent on the left, action stack weighted right */}
                 <div className="grid items-start gap-10 md:grid-cols-[1.1fr_minmax(0,1fr)] md:gap-16">
                     <div className="md:pt-4">
+                        {/* Cyan kept as the ONE genuine "available/online" signal in view */}
                         <motion.div
                             {...reveal(0)}
-                            className="mb-6 text-xs tracking-[0.3em] text-accent"
+                            className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground"
                         >
-                            <span>{"/// SECURE_CHANNEL_ESTABLISHED"}</span>
+                            <span
+                                aria-hidden="true"
+                                className="h-2 w-2 rounded-full bg-accent"
+                            />
+                            <span>Available for new work</span>
                         </motion.div>
 
                         <motion.h2
                             {...reveal(reduceMotion ? 0 : 0.06)}
                             className="text-7xl font-bold text-foreground tracking-tighter"
                         >
-                            INITIALIZE
+                            Let&rsquo;s build
                             <br />
-                            CONNECTION
-                            <span className="animate-pulse text-primary">_</span>
+                            something secure
+                            <span className="animate-pulse text-primary">.</span>
                         </motion.h2>
 
                         <motion.p
                             {...reveal(reduceMotion ? 0 : 0.12)}
                             className="measure mt-8 text-base text-muted-foreground"
                         >
-                            Building secure-by-default pipelines and shipping software
-                            with DevSecOps guardrails baked in. Open to platform
-                            security, CI/CD hardening, and infrastructure roles — start
-                            the handshake below.
+                            I build secure-by-default pipelines and ship software with
+                            DevSecOps guardrails baked in. I&rsquo;m open to platform
+                            security, CI/CD hardening, and infrastructure roles &mdash;
+                            and I read every message. Reach out below.
                         </motion.p>
                     </div>
 
@@ -161,12 +178,18 @@ export default function ActContact() {
                             })}
                         </ul>
 
-                        {/* Stats row — inside the scrim for legibility over the orb */}
-                        <div className="mt-8 flex flex-wrap justify-between gap-x-4 gap-y-2 border-t border-border-subtle pt-6 text-xs uppercase tracking-widest text-muted-foreground">
-                            <span>UPTIME: 99.9%</span>
-                            <span>ENCRYPTION: AES-256</span>
-                            <span>LOCATION: {resumeData.location.toUpperCase()}</span>
-                        </div>
+                        {/* Credibility markers — verifiable, derived from resumeData.
+                            One restrained terminal flourish: the ~/ prompt glyph. */}
+                        <dl className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-border-subtle pt-6 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                            <span aria-hidden="true" className="text-subtle-foreground">
+                                ~/
+                            </span>
+                            {credibility.map((marker) => (
+                                <dd key={marker} className="m-0">
+                                    {marker}
+                                </dd>
+                            ))}
+                        </dl>
                     </motion.div>
                 </div>
             </Container>
