@@ -6,10 +6,10 @@
 export default function HeaderTypewriter() {
   return (
     <h1 className="font-black uppercase leading-[0.92] tracking-tighter text-foreground">
-      <span className="block text-[clamp(2.25rem,1rem+6.5vw,6rem)]">
+      <span className="block text-8xl">
         <span className="text-laser text-glow">DevSecOps</span>
       </span>
-      <span className="block text-[clamp(2.25rem,1rem+6.5vw,6rem)]">Engineer.</span>
+      <span className="block text-8xl">Engineer.</span>
     </h1>
   );
 }

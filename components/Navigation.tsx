@@ -146,13 +146,20 @@ function MagneticButton({
                 onMouseLeave={reset}
                 aria-label={label}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-white/10 ${
+                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-white/10 ${
                     isActive
-                        ? "bg-primary-muted text-primary duration-200 hover:bg-primary-muted"
-                        : "text-muted-foreground duration-[140ms] hover:text-primary"
+                        ? "bg-primary-muted px-3 text-primary duration-200 hover:bg-primary-muted lg:px-4"
+                        : "w-11 min-w-[44px] text-muted-foreground duration-[140ms] hover:text-primary"
                 }`}
             >
                 {children}
+                {/* Persistent label on the ACTIVE item (desktop): always-on
+                    wayfinding so the dock isn't five ambiguous glyphs. */}
+                {isActive && (
+                    <span className="hidden whitespace-nowrap text-sm font-medium lg:inline">
+                        {label}
+                    </span>
+                )}
                 {/* Active indicator dot beneath the icon. Enters at 200ms,
                     exits faster at 140ms to match the tooltip's quicker leave. */}
                 <span

@@ -83,20 +83,22 @@
   /* Fluid, rem-anchored display scale (min @ ~360px, max @ ~1440px).
      rem min/max means Cmd/Ctrl+ zoom still enlarges the text. Existing
      Tailwind classes (text-4xl … text-9xl) pick these up automatically. */
-  --text-3xl: clamp(1.5rem, 1.25rem + 1.1vw, 1.95rem);
+  /* One modular scale — max end steps by a constant ~1.25 ratio; min end a
+     gentler ~1.16 (compressed for small screens). rem-anchored so zoom works. */
+  --text-3xl: clamp(1.5rem, 1.28rem + 1.0vw, 2rem);
   --text-3xl--line-height: 1.2;
-  --text-4xl: clamp(1.85rem, 1.45rem + 1.8vw, 2.6rem);
+  --text-4xl: clamp(1.75rem, 1.45rem + 1.4vw, 2.5rem);
   --text-4xl--line-height: 1.15;
-  --text-5xl: clamp(2.25rem, 1.6rem + 2.9vw, 3.4rem);
-  --text-5xl--line-height: 1.08;
-  --text-6xl: clamp(2.4rem, 1.5rem + 4.2vw, 4.5rem);
-  --text-6xl--line-height: 1.04;
-  --text-7xl: clamp(2.6rem, 1.3rem + 6vw, 5.75rem);
-  --text-7xl--line-height: 1.0;
-  --text-8xl: clamp(2.9rem, 1.0rem + 9vw, 7.5rem);
-  --text-8xl--line-height: 0.96;
-  --text-9xl: clamp(3.1rem, 0.4rem + 12.5vw, 10rem);
-  --text-9xl--line-height: 0.92;
+  --text-5xl: clamp(2.05rem, 1.6rem + 2.0vw, 3.05rem);
+  --text-5xl--line-height: 1.1;
+  --text-6xl: clamp(2.4rem, 1.7rem + 3.1vw, 3.8rem);
+  --text-6xl--line-height: 1.05;
+  --text-7xl: clamp(2.8rem, 1.7rem + 4.9vw, 4.75rem);
+  --text-7xl--line-height: 1.02;
+  --text-8xl: clamp(3.2rem, 1.6rem + 7.1vw, 5.95rem);
+  --text-8xl--line-height: 0.98;
+  --text-9xl: clamp(3.6rem, 1.4rem + 9.8vw, 7.45rem);
+  --text-9xl--line-height: 0.94;
 
   --animate-float: float 6s ease-in-out infinite;
 }
@@ -114,7 +116,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
-  line-height: 1.6;
+  line-height: 1.5; /* 24px on 16px base — snaps to the 8pt baseline grid */
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

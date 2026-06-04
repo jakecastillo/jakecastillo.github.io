@@ -427,7 +427,7 @@ $ `;
         boxShadow: isFocused
           ? "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(139, 92, 246, 0.20), 0 0 40px -8px rgba(139, 92, 246, 0.45)"
           : "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 1px 1px 0 rgba(0, 0, 0, 0.25), 0 0 32px -14px rgba(139, 92, 246, 0.30)",
-        fontFamily: "Menlo, Monaco, 'Courier New', monospace"
+        fontFamily: "var(--font-geist-mono), 'SF Mono', Menlo, Monaco, monospace"
       }}
     >
       {/* Window chrome — bar derived near the surface-overlay token (#2a2a32),

@@ -86,8 +86,8 @@ export default function Home() {
               animate="show"
               className="measure text-base text-muted-foreground"
             >
-              Software engineer in Honolulu embedding security into the SDLC and shipping
-              resilient, type-safe AWS systems.
+              I help Hawai&#699;i government and enterprise teams modernize legacy systems
+              and ship secure, cloud-native AWS platforms.
             </motion.p>
 
             <motion.ul
