@@ -80,9 +80,9 @@ export const resumeData: ResumeData = {
       companyUrl: "https://www.datahouse.com",
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
-      context: "Hawaiʻi's largest software consultancy — modernizing enterprise & government systems.",
+      context: "Hawaiʻi-based software consultancy — modernizing enterprise & government systems.",
       description: [
-        "Re-architected a brittle legacy monolith into 12+ NestJS microservices serving 10k+ users across 4+ products — isolating failure domains to cut production incidents and unplanned downtime over a 5-year tenure.",
+        "Re-architected a brittle legacy monolith into NestJS microservices — isolating failure domains to reduce production incidents and unplanned downtime.",
         "Built full-stack features end-to-end with React, NestJS/Prisma, and PostgreSQL, enforcing schema-level type safety to eliminate a class of runtime data bugs.",
         "Acted as technical SME and lead across cross-functional teams, owning production support and long-term maintainability.",
       ],

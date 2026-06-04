@@ -29,15 +29,11 @@ export default function ActContact() {
     const primary = contactLinks.find((link) => link.primary);
     const secondary = contactLinks.filter((link) => !link.primary);
 
-    // Verifiable credibility markers derived from resumeData — no synthetic values.
-    const awsCertCount = resumeData.certifications.filter((cert) =>
-        cert.name.startsWith("AWS")
-    ).length;
-
+    // Verifiable, non-numeric markers — real credentials + role + location only.
     const credibility = [
-        `AWS ×${awsCertCount} CERTIFIED`,
-        "5+ YRS EXPERIENCE",
-        "4+ PRODUCTS SHIPPED",
+        "AWS SOLUTIONS ARCHITECT",
+        "AWS CLOUD PRACTITIONER",
+        "DEVSECOPS",
         resumeData.location.toUpperCase(),
     ];
 

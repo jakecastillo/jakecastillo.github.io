@@ -21,7 +21,7 @@ const reveal = {
   }),
 };
 
-const pills = ["AWS Solutions Architect", "5+ yrs shipping software", "Honolulu, HI"];
+const pills = ["AWS Solutions Architect", "Secure SDLC · AWS", "Honolulu, HI"];
 
 export default function Home() {
   return (

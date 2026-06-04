@@ -226,7 +226,7 @@ $ `;
             `Role: ${resumeData.summary.split(".")[0]}.`,
             `Location: ${resumeData.location}`,
             `Status: Online`,
-            `Uptime: 5+ yrs in industry`,
+            `Focus: DevSecOps · Cloud security`,
           ]);
         }
         break;
