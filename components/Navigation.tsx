@@ -178,7 +178,6 @@ function MagneticButton({
 
 export default function Navigation() {
     const lenis = useScrollStore((state) => state.lenis);
-    const prefersReducedMotion = useReducedMotion();
     const enableMotion = useEnableMotion();
     const activeId = useActiveSection();
 
@@ -212,16 +211,9 @@ export default function Navigation() {
         // independent of) the terminal boot animation finishing.
         <motion.nav
             aria-label="Primary"
-            initial={
-                prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
-            }
-            animate={
-                prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
-            }
-            transition={{
-                duration: prefersReducedMotion ? 0.2 : 0.4,
-                ease: [0.16, 1, 0.3, 1],
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="pointer-events-auto fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
         >
             {/* Inline active-section label. Coarse-pointer / touch users never
@@ -232,21 +224,10 @@ export default function Navigation() {
                 <motion.span
                     key={activeLabel}
                     aria-hidden="true"
-                    initial={
-                        prefersReducedMotion
-                            ? { opacity: 0 }
-                            : { opacity: 0, y: 4 }
-                    }
+                    initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={
-                        prefersReducedMotion
-                            ? { opacity: 0 }
-                            : { opacity: 0, y: -4 }
-                    }
-                    transition={{
-                        duration: prefersReducedMotion ? 0.15 : 0.2,
-                        ease: [0.16, 1, 0.3, 1],
-                    }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-foreground backdrop-blur-xl md:hidden"
                 >
                     {activeLabel}

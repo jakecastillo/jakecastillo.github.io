@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     motion,
     useReducedMotion,
@@ -8,6 +8,9 @@ import {
     useTransform,
 } from "framer-motion";
 import { resumeData } from "@/data/resume";
+
+const useIsoLayoutEffect =
+    typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 const pillars = [
     {
@@ -95,24 +98,62 @@ function SlideResult() {
     );
 }
 
-export default function ActPhilosophy() {
-    const containerRef = useRef<HTMLDivElement>(null);
+/**
+ * Whether the pinned horizontal experience should run. Gated behind a non-touch,
+ * non-narrow viewport that is NOT requesting reduced motion (the horizontal pin
+ * reads as scroll-jacking on phones). Starts false so SSR matches the safe
+ * vertical fallback, then upgrades before paint on mount.
+ */
+function useImmersive() {
     const prefersReducedMotion = useReducedMotion();
+    const [wideFinePointer, setWideFinePointer] = useState(false);
 
-    // Detect touch / coarse-pointer / narrow viewports. On phones the horizontal
-    // pin reads as scroll-jacking, so we fall back to the static vertical stack.
-    // Starts false to keep SSR/client markup in sync; resolves after mount.
-    const [isCompact, setIsCompact] = useState(false);
-    useEffect(() => {
+    useIsoLayoutEffect(() => {
+        if (typeof window === "undefined" || !window.matchMedia) return;
         const evaluate = () =>
-            setIsCompact(
-                window.matchMedia("(pointer: coarse)").matches ||
-                    window.innerWidth < 768,
+            setWideFinePointer(
+                !window.matchMedia("(pointer: coarse)").matches &&
+                    window.innerWidth >= 768,
             );
         evaluate();
         window.addEventListener("resize", evaluate);
         return () => window.removeEventListener("resize", evaluate);
     }, []);
+
+    return wideFinePointer && !prefersReducedMotion;
+}
+
+export default function ActPhilosophy() {
+    const immersive = useImmersive();
+    // useScroll lives ONLY inside <PhilosophyImmersive/>, so it never runs while
+    // its target ref is unmounted (framer's "ref not hydrated" error).
+    return immersive ? <PhilosophyImmersive /> : <PhilosophyStatic />;
+}
+
+// Reduced motion / touch / narrow: a static vertical stack, opacity-only
+// reveals, no horizontal pin and no useScroll.
+function PhilosophyStatic() {
+    return (
+        <section className="section-y container-page">
+            <div className="flex flex-col gap-24">
+                <motion.div {...reveal}>
+                    <SlideBelief />
+                </motion.div>
+                <motion.div {...reveal}>
+                    <SlideProcess />
+                </motion.div>
+                <motion.div {...reveal}>
+                    <SlideResult />
+                </motion.div>
+            </div>
+        </section>
+    );
+}
+
+// Fine-pointer + normal-motion: the pinned horizontal scroll. Always renders its
+// ref'd <section>, so useScroll has a hydrated target.
+function PhilosophyImmersive() {
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -120,37 +161,10 @@ export default function ActPhilosophy() {
     });
 
     // Drive horizontal travel only through the middle of the pin so the first
-    // and last slides each get a full beat fully on-screen. The track is three
-    // 70vw slides + gaps; ending at -66% leaves the final slide flush-right
-    // (fully visible) rather than clipping it as the old -50% range did.
+    // and last slides each get a full beat fully on-screen.
     const x = useTransform(scrollYProgress, [0.12, 0.92], ["0%", "-66%"]);
-
-    // Scroll affordance (normal-motion only — the early return below covers
-    // reduced-motion/touch). A thin progress rail tracks how far through the
-    // pin we are; the "scroll" hint fades out once travel begins so it never
-    // lingers over the final slide.
     const progressScaleX = useTransform(scrollYProgress, [0.12, 0.92], [0, 1]);
     const hintOpacity = useTransform(scrollYProgress, [0, 0.1, 0.22], [1, 1, 0]);
-
-    // Reduced motion OR touch/coarse/narrow: a static vertical stack,
-    // opacity-only reveals, no horizontal pin (no scroll-jacking on phones).
-    if (prefersReducedMotion || isCompact) {
-        return (
-            <section className="section-y container-page">
-                <div className="flex flex-col gap-24">
-                    <motion.div {...reveal}>
-                        <SlideBelief />
-                    </motion.div>
-                    <motion.div {...reveal}>
-                        <SlideProcess />
-                    </motion.div>
-                    <motion.div {...reveal}>
-                        <SlideResult />
-                    </motion.div>
-                </div>
-            </section>
-        );
-    }
 
     return (
         <section ref={containerRef} className="section-y relative h-[300vh]">
@@ -170,9 +184,7 @@ export default function ActPhilosophy() {
                     </div>
                 </motion.div>
 
-                {/* Scroll affordance — hints that horizontal content exists.
-                    Decorative only; gated to normal-motion users by the early
-                    return above. */}
+                {/* Scroll affordance — hints that horizontal content exists. */}
                 <motion.div
                     aria-hidden="true"
                     style={{ opacity: hintOpacity }}

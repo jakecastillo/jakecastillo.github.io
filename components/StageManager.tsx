@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
     motion,
     AnimatePresence,
-    useReducedMotion,
     useScroll,
     useSpring,
 } from "framer-motion";
@@ -12,7 +11,6 @@ import { stageSections } from "@/data/sections";
 
 export default function StageManager() {
     const [activeId, setActiveId] = useState(stageSections[0].id);
-    const prefersReducedMotion = useReducedMotion();
 
     // Tie the vertical marker to overall scroll progress (no perpetual loop).
     const { scrollYProgress } = useScroll();
@@ -78,36 +76,16 @@ export default function StageManager() {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={`${currentAct.stageLabel}-${currentAct.stageTitle}`}
-                        initial={
-                            prefersReducedMotion
-                                ? { opacity: 0 }
-                                : { opacity: 0, x: -16 }
-                        }
+                        initial={{ opacity: 0, x: -16 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={
-                            prefersReducedMotion
-                                ? {
-                                      opacity: 0,
-                                      // Exit ~25% quicker than the entrance for a
-                                      // crisper handoff between acts.
-                                      transition: {
-                                          duration: 0.15,
-                                          ease: [0.16, 1, 0.3, 1],
-                                      },
-                                  }
-                                : {
-                                      opacity: 0,
-                                      x: 16,
-                                      transition: {
-                                          duration: 0.3,
-                                          ease: [0.16, 1, 0.3, 1],
-                                      },
-                                  }
-                        }
-                        transition={{
-                            duration: prefersReducedMotion ? 0.2 : 0.4,
-                            ease: [0.16, 1, 0.3, 1],
+                        // Exit ~25% quicker than the entrance for a crisper handoff.
+                        // (MotionProvider drops the x transform for reduced-motion users.)
+                        exit={{
+                            opacity: 0,
+                            x: 16,
+                            transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
                         }}
+                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className="flex flex-col"
                     >
                         <span className="text-xs font-mono tracking-[0.4em] text-accent mb-1">
@@ -119,20 +97,14 @@ export default function StageManager() {
                     </motion.div>
                 </AnimatePresence>
 
-                {/* Vertical progress marker tied to scroll position. */}
+                {/* Vertical progress marker tied to scroll position (scroll-linked,
+                    not autonomous motion, so it's calm under reduced-motion too). */}
                 <div className="w-px h-16 bg-border mt-6 relative overflow-hidden">
-                    {prefersReducedMotion ? (
-                        <span
-                            aria-hidden="true"
-                            className="absolute top-0 left-0 w-full h-full bg-primary/60"
-                        />
-                    ) : (
-                        <motion.span
-                            aria-hidden="true"
-                            className="absolute top-0 left-0 w-full bg-primary origin-top"
-                            style={{ height: "100%", scaleY: smoothProgress }}
-                        />
-                    )}
+                    <motion.span
+                        aria-hidden="true"
+                        className="absolute top-0 left-0 w-full bg-primary origin-top"
+                        style={{ height: "100%", scaleY: smoothProgress }}
+                    />
                 </div>
             </div>
         </div>

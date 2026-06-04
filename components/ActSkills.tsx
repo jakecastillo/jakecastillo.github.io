@@ -1,30 +1,28 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Container from "@/components/Container";
 import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+// Constant variants (no useReducedMotion branch) so SSR == client markup;
+// MotionProvider auto-drops the y transform for reduced-motion users.
+const groupContainer: Variants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.06 } },
+};
+
+const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.3, ease: EASE },
+    },
+};
+
 export default function ActSkills() {
-    const reduceMotion = useReducedMotion();
-
-    // Container drives the stagger; children only animate opacity when motion is reduced.
-    const groupContainer: Variants = {
-        hidden: {},
-        visible: {
-            transition: { staggerChildren: reduceMotion ? 0 : 0.06 },
-        },
-    };
-
-    const item: Variants = {
-        hidden: { opacity: 0, y: reduceMotion ? 0 : 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.3, ease: EASE },
-        },
-    };
 
     return (
         <section className="section-y relative border-t border-border overflow-hidden">
@@ -41,7 +39,7 @@ export default function ActSkills() {
             <Container className="relative z-10">
                 {/* Offset oversized heading — overhangs the grid for asymmetric tension. */}
                 <motion.header
-                    initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.3, ease: EASE }}

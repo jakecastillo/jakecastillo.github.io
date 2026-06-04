@@ -6,6 +6,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import BackgroundScene from "@/components/BackgroundScene";
 import QuantumLoader from "@/components/QuantumLoader";
 import Footer from "@/components/Footer";
+import MotionProvider from "@/components/MotionProvider";
 import { resumeData } from "@/data/resume";
 
 const geistSans = Geist({
@@ -165,22 +166,24 @@ export default function RootLayout({
           </a>
         </header>
 
-        <QuantumLoader />
-        <SmoothScroll />
+        <MotionProvider>
+          <QuantumLoader />
+          <SmoothScroll />
 
-        {/* Cinematic background (code-split, reduced-motion aware) */}
-        <BackgroundScene />
+          {/* Cinematic background (code-split, reduced-motion aware) */}
+          <BackgroundScene />
 
-        {/* Navigation */}
-        <Navigation />
+          {/* Navigation */}
+          <Navigation />
 
-        {/* Content */}
-        <div className="relative z-10 flex min-h-screen flex-col">
-          <main id="main" className="flex-grow">
-            {children}
-          </main>
-          <Footer />
-        </div>
+          {/* Content */}
+          <div className="relative z-10 flex min-h-screen flex-col">
+            <main id="main" className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </MotionProvider>
       </body>
     </html>
   );

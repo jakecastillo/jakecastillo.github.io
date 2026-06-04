@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     motion,
     useMotionValueEvent,
@@ -13,20 +13,24 @@ import { ArrowRight } from "lucide-react";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+// Run the upgrade before paint on the client so there's no static→immersive
+// flash; fall back to useEffect on the server (no-op) to avoid the SSR warning.
+const useIsoLayoutEffect =
+    typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 /**
- * Returns whether the immersive horizontal-scroll experience should run. It is
- * gated behind a fine pointer (mouse) device that is NOT requesting reduced
- * motion, so touch + coarse-pointer + reduced-motion users get the calm,
- * static vertical timeline instead of a pinned horizontal scroll.
+ * Whether the immersive horizontal-scroll experience should run. Gated behind a
+ * fine-pointer (mouse) device that is NOT requesting reduced motion, so touch /
+ * coarse-pointer / reduced-motion users get the calm static vertical timeline.
  *
  * Starts `false` so SSR/first paint matches the safe vertical fallback, then
- * upgrades to the horizontal experience on mount when appropriate.
+ * upgrades on mount when appropriate.
  */
 function useImmersive() {
     const prefersReducedMotion = useReducedMotion();
     const [finePointer, setFinePointer] = useState(false);
 
-    useEffect(() => {
+    useIsoLayoutEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
         const query = window.matchMedia("(pointer: fine) and (hover: hover)");
         const update = () => setFinePointer(query.matches);
@@ -39,10 +43,49 @@ function useImmersive() {
 }
 
 export default function ActExperience() {
-    const targetRef = useRef<HTMLDivElement>(null);
     const immersive = useImmersive();
     const total = resumeData.experience.length;
 
+    // useScroll lives ONLY inside <ImmersiveTimeline/>, so it never runs while
+    // its target ref is unmounted — that mismatch is what made framer-motion
+    // throw "Target ref is defined but not hydrated".
+    return immersive ? (
+        <ImmersiveTimeline total={total} />
+    ) : (
+        <StaticTimeline total={total} />
+    );
+}
+
+// Reduced-motion / touch / coarse-pointer: a static, vertical case-study list —
+// no pin, no horizontal transform, no useScroll, opacity-only reveals.
+function StaticTimeline({ total }: { total: number }) {
+    return (
+        <section className="section-y container-page [padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
+            <h2 className="sr-only">Experience</h2>
+            <p className="mb-12 font-mono text-xs tracking-widest text-muted-foreground">
+                {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
+            </p>
+            <ol className="relative flex flex-col gap-16 border-l border-border-subtle pl-8 sm:pl-10">
+                {resumeData.experience.map((job, index) => (
+                    <motion.li
+                        key={index}
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true, amount: 0.2 }}
+                        transition={{ duration: 0.3, ease: EASE }}
+                    >
+                        <TimelineNode job={job} index={index} total={total} variant="vertical" />
+                    </motion.li>
+                ))}
+            </ol>
+        </section>
+    );
+}
+
+// Fine-pointer + normal-motion: the pinned horizontal timeline. Always renders
+// its ref'd <section>, so useScroll has a hydrated target.
+function ImmersiveTimeline({ total }: { total: number }) {
+    const targetRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({ target: targetRef });
     const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
 
@@ -52,32 +95,6 @@ export default function ActExperience() {
         const next = Math.min(total - 1, Math.max(0, Math.round(latest * (total - 1))));
         setActive((prev) => (prev === next ? prev : next));
     });
-
-    // Reduced-motion / touch / coarse-pointer: render a static, vertical
-    // case-study list — no pin, no horizontal transform, opacity-only reveals.
-    if (!immersive) {
-        return (
-            <section className="section-y container-page [padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
-                <h2 className="sr-only">Experience</h2>
-                <p className="mb-12 font-mono text-xs tracking-widest text-muted-foreground">
-                    {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
-                </p>
-                <ol className="relative flex flex-col gap-16 border-l border-border-subtle pl-8 sm:pl-10">
-                    {resumeData.experience.map((job, index) => (
-                        <motion.li
-                            key={index}
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true, amount: 0.2 }}
-                            transition={{ duration: 0.3, ease: EASE }}
-                        >
-                            <TimelineNode job={job} index={index} total={total} variant="vertical" />
-                        </motion.li>
-                    ))}
-                </ol>
-            </section>
-        );
-    }
 
     return (
         <section ref={targetRef} className="relative h-[300vh]">

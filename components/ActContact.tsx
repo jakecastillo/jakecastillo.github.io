@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
 import { contactLinks } from "@/data/links";
@@ -8,23 +8,16 @@ import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export default function ActContact() {
-    const reduceMotion = useReducedMotion();
+// Constant markup (no useReducedMotion branch) so SSR == client; MotionProvider
+// drops the y transform for reduced-motion users automatically.
+const reveal = (delay = 0) => ({
+    initial: { opacity: 0, y: 20 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.2 },
+    transition: { duration: 0.3, ease: EASE, delay },
+});
 
-    const reveal = (delay = 0) =>
-        reduceMotion
-            ? {
-                  initial: { opacity: 0 },
-                  whileInView: { opacity: 1 },
-                  viewport: { once: true, amount: 0.2 },
-                  transition: { duration: 0.3 },
-              }
-            : {
-                  initial: { opacity: 0, y: 20 },
-                  whileInView: { opacity: 1, y: 0 },
-                  viewport: { once: true, amount: 0.2 },
-                  transition: { duration: 0.3, ease: EASE, delay },
-              };
+export default function ActContact() {
 
     const primary = contactLinks.find((link) => link.primary);
     const secondary = contactLinks.filter((link) => !link.primary);
@@ -74,7 +67,7 @@ export default function ActContact() {
                         </motion.div>
 
                         <motion.h2
-                            {...reveal(reduceMotion ? 0 : 0.06)}
+                            {...reveal(0.06)}
                             className="text-7xl font-bold text-foreground tracking-tighter"
                         >
                             Let&rsquo;s build
@@ -84,7 +77,7 @@ export default function ActContact() {
                         </motion.h2>
 
                         <motion.p
-                            {...reveal(reduceMotion ? 0 : 0.12)}
+                            {...reveal(0.12)}
                             className="measure mt-8 text-base text-muted-foreground"
                         >
                             I build secure-by-default pipelines and ship software with
@@ -96,7 +89,7 @@ export default function ActContact() {
 
                     {/* Readability scrim keeps text >= 4.5:1 over the orb */}
                     <motion.div
-                        {...reveal(reduceMotion ? 0 : 0.18)}
+                        {...reveal(0.18)}
                         className="rounded-xl bg-background/70 backdrop-blur-sm p-6 sm:p-8"
                     >
                         {/* PRIMARY CTA — dominant, filled violet */}
@@ -140,9 +133,7 @@ export default function ActContact() {
                                 return (
                                     <motion.li
                                         key={link.key}
-                                        {...reveal(
-                                            reduceMotion ? 0 : 0.24 + index * 0.06
-                                        )}
+                                        {...reveal(0.24 + index * 0.06)}
                                     >
                                         <a
                                             href={link.href}
