@@ -52,7 +52,7 @@ export default function ActContact() {
 
             <Container className="relative z-10 w-full max-w-5xl">
                 {/* Asymmetric focal hierarchy: heading + intent on the left, action stack weighted right */}
-                <div className="grid items-start gap-10 md:grid-cols-[1.1fr_minmax(0,1fr)] md:gap-16">
+                <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.1fr_minmax(0,1fr)] md:gap-16">
                     <div className="md:pt-4">
                         {/* Cyan kept as the ONE genuine "available/online" signal in view */}
                         <motion.div
@@ -128,7 +128,7 @@ export default function ActContact() {
                         ) : null}
 
                         {/* SECONDARY links — clearly subordinate */}
-                        <ul className="mt-6 grid gap-2 text-left">
+                        <ul className="mt-6 grid grid-cols-1 gap-2 text-left">
                             {secondary.map((link, index) => {
                                 const Icon = link.icon;
                                 return (

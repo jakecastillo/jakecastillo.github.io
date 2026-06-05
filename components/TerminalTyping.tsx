@@ -377,10 +377,10 @@ $ `;
     }
   };
 
-  useEffect(() => {
-    if (phase !== "complete") return;
-    inputRef.current?.focus();
-  }, [phase]);
+  // NOTE: deliberately do NOT auto-focus the input when typing completes.
+  // Focusing a (possibly offscreen) input scrolls the page back to the terminal,
+  // yanking the viewport away if the visitor has already scrolled elsewhere. The
+  // terminal is interactive on click/tap instead (see onClick on the panel).
 
   return (
     <motion.div

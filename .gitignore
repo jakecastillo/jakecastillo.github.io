@@ -46,14 +46,20 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.agent
-
-# Beads / Dolt files (added by bd init)
+# Beads / Dolt issue tracker (local; synced via Dolt remote, not this repo)
 .dolt/
 *.db
 .beads-credential-key
-.beads/proxieddb/
+.beads/
 
-# audit tooling (local only)
-/scripts/audit/tooling/node_modules
-/scripts/audit/node_modules
+# AI agent / assistant tooling + local config (not part of the site)
+.agent
+.agents/
+.claude/
+.codex/
+.superpowers/
+AGENTS.md
+CLAUDE.md
+
+# Audit & asset-generation tooling + generated artifacts (local only)
+/scripts/

@@ -38,16 +38,16 @@ export default function BackgroundScene() {
         // 1) Honour reduced-motion: keep only the static backdrop.
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-        // 2) Mobile / low-end gate — never mount WebGL on coarse pointers,
-        //    narrow viewports, or memory/CPU-constrained devices.
+        // 2) Low-end gate. Mobile / touch DOES get the holo now (in a cheaper
+        //    low-res mode — see detectLowPower → Scene), so we only skip WebGL
+        //    for data-saver and genuinely memory/CPU-constrained devices where
+        //    it would jank or drain battery.
         const nav = navigator as HardwareNavigator;
-        const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-        const narrowViewport = window.innerWidth < 768;
         const lowMemory = (nav.deviceMemory ?? 8) < 4;
         const lowCores = (nav.hardwareConcurrency ?? 8) < 4;
         const saveData = nav.connection?.saveData === true;
 
-        if (coarsePointer || narrowViewport || lowMemory || lowCores || saveData) return;
+        if (lowMemory || lowCores || saveData) return;
 
         const w = window as unknown as {
             requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;

@@ -41,7 +41,7 @@ export default function Home() {
         <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Identity + CTAs — open on desktop; carries a readable card on mobile,
               where it stacks above the terminal over the living background. */}
-          <div className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 p-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
+          <div className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
             <motion.div
               custom={0}
               variants={reveal}
