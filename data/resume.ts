@@ -51,14 +51,14 @@ export interface ResumeData {
 export const resumeData: ResumeData = {
   name: "Jake Castillo",
   role: "Software Engineer",
-  tagline: "Modernizing the systems government & enterprise run on.",
+  tagline: "Computer software/hardware design & innovation specialist.",
   location: "Honolulu, HI",
   phone: "(808) 216-2163",
   email: "jakecast@hawaii.edu",
   linkedin: "https://www.linkedin.com/in/jake-castillo-00567819b/",
   github: "https://github.com/jakecastillo",
   summary:
-    "I'm a full-stack software engineer who modernizes government and enterprise systems — migrating legacy platforms like AS400 and AngularJS to modern React, NestJS/Prisma, and AWS. I've shipped and led delivery across public-sector, healthcare, and pandemic-response software, and now focus on DevSecOps. AWS Solutions Architect & Cloud Practitioner certified, based in Honolulu.",
+    "Computer software/hardware design and innovation specialist with a drive to give back to the community and a strong foundation in engineering principles across multiple platforms and technologies. Experienced in back-end development, testing, and debugging code with a focus on cloud development/architecture (AWS).",
   education: {
     institution: "University of Hawaii at Manoa",
     degree: "Bachelor of Science in Computer Engineering",

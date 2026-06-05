@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Typewriter from "typewriter-effect";
-import { useBootStore } from "@/store/useBootStore";
 
 import { resumeData } from "@/data/resume";
 
@@ -24,7 +23,6 @@ const fileSystem: Record<string, FileSystemNode> = {
         children: {
           "portfolio.txt": { type: "file", content: "Built with Next.js, Framer Motion, and excessive caffeine." },
           "experience.md": { type: "file", content: "Scroll to the EXPERIENCE act for the real deal — or run 'cd experience && ls' here." },
-          "resume.pdf": { type: "file", content: "Full résumé available — download it from /resume.pdf." },
         },
       },
       "skills": {
@@ -55,7 +53,6 @@ const fileSystem: Record<string, FileSystemNode> = {
 };
 
 export default function TerminalTyping() {
-  const isBootComplete = useBootStore((state) => state.isBootComplete);
   const prefersReducedMotion = useReducedMotion();
   // "opening" renders a static, fully-readable transcript on the very first
   // frame (the terminal is NEVER an empty panel). "typing" runs the Typewriter
@@ -385,17 +382,6 @@ $ `;
     inputRef.current?.focus();
   }, [phase]);
 
-  useEffect(() => {
-    if (
-      !prefersReducedMotion &&
-      isBootComplete &&
-      typeof window !== "undefined" &&
-      window.terminalTypewriter
-    ) {
-      window.terminalTypewriter.start();
-    }
-  }, [isBootComplete, prefersReducedMotion]);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -473,7 +459,7 @@ $ `;
         >
           <Typewriter
             options={{
-              autoStart: false,
+              autoStart: true,
               loop: false,
               delay: 25,
               cursor: "▋",
@@ -484,11 +470,8 @@ $ `;
                 .callFunction(() => {
                   setOutputText(bootTranscript);
                   setPhase("complete");
-                });
-
-              if (typeof window !== "undefined") {
-                window.terminalTypewriter = typewriter;
-              }
+                })
+                .start();
             }}
           />
         </div>

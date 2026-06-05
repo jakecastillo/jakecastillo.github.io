@@ -1,9 +1,9 @@
 import type { LucideIcon } from "lucide-react";
-import { Download, Github, Linkedin, Mail } from "lucide-react";
+import { Github, Linkedin, Mail } from "lucide-react";
 import { resumeData } from "@/data/resume";
 
 export type ContactLink = {
-  key: "email" | "linkedin" | "github" | "resume";
+  key: "email" | "linkedin" | "github";
   label: string; // human, action-verb primary label
   displayLabel: string; // mono "signal" caption
   href: string;
@@ -37,13 +37,5 @@ export const contactLinks: ContactLink[] = [
     href: resumeData.linkedin,
     icon: Linkedin,
     external: true,
-  },
-  {
-    key: "resume",
-    label: "Download résumé",
-    displayLabel: "RESUME.PDF",
-    href: "/resume.pdf",
-    icon: Download,
-    download: true,
   },
 ];

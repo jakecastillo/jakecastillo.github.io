@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Download, Github, Mail } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Github, Mail } from "lucide-react";
 import TerminalTyping from "@/components/TerminalTyping";
 import StageManager from "@/components/StageManager";
 import ActPhilosophy from "@/components/ActPhilosophy";
@@ -21,7 +21,7 @@ const reveal = {
   }),
 };
 
-const pills = ["AWS Solutions Architect", "Full-stack · Cloud", "Honolulu, HI"];
+const pills = ["AWS Solutions Architect", "B.S. Computer Engineering · UH Manoa", "Honolulu, HI"];
 
 export default function Home() {
   return (
@@ -86,8 +86,9 @@ export default function Home() {
               animate="show"
               className="measure text-base text-muted-foreground"
             >
-              From California&rsquo;s campaign-finance disclosure system to Hawai&#699;i&rsquo;s
-              public agencies, I migrate legacy platforms to modern React/NestJS stacks on AWS.
+              A strong foundation in engineering principles across platforms and
+              technologies, with a focus on back-end and cloud development/architecture
+              (AWS) &mdash; and a drive to give back to the community.
             </motion.p>
 
             <motion.ul
@@ -120,14 +121,6 @@ export default function Home() {
               >
                 <Mail size={18} strokeWidth={2} aria-hidden="true" />
                 Email me
-              </a>
-              <a
-                href="/resume.pdf"
-                download
-                className="inline-flex items-center gap-2 rounded-full border border-border-strong px-6 py-3 font-medium text-foreground transition-colors hover:border-primary hover:text-primary"
-              >
-                <Download size={18} strokeWidth={2} aria-hidden="true" />
-                Résumé
               </a>
               <a
                 href={resumeData.github}

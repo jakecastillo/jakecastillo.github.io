@@ -4,7 +4,6 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import SmoothScroll from "@/components/SmoothScroll";
 import BackgroundScene from "@/components/BackgroundScene";
-import QuantumLoader from "@/components/QuantumLoader";
 import Footer from "@/components/Footer";
 import MotionProvider from "@/components/MotionProvider";
 import { resumeData } from "@/data/resume";
@@ -168,7 +167,6 @@ export default function RootLayout({
         </header>
 
         <MotionProvider>
-          <QuantumLoader />
           <SmoothScroll />
 
           {/* Cinematic background (code-split, reduced-motion aware) */}
