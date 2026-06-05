@@ -115,7 +115,7 @@ export default function ActContact() {
                                         <span className="truncate text-2xl font-semibold">
                                             {primary.label}
                                         </span>
-                                        <span className="truncate font-mono text-xs uppercase tracking-widest text-white/80">
+                                        <span className="truncate font-mono text-xs tracking-wide text-white/80">
                                             {primary.displayLabel}
                                         </span>
                                     </span>
@@ -158,7 +158,7 @@ export default function ActContact() {
                                                     <span className="truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
                                                         {link.label}
                                                     </span>
-                                                    <span className="truncate font-mono text-xs uppercase tracking-widest text-subtle-foreground">
+                                                    <span className="truncate font-mono text-xs tracking-wide text-subtle-foreground">
                                                         {link.displayLabel}
                                                     </span>
                                                 </span>

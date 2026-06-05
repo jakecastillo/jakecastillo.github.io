@@ -10,7 +10,7 @@ export default function Footer() {
         <p className="font-mono text-xs text-subtle-foreground">
           © {year} Jake Castillo · Built with Next.js &amp; Three.js
         </p>
-        <nav aria-label="Footer social links" className="flex items-center gap-5">
+        <nav aria-label="Footer social links" className="flex items-center gap-1">
           {contactLinks.map((l) => (
             <a
               key={l.key}
@@ -19,7 +19,7 @@ export default function Footer() {
               rel={l.external ? "noopener noreferrer" : undefined}
               download={l.download || undefined}
               aria-label={l.label}
-              className="text-subtle-foreground transition-colors hover:text-primary"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-subtle-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
             >
               <l.icon size={18} strokeWidth={1.6} aria-hidden="true" />
             </a>

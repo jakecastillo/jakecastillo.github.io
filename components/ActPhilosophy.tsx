@@ -7,22 +7,26 @@ import {
     useScroll,
     useTransform,
 } from "framer-motion";
+import { Cloud, RefreshCw, Workflow, type LucideIcon } from "lucide-react";
 import { resumeData } from "@/data/resume";
 
 const useIsoLayoutEffect =
     typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-const pillars = [
+const pillars: { title: string; icon: LucideIcon; body: string }[] = [
     {
         title: "Legacy Modernization",
+        icon: RefreshCw,
         body: "Migrating brittle AS400 and AngularJS systems to modern React, NestJS, and AWS — without losing the business logic a decade of users depend on.",
     },
     {
         title: "End-to-End Solutions",
+        icon: Workflow,
         body: "Owning solutions end to end — from React, Vue, and Angular front-ends to NestJS and Express services — as developer, tech lead, and architect.",
     },
     {
         title: "Cloud & DevOps",
+        icon: Cloud,
         body: "Deploying and operating on AWS — managing releases, retiring end-of-life tech, and streamlining maintenance so systems stay reliable in production.",
     },
 ];
@@ -37,7 +41,7 @@ const reveal = {
 // Slide 1 — the core belief.
 function SlideBelief() {
     return (
-        <div className="flex flex-col justify-center">
+        <div className="panel flex h-full w-full flex-col justify-center p-8 sm:p-10 lg:p-12">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 02 / approach
             </p>
@@ -56,7 +60,7 @@ function SlideBelief() {
 // Slide 2 — the process.
 function SlideProcess() {
     return (
-        <div className="flex flex-col justify-center">
+        <div className="panel flex h-full w-full flex-col justify-center p-8 sm:p-10 lg:p-12">
             <h3 className="mb-8 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 How I Build
             </h3>
@@ -64,7 +68,13 @@ function SlideProcess() {
                 <ul className="space-y-12">
                     {pillars.map((pillar) => (
                         <li key={pillar.title}>
-                            <h4 className="text-3xl font-bold leading-snug tracking-tight text-foreground">
+                            <h4 className="flex items-center gap-3 text-3xl font-bold leading-snug tracking-tight text-foreground">
+                                <pillar.icon
+                                    aria-hidden="true"
+                                    size={26}
+                                    strokeWidth={1.75}
+                                    className="shrink-0 text-primary"
+                                />
                                 {pillar.title}.
                             </h4>
                             <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
@@ -81,7 +91,7 @@ function SlideProcess() {
 // Slide 3 — the result.
 function SlideResult() {
     return (
-        <div className="flex flex-col justify-center">
+        <div className="panel flex h-full w-full flex-col justify-center p-8 sm:p-10 lg:p-12">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
                 the result
             </p>

@@ -44,9 +44,8 @@ export default function Scene({ lowPower = false }: SceneProps) {
                 camera={{ position: [0, 0, 5], fov: 45 }}
             >
                 <Suspense fallback={null}>
-                    {/* Site near-black, aligned to the global --background token. */}
-                    <color attach="background" args={["#060608"]} />
-                    {/* Violet fog dissolves the far hemisphere into the void. */}
+                    {/* Transparent canvas (no scene background) so the CSS aurora +
+                        page background show through behind the holographic lattice. */}
                     <fog attach="fog" args={["#070611", 5.5, 17]} />
 
                     <HoloLattice lowPower={lowPower} />
@@ -56,10 +55,10 @@ export default function Scene({ lowPower = false }: SceneProps) {
                     {!lowPower && (
                         <EffectComposer>
                             <Bloom
-                                intensity={0.85}
-                                luminanceThreshold={0.12}
+                                intensity={1.05}
+                                luminanceThreshold={0.1}
                                 luminanceSmoothing={0.5}
-                                radius={0.7}
+                                radius={0.75}
                                 mipmapBlur
                             />
                         </EffectComposer>

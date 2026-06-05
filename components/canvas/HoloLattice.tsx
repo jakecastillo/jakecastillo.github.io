@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollStore } from "@/hooks/useScrollStore";
@@ -61,6 +61,21 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
     [],
   );
 
+  // Subtle cursor parallax: the lattice leans toward the pointer, making it feel
+  // alive/responsive rather than a static centered object. The canvas is
+  // pointer-events-none, so we listen at the window level and lerp toward target.
+  const pointer = useRef({ x: 0, y: 0 });
+  const lerped = useRef({ x: 0, y: 0 });
+  useEffect(() => {
+    if (reduced) return;
+    const onMove = (e: PointerEvent) => {
+      pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onMove);
+  }, [reduced]);
+
   // detail 1 = 80 faces — a clean geodesic lattice; coarser on low-power.
   const geometry = useMemo(
     () => new THREE.IcosahedronGeometry(1.3, lowPower ? 0 : 1),
@@ -72,8 +87,8 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
       uTime: { value: 0 },
       uViolet: { value: VIOLET },
       uCyan: { value: CYAN },
-      uPower: { value: 2.8 },
-      uIntensity: { value: 1.3 },
+      uPower: { value: 2.7 },
+      uIntensity: { value: 1.75 },
     }),
     [],
   );
@@ -89,10 +104,15 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
       g.position.y = 0;
       return;
     }
+    // Ease the parallax toward the cursor target.
+    lerped.current.x += (pointer.current.x - lerped.current.x) * 0.045;
+    lerped.current.y += (pointer.current.y - lerped.current.y) * 0.045;
+
     const s = scrollOffset * 0.0006;
-    g.rotation.y = t * 0.07 + s;
-    g.rotation.x = Math.sin(t * 0.14) * 0.18 + s * 0.4;
-    g.position.y = Math.sin(t * 0.4) * 0.08;
+    g.rotation.y = t * 0.07 + s + lerped.current.x * 0.28;
+    g.rotation.x = Math.sin(t * 0.14) * 0.18 + s * 0.4 + lerped.current.y * 0.22;
+    g.position.x = lerped.current.x * 0.18;
+    g.position.y = Math.sin(t * 0.4) * 0.08 - lerped.current.y * 0.14;
   });
 
   return (
@@ -117,7 +137,7 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
           color={CYAN}
           wireframe
           transparent
-          opacity={0.1}
+          opacity={0.16}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           toneMapped={false}

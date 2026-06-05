@@ -17,7 +17,7 @@ export const contactLinks: ContactLink[] = [
   {
     key: "email",
     label: "Email me",
-    displayLabel: "EMAIL_UPLINK",
+    displayLabel: "jakecast@hawaii.edu",
     href: `mailto:${resumeData.email}`,
     icon: Mail,
     primary: true,
@@ -25,7 +25,7 @@ export const contactLinks: ContactLink[] = [
   {
     key: "github",
     label: "View GitHub",
-    displayLabel: "GITHUB_REPO",
+    displayLabel: "github.com/jakecastillo",
     href: resumeData.github,
     icon: Github,
     external: true,
@@ -33,7 +33,7 @@ export const contactLinks: ContactLink[] = [
   {
     key: "linkedin",
     label: "Connect on LinkedIn",
-    displayLabel: "LINKEDIN_SIGNAL",
+    displayLabel: "linkedin.com/in/jake-castillo-00567819b",
     href: resumeData.linkedin,
     icon: Linkedin,
     external: true,

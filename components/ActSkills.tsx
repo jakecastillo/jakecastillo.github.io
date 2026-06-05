@@ -1,6 +1,16 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
+import {
+    BrainCircuit,
+    Boxes,
+    Cloud,
+    Code2,
+    Database,
+    ShieldCheck,
+    Users,
+    type LucideIcon,
+} from "lucide-react";
 import Container from "@/components/Container";
 import { resumeData } from "@/data/resume";
 
@@ -22,8 +32,19 @@ const item: Variants = {
     },
 };
 
-export default function ActSkills() {
+// Even, balanced groups — each carries a meaningful glyph so the stack reads as
+// a scannable matrix instead of a wall of pills (and no longer crams the rail).
+const groups: { title: string; icon: LucideIcon; skills: string[] }[] = [
+    { title: "LANGUAGES", icon: Code2, skills: resumeData.skills.languages },
+    { title: "FRAMEWORKS", icon: Boxes, skills: resumeData.skills.frameworks },
+    { title: "CLOUD & DEVOPS", icon: Cloud, skills: resumeData.skills.platforms },
+    { title: "AI / ML", icon: BrainCircuit, skills: resumeData.skills.ai },
+    { title: "DATA", icon: Database, skills: resumeData.skills.databases },
+    { title: "PRACTICES", icon: ShieldCheck, skills: resumeData.skills.practices },
+    { title: "ROLES", icon: Users, skills: resumeData.skills.roles },
+];
 
+export default function ActSkills() {
     return (
         <section className="section-y relative border-t border-border overflow-hidden">
             {/* Background wash + single restrained violet glow blob (decorative). */}
@@ -43,7 +64,7 @@ export default function ActSkills() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.3, ease: EASE }}
-                    className="mb-20 max-w-3xl"
+                    className="mb-16 max-w-3xl"
                 >
                     <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
                         04 / stack
@@ -55,45 +76,26 @@ export default function ActSkills() {
                     </h2>
                 </motion.header>
 
-                {/* Asymmetric 2/3 + 1/3 split: featured lead column carries the eye, secondary stack fills the rail. */}
-                <div className="grid gap-12 lg:grid-cols-3">
-                    {/* Lead group — featured, spans two columns. */}
-                    <motion.div
-                        variants={groupContainer}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        className="lg:col-span-2 grid gap-10 sm:grid-cols-2"
-                    >
+                {/* Even responsive matrix — every group an equal cell so nothing
+                    crams into a single rail. Seated on a readable panel so the
+                    pills stay legible over the living background. */}
+                <motion.div
+                    variants={groupContainer}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.15 }}
+                    className="panel grid grid-cols-1 items-start gap-x-10 gap-y-12 p-8 sm:grid-cols-2 sm:p-10 lg:grid-cols-3 lg:p-12"
+                >
+                    {groups.map((group) => (
                         <SkillGroup
+                            key={group.title}
                             variants={item}
-                            featured
-                            title="LANGUAGES"
-                            skills={resumeData.skills.languages}
+                            icon={group.icon}
+                            title={group.title}
+                            skills={group.skills}
                         />
-                        <SkillGroup
-                            variants={item}
-                            featured
-                            title="FRAMEWORKS"
-                            skills={resumeData.skills.frameworks}
-                        />
-                    </motion.div>
-
-                    {/* Secondary rail — quieter supporting groups stacked in the remaining third. */}
-                    <motion.div
-                        variants={groupContainer}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        className="flex flex-col gap-8"
-                    >
-                        <SkillGroup variants={item} title="CLOUD & DEVOPS" skills={resumeData.skills.platforms} />
-                        <SkillGroup variants={item} title="AI / ML" skills={resumeData.skills.ai} />
-                        <SkillGroup variants={item} title="DATA" skills={resumeData.skills.databases} />
-                        <SkillGroup variants={item} title="PRACTICES" skills={resumeData.skills.practices} />
-                        <SkillGroup variants={item} title="ROLES" skills={resumeData.skills.roles} />
-                    </motion.div>
-                </div>
+                    ))}
+                </motion.div>
 
                 <div className="mt-24 pt-12 border-t border-border">
                     <h3 className="text-xs font-mono tracking-[0.25em] text-muted-foreground mb-8">CERTIFICATIONS</h3>
@@ -125,29 +127,29 @@ function SkillGroup({
     title,
     skills,
     variants,
-    featured = false,
+    icon: Icon,
 }: {
     title: string;
     skills: string[];
     variants: Variants;
-    featured?: boolean;
+    icon: LucideIcon;
 }) {
     return (
         <motion.div variants={variants}>
-            <h3
-                className={`font-mono font-bold text-foreground mb-6 border-l-2 border-primary pl-4 ${
-                    featured ? "text-2xl tracking-tight" : "text-base"
-                }`}
-            >
-                {title}
+            <h3 className="mb-5 flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-foreground">
+                <Icon
+                    aria-hidden="true"
+                    size={18}
+                    strokeWidth={1.75}
+                    className="shrink-0 text-primary"
+                />
+                <span>{title}</span>
             </h3>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
                 {skills.map((skill) => (
                     <span
                         key={skill}
-                        className={`rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-primary hover:bg-primary-muted transition-colors cursor-default ${
-                            featured ? "px-4 py-2 text-base" : "px-3 py-1.5 text-sm"
-                        }`}
+                        className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground hover:border-primary hover:bg-primary-muted cursor-default"
                     >
                         {skill}
                     </span>

@@ -49,16 +49,27 @@ export default function BackgroundScene() {
 
         if (coarsePointer || narrowViewport || lowMemory || lowCores || saveData) return;
 
-        const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+        const w = window as unknown as {
+            requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+        };
         const start = () => setShow(true);
-        if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(start);
-        else setTimeout(start, 250);
+        // Mount soon (idle, but within 400ms) so the holo doesn't visibly lag the
+        // page; the always-on aurora covers the brief gap before it appears.
+        if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(start, { timeout: 400 });
+        else setTimeout(start, 200);
     }, []);
 
     return (
         <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none">
             {/* Always-present ambient backdrop (also the reduced-motion / low-end fallback) */}
             <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
+            {/* Ambient aurora — drifting glows that make the whole backdrop feel alive,
+                visible from first paint and on mobile (where the WebGL holo is gated off). */}
+            <div className="aurora">
+                <div className="aurora-blob aurora-blob--violet aurora-1" />
+                <div className="aurora-blob aurora-blob--cyan aurora-2" />
+                <div className="aurora-blob aurora-blob--violet aurora-3" />
+            </div>
             {show && <Scene lowPower={lowPower} />}
         </div>
     );

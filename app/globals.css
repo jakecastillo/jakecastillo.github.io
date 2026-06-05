@@ -195,6 +195,19 @@ h1, h2, h3 {
 /* Luminance elevation surfaces (replace black drop-shadows on dark) */
 .surface-1 { background: var(--surface); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-elev-1); }
 .surface-2 { background: var(--surface-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-elev-2); }
+
+/* Readable content panel over the living background. Keeps body copy legible
+   over the animated holo/aurora while still letting the backdrop glow through —
+   mostly-opaque surface so text stays >= 4.5:1 even if backdrop-filter is a
+   no-op (forced-colors, older engines). One class so the look tunes in one place. */
+.panel {
+  border-radius: 1.5rem;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-elev-1);
+}
 .glow-primary { box-shadow: var(--glow-primary); }
 .glow-accent { box-shadow: var(--glow-accent); }
 
@@ -244,6 +257,42 @@ html.lenis, html.lenis body { height: auto; }
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+/* Ambient aurora — slow drifting violet/cyan glows for a living backdrop.
+   Renders at first paint (pure CSS, no WebGL), GPU-composited transform/opacity;
+   frozen under reduced-motion. Visible on mobile/low-end where WebGL is gated. */
+.aurora { position: absolute; inset: 0; overflow: hidden; }
+.aurora-blob {
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  max-width: 760px;
+  max-height: 760px;
+  border-radius: 9999px;
+  filter: blur(90px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.aurora-blob--violet { background: radial-gradient(circle, rgba(139, 92, 246, 0.55), transparent 68%); }
+.aurora-blob--cyan { background: radial-gradient(circle, rgba(45, 212, 191, 0.42), transparent 68%); }
+.aurora-1 { top: -16%; left: -10%; opacity: 0.16; animation: aurora-drift-1 34s ease-in-out infinite; }
+.aurora-2 { bottom: -20%; right: -12%; opacity: 0.13; animation: aurora-drift-2 46s ease-in-out infinite; }
+.aurora-3 { top: 26%; right: 24%; opacity: 0.10; animation: aurora-drift-3 39s ease-in-out infinite; }
+
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(12%, 9%, 0) scale(1.18); }
+  66% { transform: translate3d(-9%, 17%, 0) scale(0.92); }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-15%, -11%, 0) scale(1.22); }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  40% { transform: translate3d(11%, -13%, 0) scale(1.12); }
+  75% { transform: translate3d(-7%, 7%, 0) scale(0.95); }
 }
 
 /* ----------------------------------------------------------------------- */

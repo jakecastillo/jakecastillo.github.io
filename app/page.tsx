@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Github, Mail } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Cloud, GraduationCap, Github, Mail, MapPin } from "lucide-react";
 import TerminalTyping from "@/components/TerminalTyping";
 import StageManager from "@/components/StageManager";
 import ActPhilosophy from "@/components/ActPhilosophy";
@@ -21,7 +21,11 @@ const reveal = {
   }),
 };
 
-const pills = ["AWS Solutions Architect", "B.S. Computer Engineering · UH Manoa", "Honolulu, HI"];
+const pills = [
+  { label: "AWS Solutions Architect", icon: Cloud },
+  { label: "B.S. Computer Engineering · UH Manoa", icon: GraduationCap },
+  { label: "Honolulu, HI", icon: MapPin },
+];
 
 export default function Home() {
   return (
@@ -35,8 +39,9 @@ export default function Home() {
         className="relative flex min-h-screen items-center py-24"
       >
         <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
-          {/* Identity + CTAs */}
-          <div className="flex flex-col items-start gap-6 text-left lg:col-span-7">
+          {/* Identity + CTAs — open on desktop; carries a readable card on mobile,
+              where it stacks above the terminal over the living background. */}
+          <div className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 p-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
             <motion.div
               custom={0}
               variants={reveal}
@@ -100,10 +105,11 @@ export default function Home() {
             >
               {pills.map((p) => (
                 <li
-                  key={p}
-                  className="rounded-full border border-border-subtle bg-surface/60 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm"
+                  key={p.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface/60 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur-sm"
                 >
-                  {p}
+                  <p.icon size={13} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-primary" />
+                  {p.label}
                 </li>
               ))}
             </motion.ul>
