@@ -149,16 +149,23 @@ export default function RootLayout({
             aria-label="Jake Castillo — home"
             className="flex items-center gap-2 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
           >
-            <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 100 100" aria-hidden="true">
               <defs>
-                <linearGradient id="brandmark" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stopColor="#8b5cf6" />
-                  <stop offset="1" stopColor="#2dd4bf" />
+                <linearGradient id="brandmark" x1="0" y1="0" x2="0.7" y2="1">
+                  <stop offset="0%" stopColor="#a78bfa" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
                 </linearGradient>
               </defs>
-              <circle cx="13" cy="13" r="11" fill="none" stroke="url(#brandmark)" strokeWidth="2" />
-              <ellipse cx="13" cy="13" rx="11" ry="4.6" fill="none" stroke="#2dd4bf" strokeOpacity="0.55" />
-              <circle cx="13" cy="13" r="3.6" fill="#8b5cf6" />
+              <circle cx="57" cy="23" r="7.5" fill="url(#brandmark)" />
+              <path
+                d="M57 37 L57 63 Q57 80 40 80 Q28 80 28 68"
+                fill="none"
+                stroke="url(#brandmark)"
+                strokeWidth="13"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="73" cy="73" r="7.5" fill="#2dd4bf" />
             </svg>
             <span className="hidden font-mono text-xs uppercase tracking-[0.3em] text-foreground/80 sm:inline">
               Jake Castillo
