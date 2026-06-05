@@ -9,9 +9,9 @@ import HoloLattice from "./canvas/HoloLattice";
 interface SceneProps {
     /**
      * Borderline / mid-tier devices (incl. all mobile) render the Scene but in a
-     * cheaper mode: coarser geometry, no bloom post-pass, AND a throttled ~30fps
-     * render loop — keeping the GPU/battery budget low while still showing the
-     * holographic lattice.
+     * cheaper mode: coarser geometry, a half-resolution bloom post-pass, AND a
+     * throttled ~30fps render loop — keeping the GPU/battery budget low while
+     * still showing (and glowing) the holographic lattice.
      */
     lowPower?: boolean;
 }
@@ -84,10 +84,32 @@ export default function Scene({ lowPower = false }: SceneProps) {
                         render work). Only while visible — unmounts when hidden. */}
                     {lowPower && !hidden && <FrameThrottle fps={30} />}
 
-                    {/* Bloom makes the Fresnel rim + wireframe glow like a hologram.
-                        Skipped on low-power devices to save the post-pass. */}
-                    {!lowPower && (
-                        <EffectComposer>
+                    {/* Bloom is what makes the Fresnel rim + wireframe read as a
+                        glowing hologram. The raw shader output is a ~1px additive
+                        rim + a 0.16-opacity wireframe over near-black — on its own
+                        that's imperceptible on a phone in ambient light, which is
+                        why the holo looked "missing" on mobile.
+
+                        So we ALWAYS run bloom now, but on low-power devices at a
+                        cheaper budget: half-resolution buffer + fewer mip levels +
+                        a slightly smaller intensity. A mipmap bloom at 0.5x res is
+                        well within a mid-tier mobile GPU's budget (and trivial on a
+                        flagship), while the in-shader low-power boost in HoloLattice
+                        means the holo still reads even if a given device silently
+                        fails to create the post-pass. Full-power keeps the original
+                        look exactly. */}
+                    <EffectComposer>
+                        {lowPower ? (
+                            <Bloom
+                                intensity={0.9}
+                                luminanceThreshold={0.1}
+                                luminanceSmoothing={0.5}
+                                radius={0.7}
+                                levels={5}
+                                resolutionScale={0.5}
+                                mipmapBlur
+                            />
+                        ) : (
                             <Bloom
                                 intensity={1.05}
                                 luminanceThreshold={0.1}
@@ -95,8 +117,8 @@ export default function Scene({ lowPower = false }: SceneProps) {
                                 radius={0.75}
                                 mipmapBlur
                             />
-                        </EffectComposer>
-                    )}
+                        )}
+                    </EffectComposer>
                 </Suspense>
             </Canvas>
         </div>

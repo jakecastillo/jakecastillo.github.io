@@ -1,218 +1,85 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import {
-    motion,
-    useReducedMotion,
-    useScroll,
-    useTransform,
-} from "framer-motion";
-import { Cloud, RefreshCw, Workflow, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import { resumeData } from "@/data/resume";
+import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
+import ArchitectureSchematic from "@/components/ArchitectureSchematic";
 
-const useIsoLayoutEffect =
-    typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-const pillars: { title: string; icon: LucideIcon; body: string }[] = [
-    {
-        title: "Legacy Modernization",
-        icon: RefreshCw,
-        body: "Migrating brittle AS400 and AngularJS systems to modern React, NestJS, and AWS — without losing the business logic a decade of users depend on.",
-    },
-    {
-        title: "End-to-End Solutions",
-        icon: Workflow,
-        body: "Owning solutions end to end — from React, Vue, and Angular front-ends to NestJS and Express services — as developer, tech lead, and architect.",
-    },
-    {
-        title: "Cloud & DevOps",
-        icon: Cloud,
-        body: "Deploying and operating on AWS — managing releases, retiring end-of-life tech, and streamlining maintenance so systems stay reliable in production.",
-    },
-];
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 const reveal = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.2 },
-    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const },
-};
+    transition: { duration: 0.4, ease: EASE },
+} as const;
 
-// Slide 1 — the core belief.
-function SlideBelief() {
-    return (
-        <div className="panel flex h-full w-full flex-col justify-center p-8 sm:p-10 lg:p-12">
-            <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                02 / approach
-            </p>
-            <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
-                MODERNIZING THE
-                <br />
-                <span className="text-primary text-glow">SYSTEMS WE RELY ON.</span>
-            </h2>
-            <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
-                {resumeData.summary}
-            </p>
-        </div>
-    );
-}
-
-// Slide 2 — the process.
-function SlideProcess() {
-    return (
-        <div className="panel flex h-full w-full flex-col justify-center p-8 sm:p-10 lg:p-12">
-            <h3 className="mb-8 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                How I Build
-            </h3>
-            <div className="border-l border-border-strong pl-8">
-                <ul className="space-y-12">
-                    {pillars.map((pillar) => (
-                        <li key={pillar.title}>
-                            <h4 className="flex items-center gap-3 text-3xl font-bold leading-snug tracking-tight text-foreground">
-                                <pillar.icon
-                                    aria-hidden="true"
-                                    size={26}
-                                    strokeWidth={1.75}
-                                    className="shrink-0 text-primary"
-                                />
-                                {pillar.title}.
-                            </h4>
-                            <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
-                                {pillar.body}
-                            </p>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-    );
-}
-
-// Slide 3 — the result.
-function SlideResult() {
-    return (
-        <div className="panel flex h-full w-full flex-col justify-center p-8 sm:p-10 lg:p-12">
-            <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                the result
-            </p>
-            <h2 className="text-8xl font-black leading-[0.95] tracking-tight text-foreground text-glow [overflow-wrap:anywhere]">
-                SHIPPED.
-            </h2>
-            <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
-                I modernize the systems people rely on — shipping software
-                that&rsquo;s fast, maintainable, and built to last in
-                production, from public-sector platforms to healthcare and
-                pandemic-response tools.
-            </p>
-        </div>
-    );
-}
-
-/**
- * Whether the pinned horizontal experience should run. Gated behind a non-touch,
- * non-narrow viewport that is NOT requesting reduced motion (the horizontal pin
- * reads as scroll-jacking on phones). Starts false so SSR matches the safe
- * vertical fallback, then upgrades before paint on mount.
- */
-function useImmersive() {
-    const prefersReducedMotion = useReducedMotion();
-    const [wideFinePointer, setWideFinePointer] = useState(false);
-
-    useIsoLayoutEffect(() => {
-        if (typeof window === "undefined" || !window.matchMedia) return;
-        const evaluate = () =>
-            setWideFinePointer(
-                !window.matchMedia("(pointer: coarse)").matches &&
-                    window.innerWidth >= 768,
-            );
-        evaluate();
-        window.addEventListener("resize", evaluate);
-        return () => window.removeEventListener("resize", evaluate);
-    }, []);
-
-    return wideFinePointer && !prefersReducedMotion;
-}
+// "Build Where the Risk Lives" — general software-solutions + innovator process.
+// Owner-approved copy; the ONLY copy change in this pass.
+const processSteps: ProcessStep[] = [
+    {
+        index: "01",
+        title: "Find the Constraints",
+        body: "I separate the real constraints from the assumptions everyone's stopped questioning, and pressure-test the outcome before any code exists. I'd rather kill a weak idea in a week than build the wrong thing fluently.",
+    },
+    {
+        index: "02",
+        title: "Bet Where It Counts",
+        body: "I pour design into the few decisions that are expensive to reverse and stay deliberately boring everywhere else — proven tools for the plumbing, so the real risk and invention land where they create value.",
+    },
+    {
+        index: "03",
+        title: "Prove the Unknown",
+        body: "I build the scariest piece first — the unproven integration, the AI behavior, the assumption it all rests on — and put it in real hands while it's still cheap to be wrong.",
+    },
+    {
+        index: "04",
+        title: "Build to Be Changed",
+        body: "Security, observability, and an honest record of why each call was made are part of the design, not a cleanup pass — I build for whoever inherits it a year from now, not for how clever it looks today.",
+    },
+];
 
 export default function ActPhilosophy() {
-    const immersive = useImmersive();
-    // useScroll lives ONLY inside <PhilosophyImmersive/>, so it never runs while
-    // its target ref is unmounted (framer's "ref not hydrated" error).
-    return immersive ? <PhilosophyImmersive /> : <PhilosophyStatic />;
-}
-
-// Reduced motion / touch / narrow: a static vertical stack, opacity-only
-// reveals, no horizontal pin and no useScroll.
-function PhilosophyStatic() {
     return (
         <section className="section-y container-page">
-            <div className="flex flex-col gap-24">
-                <motion.div {...reveal}>
-                    <SlideBelief />
+            {/* Belief */}
+            <motion.div
+                {...reveal}
+                className="panel flex flex-col p-8 sm:p-12 lg:p-16"
+            >
+                <p className="mb-5 font-mono text-xs uppercase tracking-[0.35em] text-primary">
+                    02 / approach
+                </p>
+                <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
+                    ENGINEER THE
+                    <br />
+                    <span className="text-primary text-glow">
+                        SYSTEMS WE RELY ON.
+                    </span>
+                </h2>
+                <div className="mt-8 mb-7 h-px w-12 bg-border-strong" />
+                <p className="measure text-lg leading-relaxed text-muted-foreground">
+                    {resumeData.summary}
+                </p>
+            </motion.div>
+
+            {/* How I Build */}
+            <div className="mt-20 sm:mt-28">
+                <motion.header {...reveal} className="mb-10 sm:mb-14">
+                    <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
+                        How I Build
+                    </p>
+                    <p className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                        Build Where the Risk Lives
+                        <span className="text-primary">.</span>
+                    </p>
+                </motion.header>
+
+                <ProcessSpine steps={processSteps} />
+
+                <motion.div {...reveal} className="mt-16 sm:mt-20">
+                    <ArchitectureSchematic />
                 </motion.div>
-                <motion.div {...reveal}>
-                    <SlideProcess />
-                </motion.div>
-                <motion.div {...reveal}>
-                    <SlideResult />
-                </motion.div>
-            </div>
-        </section>
-    );
-}
-
-// Fine-pointer + normal-motion: the pinned horizontal scroll. Always renders its
-// ref'd <section>, so useScroll has a hydrated target.
-function PhilosophyImmersive() {
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end end"],
-    });
-
-    // Drive horizontal travel only through the middle of the pin so the first
-    // and last slides each get a full beat fully on-screen.
-    const x = useTransform(scrollYProgress, [0.12, 0.92], ["0%", "-66%"]);
-    const progressScaleX = useTransform(scrollYProgress, [0.12, 0.92], [0, 1]);
-    const hintOpacity = useTransform(scrollYProgress, [0, 0.1, 0.22], [1, 1, 0]);
-
-    return (
-        <section ref={containerRef} className="section-y relative h-[300vh]">
-            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-                <motion.div
-                    style={{ x }}
-                    className="container-page flex gap-16 sm:gap-24"
-                >
-                    <div className="flex min-h-[60vh] w-[88vw] flex-shrink-0 sm:w-[70vw]">
-                        <SlideBelief />
-                    </div>
-                    <div className="flex min-h-[60vh] w-[88vw] flex-shrink-0 sm:w-[70vw]">
-                        <SlideProcess />
-                    </div>
-                    <div className="flex min-h-[60vh] w-[88vw] flex-shrink-0 sm:w-[70vw]">
-                        <SlideResult />
-                    </div>
-                </motion.div>
-
-                {/* Scroll affordance — hints that horizontal content exists. */}
-                <motion.div
-                    aria-hidden="true"
-                    style={{ opacity: hintOpacity }}
-                    className="container-page pointer-events-none absolute bottom-8 left-0 right-0 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.3em] text-subtle-foreground"
-                >
-                    Scroll
-                    <span aria-hidden="true">&rarr;</span>
-                </motion.div>
-
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-border"
-                >
-                    <motion.div
-                        style={{ scaleX: progressScaleX }}
-                        className="h-full origin-left bg-primary"
-                    />
-                </div>
             </div>
         </section>
     );

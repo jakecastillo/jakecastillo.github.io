@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollStore } from "@/hooks/useScrollStore";
+import { useTiltStore } from "@/hooks/useTiltStore";
 
 // "System Online" — a slowly rotating low-poly icosahedron rendered as a glowing
 // violet Fresnel rim + cyan wireframe with hologram scanlines and a slow sweep.
@@ -53,6 +54,7 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
   const groupRef = useRef<THREE.Group>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const scrollOffset = useScrollStore((s) => s.offset);
+  const tiltEnabled = useTiltStore((s) => s.enabled);
 
   const reduced = useMemo(
     () =>
@@ -76,21 +78,44 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
     return () => window.removeEventListener("pointermove", onMove);
   }, [reduced]);
 
+  // Device-tilt parallax (touch only, opt-in): once the user enables it via the
+  // hero affordance, feed gyro into the SAME pointer.current target the cursor
+  // uses, so the existing useFrame lerp smooths it identically. The listener
+  // attaches only when enabled — no always-on motion listener before opt-in.
+  useEffect(() => {
+    if (reduced || !tiltEnabled) return;
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+    const onTilt = (e: DeviceOrientationEvent) => {
+      // gamma: left/right [-90,90]; beta: front/back [-180,180].
+      // Small damped amplitude so the holo leans, not lurches.
+      if (e.gamma != null) pointer.current.x = clamp(e.gamma / 35);
+      if (e.beta != null) pointer.current.y = clamp((e.beta - 45) / 35);
+    };
+    window.addEventListener("deviceorientation", onTilt, { passive: true });
+    return () => window.removeEventListener("deviceorientation", onTilt);
+  }, [reduced, tiltEnabled]);
+
   // detail 1 = 80 faces — a clean geodesic lattice; coarser on low-power.
   const geometry = useMemo(
     () => new THREE.IcosahedronGeometry(1.3, lowPower ? 0 : 1),
     [lowPower],
   );
 
+  // Low-power devices run a cheaper, lower-res bloom (see Scene.tsx), so the holo
+  // gets less of the post-pass glow that normally makes the thin Fresnel rim read
+  // on a phone. Compensate in-shader: a lower Fresnel power widens the bright rim
+  // (so it's no longer ~1px) and a higher intensity makes it pop — so the holo is
+  // clearly visible even where the bloom is faint or fails to create. Full-power
+  // keeps the original, bloom-tuned values exactly.
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
       uViolet: { value: VIOLET },
       uCyan: { value: CYAN },
-      uPower: { value: 2.7 },
-      uIntensity: { value: 1.75 },
+      uPower: { value: lowPower ? 2.0 : 2.7 },
+      uIntensity: { value: lowPower ? 2.3 : 1.75 },
     }),
-    [],
+    [lowPower],
   );
 
   useFrame((state) => {
@@ -131,13 +156,14 @@ export default function HoloLattice({ lowPower = false }: { lowPower?: boolean }
         />
       </mesh>
 
-      {/* Cyan wireframe lattice */}
+      {/* Cyan wireframe lattice. A touch brighter on low-power, where the lighter
+          bloom would otherwise leave the thin edges nearly invisible on a phone. */}
       <mesh geometry={geometry} scale={1.004}>
         <meshBasicMaterial
           color={CYAN}
           wireframe
           transparent
-          opacity={0.16}
+          opacity={lowPower ? 0.3 : 0.16}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           toneMapped={false}

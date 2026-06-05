@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
+import { scaleIn, viewportOnce } from "@/components/motion";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
 
@@ -90,7 +91,10 @@ export default function ActContact() {
                     {/* Readability scrim: luminance-elevated surface (subtle border +
                         tint) keeps text >= 4.5:1 over the orb */}
                     <motion.div
-                        {...reveal(0.18)}
+                        variants={scaleIn}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={viewportOnce}
                         className="rounded-xl border border-border-subtle bg-surface/80 backdrop-blur-sm p-8"
                     >
                         {/* PRIMARY CTA — dominant, filled violet */}

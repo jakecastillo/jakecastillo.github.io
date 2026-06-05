@@ -9,9 +9,8 @@ import {
     useTransform,
 } from "framer-motion";
 import { resumeData, type Job } from "@/data/resume";
+import { fadeRight, staggerContainer, viewportOnce } from "@/components/motion";
 import { ArrowRight } from "lucide-react";
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Run the upgrade before paint on the client so there's no static→immersive
 // flash; fall back to useEffect on the server (no-op) to avoid the SSR warning.
@@ -65,19 +64,19 @@ function StaticTimeline({ total }: { total: number }) {
             <p className="mb-12 font-mono text-xs tracking-widest text-muted-foreground">
                 {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
             </p>
-            <ol className="relative flex flex-col gap-16 border-l border-border-subtle pl-8 sm:pl-10">
+            <motion.ol
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="show"
+                viewport={viewportOnce}
+                className="relative flex flex-col gap-16 border-l border-border-subtle pl-8 sm:pl-10"
+            >
                 {resumeData.experience.map((job, index) => (
-                    <motion.li
-                        key={index}
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.3, ease: EASE }}
-                    >
+                    <motion.li key={index} variants={fadeRight}>
                         <TimelineNode job={job} index={index} total={total} variant="vertical" />
                     </motion.li>
                 ))}
-            </ol>
+            </motion.ol>
         </section>
     );
 }

@@ -12,6 +12,7 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import Container from "@/components/Container";
+import { scaleIn } from "@/components/motion";
 import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -99,24 +100,21 @@ export default function ActSkills() {
 
                 <div className="mt-24 pt-12 border-t border-border">
                     <h3 className="text-xs font-mono tracking-[0.25em] text-muted-foreground mb-8">CERTIFICATIONS</h3>
-                    <motion.div
-                        variants={groupContainer}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        className="flex flex-wrap gap-8"
-                    >
+                    <div className="flex flex-wrap gap-8">
                         {resumeData.certifications.map((cert) => (
                             <motion.div
                                 key={cert.name}
-                                variants={item}
-                                className="surface-2 p-8 rounded-lg hover:border-primary transition-colors"
+                                variants={scaleIn}
+                                initial="hidden"
+                                whileInView="show"
+                                viewport={{ once: true, amount: 0.2 }}
+                                className="surface-2 p-8 rounded-lg transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)] active:scale-[0.98]"
                             >
                                 <h4 className="text-xl font-bold tracking-tight mb-3">{cert.name}</h4>
                                 <p className="text-sm text-muted-foreground">{cert.issuer}</p>
                             </motion.div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
             </Container>
         </section>
@@ -149,7 +147,7 @@ function SkillGroup({
                 {skills.map((skill) => (
                     <span
                         key={skill}
-                        className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground hover:border-primary hover:bg-primary-muted cursor-default"
+                        className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-sm text-muted-foreground transition-[color,background-color,border-color,transform,box-shadow] duration-150 hover:text-foreground hover:border-primary hover:bg-primary-muted active:scale-[0.96] active:border-primary active:shadow-[0_0_18px_-6px_rgba(139,92,246,0.55)] cursor-default"
                     >
                         {skill}
                     </span>

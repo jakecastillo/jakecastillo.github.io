@@ -9,6 +9,7 @@ import ActExperience from "@/components/ActExperience";
 import ActSkills from "@/components/ActSkills";
 import ActContact from "@/components/ActContact";
 import HeaderTypewriter from "@/components/HeaderTypewriter";
+import TiltEnable from "@/components/TiltEnable";
 import Container from "@/components/Container";
 import { resumeData } from "@/data/resume";
 
@@ -166,6 +167,12 @@ export default function Home() {
           <span className="font-mono text-xs uppercase tracking-widest">Scroll</span>
           <ArrowDown className="h-4 w-4 animate-bounce motion-reduce:animate-none" aria-hidden="true" />
         </motion.div>
+
+        {/* Tilt affordance — mirrors the scroll cue in the right gutter. Inert on
+            desktop / reduced-motion; self-reveals only on touch devices. */}
+        <div className="absolute bottom-8 right-6 sm:right-10 lg:right-12">
+          <TiltEnable />
+        </div>
       </section>
 
       {/* Act II: Philosophy */}

@@ -6,6 +6,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import BackgroundScene from "@/components/BackgroundScene";
 import Footer from "@/components/Footer";
 import MotionProvider from "@/components/MotionProvider";
+import TouchActive from "@/components/TouchActive";
 import { resumeData } from "@/data/resume";
 
 const geistSans = Geist({
@@ -175,6 +176,7 @@ export default function RootLayout({
 
         <MotionProvider>
           <SmoothScroll />
+          <TouchActive />
 
           {/* Cinematic background (code-split, reduced-motion aware) */}
           <BackgroundScene />
