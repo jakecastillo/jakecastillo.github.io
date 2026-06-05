@@ -144,7 +144,6 @@ function MagneticButton({
                 onClick={onClick}
                 onMouseMove={handleMouse}
                 onMouseLeave={reset}
-                aria-label={label}
                 aria-current={isActive ? "page" : undefined}
                 className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay ${
                     isActive
@@ -153,15 +152,19 @@ function MagneticButton({
                 }`}
             >
                 {children}
-                {/* Persistent label on the ACTIVE item (desktop): always-on
-                    wayfinding so the dock isn't five ambiguous glyphs. */}
-                {isActive && (
-                    <span className="hidden whitespace-nowrap text-sm font-medium lg:inline">
-                        {label}
-                    </span>
-                )}
-                {/* Active indicator dot beneath the icon. Enters at 200ms,
-                    exits faster at 140ms to match the tooltip's quicker leave. */}
+                {/* Single label span = the link's accessible name. Visually hidden
+                    except on the ACTIVE item at desktop (persistent wayfinding), so
+                    the visible text always matches the accessible name (WCAG 2.5.3). */}
+                <span
+                    className={
+                        isActive
+                            ? "sr-only lg:not-sr-only lg:whitespace-nowrap lg:text-sm lg:font-medium"
+                            : "sr-only"
+                    }
+                >
+                    {label}
+                </span>
+                {/* Active indicator dot beneath the icon. */}
                 <span
                     aria-hidden="true"
                     className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity ease-out ${
@@ -170,7 +173,6 @@ function MagneticButton({
                             : "opacity-0 duration-[140ms]"
                     }`}
                 />
-                <span className="sr-only">{label}</span>
             </Link>
         </motion.div>
     );

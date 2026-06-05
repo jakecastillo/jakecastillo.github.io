@@ -175,16 +175,14 @@ export default function ActContact() {
 
                         {/* Credibility markers — verifiable, derived from resumeData.
                             One restrained terminal flourish: the ~/ prompt glyph. */}
-                        <dl className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-border-subtle pt-6 font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                            <span aria-hidden="true" className="text-subtle-foreground">
+                        <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border-subtle pt-6 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                            <li aria-hidden="true" className="text-subtle-foreground">
                                 ~/
-                            </span>
+                            </li>
                             {credibility.map((marker) => (
-                                <dd key={marker} className="m-0">
-                                    {marker}
-                                </dd>
+                                <li key={marker}>{marker}</li>
                             ))}
-                        </dl>
+                        </ul>
                     </motion.div>
                 </div>
             </Container>

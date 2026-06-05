@@ -12,6 +12,7 @@ const Scene = dynamic(() => import("./Scene"), { ssr: false });
 type HardwareNavigator = Navigator & {
     deviceMemory?: number;
     hardwareConcurrency?: number;
+    connection?: { saveData?: boolean };
 };
 
 // Borderline devices still render the Scene, but in a cheaper "lowPower" mode.
@@ -44,8 +45,9 @@ export default function BackgroundScene() {
         const narrowViewport = window.innerWidth < 768;
         const lowMemory = (nav.deviceMemory ?? 8) < 4;
         const lowCores = (nav.hardwareConcurrency ?? 8) < 4;
+        const saveData = nav.connection?.saveData === true;
 
-        if (coarsePointer || narrowViewport || lowMemory || lowCores) return;
+        if (coarsePointer || narrowViewport || lowMemory || lowCores || saveData) return;
 
         const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
         const start = () => setShow(true);
