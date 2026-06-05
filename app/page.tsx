@@ -154,12 +154,14 @@ export default function Home() {
           </motion.div>
         </Container>
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator — offset to the left gutter so it clears the
+            centered quick-nav dock (which owns the bottom-center lane). */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9, duration: 0.4 }}
-          className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground"
+          aria-hidden="true"
+          className="absolute bottom-8 left-6 flex flex-col items-center gap-2 text-muted-foreground sm:left-10 lg:left-12"
         >
           <span className="font-mono text-xs uppercase tracking-widest">Scroll</span>
           <ArrowDown className="h-4 w-4 animate-bounce motion-reduce:animate-none" aria-hidden="true" />
