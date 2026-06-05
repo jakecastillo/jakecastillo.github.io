@@ -138,7 +138,7 @@ export const resumeData: ResumeData = {
     ai: ["Vercel AI SDK", "OpenAI", "Multi-agent systems", "LLM integration", "Pydantic"],
     practices: ["DevSecOps", "Cloud Security", "IaC", "CI/CD", "Agile / Scrum", "Vitest", "Playwright", "k6"],
     softSkills: ["Problem Solving", "Adaptability", "Communication", "Collaboration"],
-    roles: ["Full-stack Developer", "Technical Architect", "Tech Lead", "DevOps", "Backend Developer", "Support Engineer"],
+    roles: ["Solutions Engineer", "Technical Architect", "Tech Lead", "Full-stack Developer", "DevOps", "Backend Developer"],
     interests: ["Machine Learning", "AI", "Cloud Architecture", "Data Analytics"],
     hobbies: ["Pickleball", "Video Games", "Cars"],
   },

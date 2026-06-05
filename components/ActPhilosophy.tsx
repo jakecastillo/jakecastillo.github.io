@@ -18,8 +18,8 @@ const pillars = [
         body: "Migrating brittle AS400 and AngularJS systems to modern React, NestJS, and AWS — without losing the business logic a decade of users depend on.",
     },
     {
-        title: "Full-Stack Delivery",
-        body: "Owning features end to end across React, Vue, and Angular front-ends and NestJS/Express services — as developer, tech lead, and architect.",
+        title: "End-to-End Solutions",
+        body: "Owning solutions end to end — from React, Vue, and Angular front-ends to NestJS and Express services — as developer, tech lead, and architect.",
     },
     {
         title: "Cloud & DevOps",

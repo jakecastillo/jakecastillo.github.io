@@ -80,9 +80,10 @@ export default function ActContact() {
                             {...reveal(0.12)}
                             className="measure mt-8 text-base text-muted-foreground"
                         >
-                            I build full-stack apps and modernize the systems teams
-                            rely on. Open to full-stack, cloud, and platform work
-                            &mdash; and I read every message. Reach out below.
+                            I design and ship software solutions &mdash; modernizing
+                            the systems teams rely on, end to end. Open to engineering,
+                            cloud, and platform work, and I read every message. Reach
+                            out below.
                         </motion.p>
                     </div>
 
