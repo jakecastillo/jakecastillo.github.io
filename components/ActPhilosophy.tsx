@@ -39,7 +39,7 @@ function SlideBelief() {
     return (
         <div className="flex flex-col justify-center">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                Engineering Philosophy
+                02 / approach
             </p>
             <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
                 MODERNIZING THE
@@ -83,10 +83,10 @@ function SlideResult() {
     return (
         <div className="flex flex-col justify-center">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                The Outcome
+                the result
             </p>
             <h2 className="text-8xl font-black leading-[0.95] tracking-tight text-foreground text-glow [overflow-wrap:anywhere]">
-                PRECISION.
+                SHIPPED.
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
                 I modernize the systems people rely on — shipping software

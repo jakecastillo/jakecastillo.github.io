@@ -46,12 +46,12 @@ export default function ActSkills() {
                     className="mb-20 max-w-3xl"
                 >
                     <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
-                        02 / CAPABILITIES
+                        04 / stack
                     </p>
                     <h2 className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]">
-                        TECHNICAL
+                        THE
                         <br />
-                        <span className="text-primary">ARSENAL</span>
+                        <span className="text-primary">STACK</span>
                     </h2>
                 </motion.header>
 

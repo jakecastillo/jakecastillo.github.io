@@ -72,7 +72,7 @@ export default function ActContact() {
                         >
                             Let&rsquo;s build
                             <br />
-                            something secure
+                            something good
                             <span className="animate-pulse text-primary">.</span>
                         </motion.h2>
 
@@ -80,10 +80,9 @@ export default function ActContact() {
                             {...reveal(0.12)}
                             className="measure mt-8 text-base text-muted-foreground"
                         >
-                            I build secure-by-default pipelines and ship software with
-                            DevSecOps guardrails baked in. I&rsquo;m open to platform
-                            security, CI/CD hardening, and infrastructure roles &mdash;
-                            and I read every message. Reach out below.
+                            I build full-stack apps and modernize the systems teams
+                            rely on. Open to full-stack, cloud, and platform work
+                            &mdash; and I read every message. Reach out below.
                         </motion.p>
                     </div>
 
