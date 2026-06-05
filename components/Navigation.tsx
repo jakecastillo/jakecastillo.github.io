@@ -133,7 +133,7 @@ function MagneticButton({
                 than it arrives. */}
             <span
                 role="tooltip"
-                className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium text-foreground opacity-0 translate-y-1 shadow-md transition-all duration-[120ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:duration-[180ms] group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:duration-[180ms]"
+                className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-foreground opacity-0 translate-y-1 shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-all duration-[120ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:duration-[180ms] group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:duration-[180ms]"
             >
                 {label}
             </span>
@@ -146,7 +146,7 @@ function MagneticButton({
                 onMouseLeave={reset}
                 aria-label={label}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-white/10 ${
+                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay ${
                     isActive
                         ? "bg-primary-muted px-3 text-primary duration-200 hover:bg-primary-muted lg:px-4"
                         : "w-11 min-w-[44px] text-muted-foreground duration-[140ms] hover:text-primary"
@@ -214,7 +214,7 @@ export default function Navigation() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
+            className="pointer-events-auto fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2.5 sm:bottom-[calc(2rem+env(safe-area-inset-bottom))]"
         >
             {/* Inline active-section label. Coarse-pointer / touch users never
                 see the hover tooltips, so the current section is surfaced here.
@@ -228,13 +228,13 @@ export default function Navigation() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-foreground backdrop-blur-xl md:hidden"
+                    className="rounded-full border border-border bg-surface-overlay/70 px-3 py-1 text-xs font-medium leading-none tracking-[0.06em] text-foreground shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] backdrop-blur-xl md:hidden"
                 >
                     {activeLabel}
                 </motion.span>
             </AnimatePresence>
 
-            <ul className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl">
+            <ul className="flex items-center gap-1.5 rounded-full border border-border bg-surface-overlay/70 px-3 py-2 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55),0_0_60px_-30px_rgba(139,92,246,0.25)] backdrop-blur-xl sm:gap-2 sm:px-4">
                 {navSections.map((section) => (
                     <li key={section.id}>
                         <MagneticButton

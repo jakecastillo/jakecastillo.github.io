@@ -49,13 +49,21 @@ export default function LiquidGlass() {
                 transmission={0.9}     // High transparency
                 thickness={0.5}
                 ior={1.2}
-                chromaticAberration={0.04}
+                // Slightly stronger chromatic aberration splits the refracted edges
+                // into faint violet/cyan fringes — the cinematic palette carried
+                // through the lens. Stays subtle so it never haloes the text.
+                chromaticAberration={0.06}
                 anisotropy={0.1}
                 distortion={0.3}
                 distortionScale={0.2}
                 temporalDistortion={0.1}
                 roughness={0.05}
-                color="#ffffff"        // Pure clear glass, previously this was very dark!
+                // Near-clear glass with the faintest cool violet cast. Brightness
+                // is preserved (almost white) so foreground contrast is untouched;
+                // the tiny tint just unifies the lens with the orb's atmosphere.
+                color="#eef0ff"
+                attenuationColor="#c7b8ff"
+                attenuationDistance={4}
             />
         </Plane>
     );

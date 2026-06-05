@@ -48,7 +48,7 @@ export default function ActSkills() {
                     <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
                         02 / CAPABILITIES
                     </p>
-                    <h2 className="text-7xl font-bold tracking-tighter leading-[0.95] -ml-1">
+                    <h2 className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]">
                         TECHNICAL
                         <br />
                         <span className="text-primary">ARSENAL</span>
@@ -107,9 +107,9 @@ export default function ActSkills() {
                             <motion.div
                                 key={cert.name}
                                 variants={item}
-                                className="surface-2 p-6 rounded-lg hover:border-primary transition-colors"
+                                className="surface-2 p-8 rounded-lg hover:border-primary transition-colors"
                             >
-                                <h4 className="text-xl font-bold mb-2">{cert.name}</h4>
+                                <h4 className="text-xl font-bold tracking-tight mb-3">{cert.name}</h4>
                                 <p className="text-sm text-muted-foreground">{cert.issuer}</p>
                             </motion.div>
                         ))}

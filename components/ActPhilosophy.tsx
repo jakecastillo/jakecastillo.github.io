@@ -61,13 +61,13 @@ function SlideProcess() {
                 How I Build
             </h3>
             <div className="border-l border-border-strong pl-8">
-                <ul className="space-y-10">
+                <ul className="space-y-12">
                     {pillars.map((pillar) => (
                         <li key={pillar.title}>
-                            <h4 className="text-3xl font-bold leading-snug text-foreground">
+                            <h4 className="text-3xl font-bold leading-snug tracking-tight text-foreground">
                                 {pillar.title}.
                             </h4>
-                            <p className="measure-narrow mt-2 text-base leading-relaxed text-muted-foreground">
+                            <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
                                 {pillar.body}
                             </p>
                         </li>

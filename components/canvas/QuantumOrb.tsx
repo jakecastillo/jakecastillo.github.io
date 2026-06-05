@@ -13,6 +13,10 @@ const BRAND_CYAN = "#22d3ee";
 export default function QuantumOrb() {
     const orbRef = useRef<THREE.Mesh>(null);
     const outerRingRef = useRef<THREE.Mesh>(null);
+    // Soft atmospheric glow shell — a backside, additive halo that fakes a gentle
+    // bloom around the core without any post-processing pass. It breathes very
+    // slightly with the pulse so the orb feels lit from within, never bright.
+    const glowRef = useRef<THREE.Mesh>(null);
     const scrollOffset = useScrollStore((state) => state.offset);
 
     // Read the reduced-motion preference exactly once. BackgroundScene already
@@ -38,6 +42,8 @@ export default function QuantumOrb() {
     const coreSegments = coarsePointer ? 16 : 32;
     // Outer wireframe is already low-poly; trim it a touch further on touch.
     const ringSegments = coarsePointer ? 8 : 12;
+    // Glow shell can be coarse — it's a soft blur, detail is invisible. Cheap.
+    const glowSegments = coarsePointer ? 16 : 24;
 
     // Stable phase offset to keep motion organic without impure render-time randomness
     const phaseOffset = Math.PI * 0.61803398875;
@@ -53,6 +59,10 @@ export default function QuantumOrb() {
             outerRingRef.current.position.y = 0;
             orbRef.current.scale.setScalar(1);
             outerRingRef.current.scale.setScalar(1);
+            if (glowRef.current) {
+                glowRef.current.position.y = 0;
+                glowRef.current.scale.setScalar(1);
+            }
             return;
         }
 
@@ -84,22 +94,47 @@ export default function QuantumOrb() {
 
         orbRef.current.scale.setScalar(pulse);
         outerRingRef.current.scale.setScalar(pulse);
+
+        // Glow shell follows the hover and breathes on an offset phase so the
+        // halo gently expands and contracts a hair out of sync with the core,
+        // reading as soft ambient light rather than a rigid outline.
+        if (glowRef.current) {
+            glowRef.current.position.y = hoverY;
+            glowRef.current.scale.setScalar(1 + Math.sin(time * 0.9 + phaseOffset) * 0.035);
+        }
     });
 
     return (
         <group position={[0, 0, -2]}>
             {/* Inner Core — deep violet-tinted slate. Emissive kept extremely low
                 so the brightest lit pixel stays under ~#2a2550, letting muted text
-                overlapping the orb hold >=4.5:1 contrast. Never competes with copy. */}
+                overlapping the orb hold >=4.5:1 contrast. Never competes with copy.
+                Polished metalness + lower roughness deepen the specular gradient so
+                the lit side rolls richly into shadow — cinematic depth, not glare. */}
             <Sphere ref={orbRef} args={[1.0, coreSegments, coreSegments]}>
                 <MeshDistortMaterial
                     color="#16122b"
                     emissive={BRAND_VIOLET}
-                    emissiveIntensity={0.04}
-                    roughness={0.35}
-                    metalness={0.7}
+                    emissiveIntensity={0.05}
+                    roughness={0.28}
+                    metalness={0.82}
                     distort={0.3}
                     speed={2}
+                />
+            </Sphere>
+
+            {/* Atmospheric glow shell — a backside, additively-blended halo that
+                fakes a faint bloom around the core. depthWrite is off and opacity
+                is tiny so it reads as ambient violet light bleeding into the void,
+                never as a solid edge. Its dimness keeps text contrast intact. */}
+            <Sphere ref={glowRef} args={[1.55, glowSegments, glowSegments]}>
+                <meshBasicMaterial
+                    color={BRAND_VIOLET}
+                    transparent
+                    opacity={0.05}
+                    side={THREE.BackSide}
+                    blending={THREE.AdditiveBlending}
+                    depthWrite={false}
                 />
             </Sphere>
 

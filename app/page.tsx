@@ -127,11 +127,11 @@ export default function Home() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="View GitHub profile"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-border-subtle px-5 py-3 font-mono text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                className="group inline-flex min-h-[44px] items-center gap-2 px-2 py-3 font-mono text-sm text-muted-foreground transition-colors hover:text-primary"
               >
                 <Github size={18} strokeWidth={2} aria-hidden="true" />
                 GitHub
-                <ArrowUpRight size={14} aria-hidden="true" />
+                <ArrowUpRight size={14} aria-hidden="true" className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </a>
             </motion.div>
           </div>

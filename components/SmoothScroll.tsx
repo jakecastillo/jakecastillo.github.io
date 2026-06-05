@@ -26,7 +26,9 @@ export default function SmoothScroll() {
             if (cancelled) return;
 
             lenis = new Lenis({
-                duration: 1.2,
+                // Snappier than the 1.2 default so the wheel stays close to native
+                // (less scroll-jacking) while keeping a premium glide.
+                duration: 0.9,
                 easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
                 orientation: "vertical",
                 gestureOrientation: "vertical",

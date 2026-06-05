@@ -181,14 +181,15 @@ function TimelineNode({
                 aria-hidden="true"
             />
 
-            {/* Readability scrim: keeps muted text ≥4.5:1 even over the bright orb core. */}
-            <div className="rounded-xl bg-background/70 p-6 backdrop-blur-sm sm:p-8">
+            {/* Readability scrim: luminance-elevated surface (subtle border + tint)
+                keeps muted text ≥4.5:1 even over the bright orb core. */}
+            <div className="rounded-xl border border-border-subtle bg-surface/80 p-8 backdrop-blur-sm">
                 {/* Role / period / company hierarchy — reads as a STAR case-study header */}
                 <header className="mb-6 flex flex-col gap-2">
                     <span className="font-mono text-xs uppercase tracking-[0.2em] text-subtle-foreground">
                         {job.period} <span className="text-subtle-foreground">· {numeral} / {format(total)}</span>
                     </span>
-                    <h3 className="text-4xl font-bold leading-[1.05] tracking-tighter text-foreground text-glow">
+                    <h3 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground text-glow">
                         {job.title}
                     </h3>
                     <p className="font-mono text-base text-muted-foreground">

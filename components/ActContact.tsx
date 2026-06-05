@@ -68,7 +68,7 @@ export default function ActContact() {
 
                         <motion.h2
                             {...reveal(0.06)}
-                            className="text-7xl font-bold text-foreground tracking-tighter"
+                            className="text-7xl font-bold text-foreground tracking-tight [overflow-wrap:anywhere]"
                         >
                             Let&rsquo;s build
                             <br />
@@ -87,10 +87,11 @@ export default function ActContact() {
                         </motion.p>
                     </div>
 
-                    {/* Readability scrim keeps text >= 4.5:1 over the orb */}
+                    {/* Readability scrim: luminance-elevated surface (subtle border +
+                        tint) keeps text >= 4.5:1 over the orb */}
                     <motion.div
                         {...reveal(0.18)}
-                        className="rounded-xl bg-background/70 backdrop-blur-sm p-6 sm:p-8"
+                        className="rounded-xl border border-border-subtle bg-surface/80 backdrop-blur-sm p-8"
                     >
                         {/* PRIMARY CTA — dominant, filled violet */}
                         {primary ? (
@@ -103,7 +104,7 @@ export default function ActContact() {
                                         : undefined
                                 }
                                 download={primary.download ? "" : undefined}
-                                className="group glow-primary flex min-h-11 items-center justify-between gap-4 rounded-lg bg-primary-cta px-5 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
+                                className="group glow-primary flex min-h-11 items-center justify-between gap-4 rounded-lg bg-primary-cta px-6 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
                             >
                                 <span className="flex min-w-0 items-center gap-3">
                                     <primary.icon
@@ -127,7 +128,7 @@ export default function ActContact() {
                         ) : null}
 
                         {/* SECONDARY links — clearly subordinate */}
-                        <ul className="mt-4 grid gap-1 text-left">
+                        <ul className="mt-6 grid gap-2 text-left">
                             {secondary.map((link, index) => {
                                 const Icon = link.icon;
                                 return (
