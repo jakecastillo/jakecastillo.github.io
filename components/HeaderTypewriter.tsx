@@ -7,7 +7,7 @@ export default function HeaderTypewriter() {
   return (
     <h1 className="font-black uppercase leading-[0.92] tracking-tighter text-foreground">
       <span className="block text-8xl">
-        <span className="text-laser text-glow">DevSecOps</span>
+        <span className="text-laser text-glow">Software</span>
       </span>
       <span className="block text-8xl">Engineer.</span>
     </h1>

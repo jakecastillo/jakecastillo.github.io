@@ -21,7 +21,7 @@ const reveal = {
   }),
 };
 
-const pills = ["AWS Solutions Architect", "Secure SDLC · AWS", "Honolulu, HI"];
+const pills = ["AWS Solutions Architect", "Full-stack · Cloud", "Honolulu, HI"];
 
 export default function Home() {
   return (
@@ -86,8 +86,8 @@ export default function Home() {
               animate="show"
               className="measure text-base text-muted-foreground"
             >
-              I help Hawai&#699;i government and enterprise teams modernize legacy systems
-              and ship secure, cloud-native AWS platforms.
+              From California&rsquo;s campaign-finance disclosure system to Hawai&#699;i&rsquo;s
+              public agencies, I migrate legacy platforms to modern React/NestJS stacks on AWS.
             </motion.p>
 
             <motion.ul

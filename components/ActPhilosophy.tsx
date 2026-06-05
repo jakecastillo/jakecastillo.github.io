@@ -14,16 +14,16 @@ const useIsoLayoutEffect =
 
 const pillars = [
     {
-        title: "Secure Cloud Architecture",
-        body: "Architecting self-healing AWS platforms with least-privilege IAM, encryption, and compliance guardrails embedded as code from day one.",
+        title: "Legacy Modernization",
+        body: "Migrating brittle AS400 and AngularJS systems to modern React, NestJS, and AWS — without losing the business logic a decade of users depend on.",
     },
     {
-        title: "Shift-Left Security",
-        body: "Baking SAST, dependency scanning, and policy-as-code into CI/CD so vulnerabilities surface in the pipeline — never in production.",
+        title: "Full-Stack Delivery",
+        body: "Owning features end to end across React, Vue, and Angular front-ends and NestJS/Express services — as developer, tech lead, and architect.",
     },
     {
-        title: "Resilient Data Integrity",
-        body: "Enforcing type safety, encryption-at-rest, and schema constraints so cloud services stay trustworthy under load and under attack.",
+        title: "Cloud & DevOps",
+        body: "Deploying and operating on AWS — managing releases, retiring end-of-life tech, and streamlining maintenance so systems stay reliable in production.",
     },
 ];
 
@@ -39,12 +39,12 @@ function SlideBelief() {
     return (
         <div className="flex flex-col justify-center">
             <p className="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                DevSecOps Philosophy
+                Engineering Philosophy
             </p>
             <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
-                ENGINEERING RESILIENT
+                MODERNIZING THE
                 <br />
-                <span className="text-primary text-glow">CLOUD SYSTEMS.</span>
+                <span className="text-primary text-glow">SYSTEMS WE RELY ON.</span>
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
                 {resumeData.summary}
@@ -58,7 +58,7 @@ function SlideProcess() {
     return (
         <div className="flex flex-col justify-center">
             <h3 className="mb-8 font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                Security by Design
+                How I Build
             </h3>
             <div className="border-l border-border-strong pl-8">
                 <ul className="space-y-10">
@@ -89,10 +89,10 @@ function SlideResult() {
                 PRECISION.
             </h2>
             <p className="measure mt-8 text-xl leading-relaxed text-muted-foreground">
-                I embed security across the development lifecycle — shipping
-                cloud infrastructure that moves fast, stays type-safe and
-                observable, and holds up against real-world threats in
-                production.
+                I modernize the systems people rely on — shipping software
+                that&rsquo;s fast, maintainable, and built to last in
+                production, from public-sector platforms to healthcare and
+                pandemic-response tools.
             </p>
         </div>
     );

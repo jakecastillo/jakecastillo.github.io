@@ -22,9 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL = "https://jakecastillo.github.io";
-const TITLE = "Jake Castillo | DevSecOps Software Engineer";
+const TITLE = "Jake Castillo | Software Engineer";
 const DESCRIPTION =
-  "DevSecOps software engineer in Honolulu securing cloud-native AWS platforms — embedding security into the SDLC and shipping resilient, type-safe systems.";
+  "Full-stack software engineer in Honolulu modernizing government and enterprise systems — migrating legacy platforms to modern React, NestJS, and AWS.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -38,13 +38,14 @@ export const metadata: Metadata = {
   creator: resumeData.name,
   keywords: [
     "Jake Castillo",
-    "DevSecOps engineer",
     "Software engineer",
-    "Cloud security",
-    "AWS",
-    "Honolulu",
     "Full-stack engineer",
-    "Secure SDLC",
+    "Legacy modernization",
+    "AWS",
+    "React",
+    "NestJS",
+    "Honolulu",
+    "DevSecOps",
   ],
   alternates: { canonical: "/" },
   openGraph: {
@@ -59,7 +60,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Jake Castillo — DevSecOps Software Engineer",
+        alt: "Jake Castillo — Software Engineer",
         type: "image/png",
       },
     ],
@@ -68,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: [{ url: "/og.png", alt: "Jake Castillo — DevSecOps Software Engineer" }],
+    images: [{ url: "/og.png", alt: "Jake Castillo — Software Engineer" }],
   },
   icons: {
     icon: [
@@ -112,7 +113,7 @@ const jsonLd = {
         "@type": "CollegeOrUniversity",
         name: resumeData.education.institution,
       },
-      knowsAbout: ["DevSecOps", "Cloud Security", "AWS", "CI/CD", "Full-stack development", "TypeScript"],
+      knowsAbout: ["Full-stack development", "Legacy modernization", "AWS", "React", "NestJS", "DevSecOps", "TypeScript"],
       sameAs: [resumeData.github, resumeData.linkedin],
     },
     {
@@ -160,7 +161,7 @@ export default function RootLayout({
               <ellipse cx="13" cy="13" rx="11" ry="4.6" fill="none" stroke="#2dd4bf" strokeOpacity="0.55" />
               <circle cx="13" cy="13" r="3.6" fill="#8b5cf6" />
             </svg>
-            <span className="hidden font-mono text-[11px] uppercase tracking-[0.3em] text-foreground/80 sm:inline">
+            <span className="hidden font-mono text-xs uppercase tracking-[0.3em] text-foreground/80 sm:inline">
               Jake Castillo
             </span>
           </a>
