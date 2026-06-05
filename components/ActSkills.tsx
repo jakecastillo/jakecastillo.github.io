@@ -87,8 +87,9 @@ export default function ActSkills() {
                         viewport={{ once: true, amount: 0.2 }}
                         className="flex flex-col gap-8"
                     >
-                        <SkillGroup variants={item} title="CLOUD & INFRA" skills={resumeData.skills.platforms} />
-                        <SkillGroup variants={item} title="DATABASES" skills={resumeData.skills.databases} />
+                        <SkillGroup variants={item} title="CLOUD & DEVOPS" skills={resumeData.skills.platforms} />
+                        <SkillGroup variants={item} title="AI / ML" skills={resumeData.skills.ai} />
+                        <SkillGroup variants={item} title="DATA" skills={resumeData.skills.databases} />
                         <SkillGroup variants={item} title="PRACTICES" skills={resumeData.skills.practices} />
                         <SkillGroup variants={item} title="ROLES" skills={resumeData.skills.roles} />
                     </motion.div>

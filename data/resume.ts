@@ -25,6 +25,7 @@ export interface Skills {
   databases: string[];
   frameworks: string[];
   platforms: string[];
+  ai: string[];
   practices: string[];
   softSkills: string[];
   roles: string[];
@@ -130,11 +131,12 @@ export const resumeData: ResumeData = {
     },
   ],
   skills: {
-    languages: ["JavaScript", "TypeScript", "C", "C++", "C#", "Python", "SQL", "HTML", "CSS"],
-    databases: ["PostgreSQL", "MySQL"],
-    frameworks: ["React", "NestJS", "Prisma", "Express", "Angular", "Vue", ".NET", "Node.js", "Next.js"],
-    platforms: ["AWS", "Azure", "CloudWatch", "DynaTrace"],
-    practices: ["Agile / Scrum", "DevOps", "CI/CD", "Code Review"],
+    languages: ["TypeScript", "JavaScript", "Python", "Go", "C#", "C / C++", "SQL"],
+    databases: ["PostgreSQL", "Redis", "Prisma", "Drizzle", "MySQL"],
+    frameworks: ["React", "Next.js", "NestJS", "Express", "FastAPI", "Vue", "Angular", ".NET", "Tailwind CSS", "shadcn/ui", "Three.js"],
+    platforms: ["AWS", "Terraform", "Docker", "Kubernetes", "Helm", "GitHub Actions", "Serverless", "Azure"],
+    ai: ["Vercel AI SDK", "OpenAI", "Multi-agent systems", "LLM integration", "Pydantic"],
+    practices: ["DevSecOps", "Cloud Security", "IaC", "CI/CD", "Agile / Scrum", "Vitest", "Playwright", "k6"],
     softSkills: ["Problem Solving", "Adaptability", "Communication", "Collaboration"],
     roles: ["Full-stack Developer", "Technical Architect", "Tech Lead", "DevOps", "Backend Developer", "Support Engineer"],
     interests: ["Machine Learning", "AI", "Cloud Architecture", "Data Analytics"],
