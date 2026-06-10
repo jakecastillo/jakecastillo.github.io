@@ -25,6 +25,7 @@ export interface Skills {
   databases: string[];
   frameworks: string[];
   platforms: string[];
+  security: string[];
   ai: string[];
   practices: string[];
   softSkills: string[];
@@ -131,14 +132,15 @@ export const resumeData: ResumeData = {
     },
   ],
   skills: {
-    languages: ["TypeScript", "JavaScript", "Python", "Go", "C#", "C / C++", "SQL"],
-    databases: ["PostgreSQL", "Redis", "Prisma", "Drizzle", "MySQL"],
-    frameworks: ["React", "Next.js", "NestJS", "Express", "FastAPI", "Vue", "Angular", ".NET", "Tailwind CSS", "shadcn/ui", "Three.js"],
-    platforms: ["AWS", "Terraform", "Docker", "Kubernetes", "Helm", "GitHub Actions", "Serverless", "Azure"],
-    ai: ["Vercel AI SDK", "OpenAI", "Multi-agent systems", "LLM integration", "Pydantic"],
-    practices: ["DevSecOps", "Cloud Security", "IaC", "CI/CD", "Agile / Scrum", "Vitest", "Playwright", "k6"],
+    languages: ["TypeScript", "JavaScript", "Python", "Go", "C#", "Rust", "C / C++", "SQL"],
+    databases: ["PostgreSQL", "Redis", "Prisma", "Supabase", "Drizzle", "MySQL"],
+    frameworks: ["React", "Next.js", "NestJS", ".NET", "Express", "FastAPI", "Tailwind CSS", "shadcn/ui", "Vue", "Angular", "Three.js"],
+    platforms: ["AWS", "Terraform", "Docker", "Kubernetes", "GitHub Actions", "Helm", "Serverless", "Azure", "Vercel"],
+    security: ["DevSecOps", "Cloud Security", "Policy-as-Code", "IaC Security", "SAST / Secret Scanning", "Supply-Chain Security", "GRC / CMMC"],
+    ai: ["Multi-agent Systems", "LLM Integration", "Anthropic / Claude", "OpenAI", "Vercel AI SDK", "Pydantic", "NVIDIA Nemotron"],
+    practices: ["IaC", "CI/CD", "Observability", "Vitest", "Playwright", "k6", "Agile / Scrum"],
     softSkills: ["Problem Solving", "Adaptability", "Communication", "Collaboration"],
-    roles: ["Solutions Engineer", "Technical Architect", "Tech Lead", "Full-stack Developer", "DevOps", "Backend Developer"],
+    roles: ["DevSecOps Engineer", "Solutions Engineer", "Technical Architect", "Tech Lead", "Full-stack Developer", "DevOps Engineer", "Backend Developer"],
     interests: ["Machine Learning", "AI", "Cloud Architecture", "Data Analytics"],
     hobbies: ["Pickleball", "Video Games", "Cars"],
   },

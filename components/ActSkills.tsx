@@ -9,10 +9,12 @@ import {
     Database,
     ShieldCheck,
     Users,
+    Workflow,
     type LucideIcon,
 } from "lucide-react";
 import Container from "@/components/Container";
 import { scaleIn } from "@/components/motion";
+import { TechIcon } from "@/components/TechIcon";
 import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -35,14 +37,15 @@ const item: Variants = {
 
 // Even, balanced groups — each carries a meaningful glyph so the stack reads as
 // a scannable matrix instead of a wall of pills (and no longer crams the rail).
-const groups: { title: string; icon: LucideIcon; skills: string[] }[] = [
-    { title: "LANGUAGES", icon: Code2, skills: resumeData.skills.languages },
-    { title: "FRAMEWORKS", icon: Boxes, skills: resumeData.skills.frameworks },
-    { title: "CLOUD & DEVOPS", icon: Cloud, skills: resumeData.skills.platforms },
-    { title: "AI / ML", icon: BrainCircuit, skills: resumeData.skills.ai },
-    { title: "DATA", icon: Database, skills: resumeData.skills.databases },
-    { title: "PRACTICES", icon: ShieldCheck, skills: resumeData.skills.practices },
-    { title: "ROLES", icon: Users, skills: resumeData.skills.roles },
+const groups: { title: string; icon: LucideIcon; skills: string[]; showIcons: boolean }[] = [
+    { title: "LANGUAGES", icon: Code2, skills: resumeData.skills.languages, showIcons: true },
+    { title: "FRAMEWORKS", icon: Boxes, skills: resumeData.skills.frameworks, showIcons: true },
+    { title: "CLOUD & DEVOPS", icon: Cloud, skills: resumeData.skills.platforms, showIcons: true },
+    { title: "SECURITY", icon: ShieldCheck, skills: resumeData.skills.security, showIcons: false },
+    { title: "AI / ML", icon: BrainCircuit, skills: resumeData.skills.ai, showIcons: true },
+    { title: "DATA", icon: Database, skills: resumeData.skills.databases, showIcons: true },
+    { title: "PRACTICES", icon: Workflow, skills: resumeData.skills.practices, showIcons: false },
+    { title: "ROLES", icon: Users, skills: resumeData.skills.roles, showIcons: false },
 ];
 
 export default function ActSkills() {
@@ -94,6 +97,7 @@ export default function ActSkills() {
                             icon={group.icon}
                             title={group.title}
                             skills={group.skills}
+                            showIcons={group.showIcons}
                         />
                     ))}
                 </motion.div>
@@ -126,11 +130,13 @@ function SkillGroup({
     skills,
     variants,
     icon: Icon,
+    showIcons,
 }: {
     title: string;
     skills: string[];
     variants: Variants;
     icon: LucideIcon;
+    showIcons: boolean;
 }) {
     return (
         <motion.div variants={variants}>
@@ -147,8 +153,14 @@ function SkillGroup({
                 {skills.map((skill) => (
                     <span
                         key={skill}
-                        className="rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-sm text-muted-foreground transition-[color,background-color,border-color,transform,box-shadow] duration-150 hover:text-foreground hover:border-primary hover:bg-primary-muted active:scale-[0.96] active:border-primary active:shadow-[0_0_18px_-6px_rgba(139,92,246,0.55)] cursor-default"
+                        className="group inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3.5 py-1.5 text-sm text-muted-foreground transition-[color,background-color,border-color,transform,box-shadow] duration-150 hover:text-foreground hover:border-primary hover:bg-primary-muted active:scale-[0.96] active:border-primary active:shadow-[0_0_18px_-6px_rgba(139,92,246,0.55)] cursor-default"
                     >
+                        {showIcons && (
+                            <TechIcon
+                                name={skill}
+                                className="shrink-0 text-muted-foreground transition-colors duration-150 group-hover:text-primary-hover"
+                            />
+                        )}
                         {skill}
                     </span>
                 ))}
