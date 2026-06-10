@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+    AnimatePresence,
+    motion,
+    useMotionValue,
+    useReducedMotion,
+    useSpring,
+    useTransform,
+} from "framer-motion";
 import Link from "next/link";
 import { navSections, sections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
@@ -104,28 +111,35 @@ function MagneticButton({
     onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
     const ref = useRef<HTMLAnchorElement>(null);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const rect = useRef<DOMRect | null>(null);
 
-    const handleMouse = (e: React.MouseEvent) => {
-        if (!enableMotion || !ref.current) return;
-        const { clientX, clientY } = e;
-        const { height, width, left, top } = ref.current.getBoundingClientRect();
-        const middleX = clientX - (left + width / 2);
-        const middleY = clientY - (top + height / 2);
-        setPosition({ x: middleX * 0.1, y: middleY * 0.1 }); // Magnetic strength
+    // Motion values update the transform OFF the React render path (no re-render
+    // of this fixed dock per mousemove). Springs add the heavy/premium glide.
+    const mvX = useMotionValue(0);
+    const mvY = useMotionValue(0);
+    const x = useSpring(mvX, { stiffness: 150, damping: 20, mass: 0.1 });
+    const y = useSpring(mvY, { stiffness: 150, damping: 20, mass: 0.1 });
+    // Icon lags the chip slightly → tactile sense of mass.
+    const iconX = useTransform(x, (v) => v * 0.4);
+    const iconY = useTransform(y, (v) => v * 0.4);
+
+    // Read the bounding rect ONCE on enter (not per move) to avoid layout thrash.
+    const handleEnter = () => {
+        if (enableMotion && ref.current) rect.current = ref.current.getBoundingClientRect();
+    };
+    const handleMove = (e: React.MouseEvent) => {
+        if (!enableMotion || !rect.current) return;
+        const r = rect.current;
+        mvX.set((e.clientX - (r.left + r.width / 2)) * 0.18);
+        mvY.set((e.clientY - (r.top + r.height / 2)) * 0.18);
+    };
+    const reset = () => {
+        mvX.set(0);
+        mvY.set(0);
     };
 
-    const reset = () => setPosition({ x: 0, y: 0 });
-
-    // Only drive the spring transform when motion is enabled; otherwise stay put.
-    const { x, y } = enableMotion ? position : { x: 0, y: 0 };
-
     return (
-        <motion.div
-            animate={{ x, y }}
-            transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
-            className="group relative"
-        >
+        <motion.div style={{ x, y }} className="group relative">
             {/* Tooltip — visible on hover AND keyboard focus for discoverability.
                 The label/indicator swap is intentionally asymmetric: the resting
                 (exit) state carries a shorter duration (120ms) than the
@@ -142,7 +156,8 @@ function MagneticButton({
                 ref={ref}
                 href={href}
                 onClick={onClick}
-                onMouseMove={handleMouse}
+                onMouseEnter={handleEnter}
+                onMouseMove={handleMove}
                 onMouseLeave={reset}
                 aria-current={isActive ? "page" : undefined}
                 className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay ${
@@ -151,7 +166,9 @@ function MagneticButton({
                         : "w-11 min-w-[44px] text-muted-foreground duration-[140ms] hover:text-primary"
                 }`}
             >
-                {children}
+                <motion.span style={{ x: iconX, y: iconY }} className="inline-flex">
+                    {children}
+                </motion.span>
                 {/* Single label span = the link's accessible name. Visually hidden
                     except on the ACTIVE item at desktop (persistent wayfinding), so
                     the visible text always matches the accessible name (WCAG 2.5.3). */}
