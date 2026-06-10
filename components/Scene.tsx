@@ -47,7 +47,10 @@ function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolea
 
         let raf = 0;
         let last = 0;
-        const interval = 1000 / fps;
+        // Sub-frame tolerance: a bare 1000/fps gate skips any native rAF tick
+        // arriving fractionally early, dropping ~1/3 of 60Hz frames. The 4ms
+        // slack lets each on-time frame through (true 60/30fps) without doubling.
+        const interval = 1000 / fps - 4;
         const visible = { current: typeof document !== "undefined" ? !document.hidden : true };
         const heroOnScreen = { current: true };
 
@@ -72,7 +75,7 @@ function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolea
 
         const tick = (t: number) => {
             raf = requestAnimationFrame(tick);
-            if (!visible.current || !heroOnScreen.current) return; // paused → no GPU work
+            if (!visible.current || !heroOnScreen.current) return; // paused → skip invalidate (no GPU render)
             if (t - last < interval) return;
             last = t;
             invalidate();

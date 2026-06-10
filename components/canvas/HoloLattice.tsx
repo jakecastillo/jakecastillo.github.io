@@ -173,8 +173,9 @@ export default function HoloLattice({
         3.2,
         delta,
       );
-      // One-shot lock-pulse latched when the scan finishes (~0.9).
-      if (!locked.current && rev.value > 0.9) {
+      // One-shot lock-pulse latched just after the form fully assembles (~0.95),
+      // so "system online" lands as the last hero item (terminal) settles ~1.0s.
+      if (!locked.current && rev.value > 0.95) {
         locked.current = true;
         lockStart.current = t;
       }
