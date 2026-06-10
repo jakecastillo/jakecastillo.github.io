@@ -57,9 +57,29 @@ next-env.d.ts
 .agents/
 .claude/
 .codex/
+.kilo/
 .superpowers/
 AGENTS.md
 CLAUDE.md
+
+# Superpowers design docs (specs/plans) — kept local, not versioned
+docs/superpowers/
+
+# Other AI assistants — future-proofing (ignored if they ever appear here)
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.continue/
+.roo/
+.roomodes
+.aider*
+.gemini/
+GEMINI.md
+.opencode/
+.crush/
+.mcp.json
 
 # Audit & asset-generation tooling + generated artifacts (local only)
 /scripts/
