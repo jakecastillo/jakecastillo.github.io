@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import HoloLattice from "./canvas/HoloLattice";
@@ -19,33 +19,75 @@ interface SceneProps {
     reducedMotion?: boolean;
 }
 
+/** Minimal shape we mutate on the Bloom effect ref. */
+type BloomLike = { intensity: number };
+
 /**
- * Drives the render loop at a capped FPS while frameloop="demand". The holo
- * rotates slowly, so 30fps is visually identical to 60 — but the expensive GL
- * render only runs half as often. The rAF itself is a cheap timestamp check;
- * the GPU work happens only on invalidate().
+ * Single source of render-loop control. The <Canvas> runs frameloop="demand", so
+ * the expensive GL + bloom render only happens when we call invalidate(). This
+ * one rAF timestamp-gates invalidate() at the target fps, and PAUSES it entirely
+ * when the tab is hidden or the hero (and thus the holo) is scrolled out of view
+ * — letting the cheap CSS aurora carry the lower page (the biggest battery win).
+ *
+ * Crucially, ALL of this state lives in refs + listeners, never React state, so
+ * this component and the <Canvas> above it never re-render. Re-rendering the
+ * Canvas subtree after mount crashes React 19's dev reconciler — it tries to
+ * JSON.stringify the circular Three.js scene graph ("Converting circular
+ * structure to JSON"). Imperative loop control keeps the Canvas props static.
  */
-function FrameThrottle({ fps }: { fps: number }) {
+function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolean }) {
     const invalidate = useThree((s) => s.invalidate);
+
     useEffect(() => {
+        // Reduced motion: render exactly ONE (static, lit) frame, then idle.
+        if (reducedMotion) {
+            invalidate();
+            return;
+        }
+
         let raf = 0;
         let last = 0;
         const interval = 1000 / fps;
+        const visible = { current: typeof document !== "undefined" ? !document.hidden : true };
+        const heroOnScreen = { current: true };
+
+        const onVisibility = () => {
+            visible.current = !document.hidden;
+        };
+        document.addEventListener("visibilitychange", onVisibility);
+
+        // Pause once the hero (#home) is scrolled well out of view.
+        let io: IntersectionObserver | null = null;
+        const hero = document.getElementById("home");
+        if (hero && "IntersectionObserver" in window) {
+            io = new IntersectionObserver(
+                ([entry]) => {
+                    heroOnScreen.current = entry.isIntersecting;
+                    if (entry.isIntersecting) invalidate(); // wake immediately on return
+                },
+                { rootMargin: "200px 0px 200px 0px", threshold: 0 },
+            );
+            io.observe(hero);
+        }
+
         const tick = (t: number) => {
             raf = requestAnimationFrame(tick);
-            if (t - last >= interval) {
-                last = t;
-                invalidate();
-            }
+            if (!visible.current || !heroOnScreen.current) return; // paused → no GPU work
+            if (t - last < interval) return;
+            last = t;
+            invalidate();
         };
         raf = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(raf);
-    }, [invalidate, fps]);
+
+        return () => {
+            cancelAnimationFrame(raf);
+            document.removeEventListener("visibilitychange", onVisibility);
+            io?.disconnect();
+        };
+    }, [invalidate, fps, reducedMotion]);
+
     return null;
 }
-
-/** Minimal shape we mutate on the Bloom effect ref. */
-type BloomLike = { intensity: number };
 
 /**
  * Ramps Bloom.intensity 0 → target during the boot ("powering on"), phased a
@@ -62,63 +104,17 @@ function BloomBoot({ bloomRef, target }: { bloomRef: React.RefObject<BloomLike |
     return null;
 }
 
-/** Renders exactly one frame (reduced-motion still-frame under frameloop="never"). */
-function RenderOnce() {
-    const invalidate = useThree((s) => s.invalidate);
-    useEffect(() => {
-        invalidate();
-    }, [invalidate]);
-    return null;
-}
-
 export default function Scene({ lowPower = false, reducedMotion = false }: SceneProps) {
-    // Pause rendering when the tab/document is hidden so the loop never spins
-    // the GPU offscreen.
-    const [hidden, setHidden] = useState(false);
-
-    useEffect(() => {
-        const sync = () => setHidden(document.hidden);
-        sync();
-        document.addEventListener("visibilitychange", sync);
-        return () => document.removeEventListener("visibilitychange", sync);
-    }, []);
-
-    // Pause the persistent fixed canvas once the hero scrolls out of view —
-    // it otherwise renders + runs the bloom pass for the entire page scroll.
-    const [heroVisible, setHeroVisible] = useState(true);
-    useEffect(() => {
-        if (reducedMotion) return; // reduced path renders one frame, nothing to pause
-        const el = document.getElementById("home");
-        if (!el || !("IntersectionObserver" in window)) return;
-        const io = new IntersectionObserver(
-            ([entry]) => setHeroVisible(entry.isIntersecting),
-            // keep rendering a little past the hero edge, then stop
-            { rootMargin: "200px 0px 200px 0px", threshold: 0 },
-        );
-        io.observe(el);
-        return () => io.disconnect();
-    }, [reducedMotion]);
-
     const bloomRef = useRef<BloomLike | null>(null);
     const bloomTarget = lowPower ? 0.9 : 1.05;
-
-    // Low-power (mobile / mid-tier): demand-driven loop throttled to 30fps.
-    // Full-power: the standard always-on loop. Hidden tab: stop entirely.
-    // reduced-motion: one frame then idle. Otherwise: never when hidden or
-    // scrolled past the hero; demand+throttle on low-power; always on desktop.
-    const frameloop: "never" | "demand" | "always" = reducedMotion
-        ? "demand"
-        : hidden || !heroVisible
-          ? "never"
-          : lowPower
-            ? "demand"
-            : "always";
+    // Full-power ~60fps; low-power ~30fps. The loop is demand-driven and paused
+    // when offscreen, so even "60" only runs while the holo is actually visible.
+    const fps = lowPower ? 30 : 60;
 
     return (
-        // Fade the canvas in on mount via pure CSS (.holo-canvas-fade) — driving
-        // this with React state from <Canvas onCreated> would update state inside
-        // the R3F commit, which crashes React 19's dev reconciler (it tries to
-        // JSON.stringify the circular Three.js scene graph).
+        // Fade the canvas in on mount via pure CSS (.holo-canvas-fade) — masks the
+        // first-frame shader-compile hitch without a React state update inside the
+        // R3F commit (which would crash React 19's dev reconciler).
         <div className="absolute inset-0 holo-canvas-fade">
             <Canvas
                 gl={{
@@ -131,7 +127,9 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
                     toneMappingExposure: 0.95,
                 }}
                 dpr={[1, 1.5]}
-                frameloop={frameloop}
+                // Constant after mount — loop control is imperative (LoopDriver) so
+                // the Canvas subtree never re-renders (see LoopDriver note above).
+                frameloop="demand"
                 camera={{ position: [0, 0, 5], fov: 45 }}
             >
                 <Suspense fallback={null}>
@@ -141,24 +139,16 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
 
                     <HoloLattice lowPower={lowPower} reducedMotion={reducedMotion} />
 
-                    {/* Mobile / low-power: throttle the loop to ~30fps (half the
-                        render work). Only while visible — unmounts when hidden. */}
-                    {lowPower && !hidden && <FrameThrottle fps={30} />}
+                    {/* Demand-loop driver: invalidates at the target fps while the
+                        holo is visible; pauses when hidden / scrolled past; renders
+                        one frame then idles under reduced motion. */}
+                    <LoopDriver fps={fps} reducedMotion={reducedMotion} />
 
                     {/* Bloom is what makes the Fresnel rim + wireframe read as a
-                        glowing hologram. The raw shader output is a ~1px additive
-                        rim + a 0.16-opacity wireframe over near-black — on its own
-                        that's imperceptible on a phone in ambient light, which is
-                        why the holo looked "missing" on mobile.
-
-                        So we ALWAYS run bloom now, but on low-power devices at a
-                        cheaper budget: half-resolution buffer + fewer mip levels +
-                        a slightly smaller intensity. A mipmap bloom at 0.5x res is
-                        well within a mid-tier mobile GPU's budget (and trivial on a
-                        flagship), while the in-shader low-power boost in HoloLattice
-                        means the holo still reads even if a given device silently
-                        fails to create the post-pass. Full-power keeps the original
-                        look exactly. */}
+                        glowing hologram. On low-power devices it runs at a cheaper
+                        budget: half-resolution buffer + fewer mip levels + a
+                        slightly smaller intensity. Its intensity ramps from 0 during
+                        the boot (BloomBoot) so the holo "powers on". */}
                     <EffectComposer>
                         {lowPower ? (
                             <Bloom
@@ -183,10 +173,9 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
                         )}
                     </EffectComposer>
 
-                    {/* Boot the bloom up (skipped under reduced motion). */}
+                    {/* Boot the bloom up (skipped under reduced motion, which seeds
+                        the resting intensity statically above). */}
                     {!reducedMotion && <BloomBoot bloomRef={bloomRef} target={bloomTarget} />}
-                    {/* Reduced motion: force a single rendered frame. */}
-                    {reducedMotion && <RenderOnce />}
                 </Suspense>
             </Canvas>
         </div>
