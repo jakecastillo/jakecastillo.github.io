@@ -4,7 +4,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { motion } from "framer-motion";
 import HoloLattice from "./canvas/HoloLattice";
 import { damp } from "./canvas/anim";
 
@@ -101,7 +100,6 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
     }, [reducedMotion]);
 
     const bloomRef = useRef<BloomLike | null>(null);
-    const [created, setCreated] = useState(false);
     const bloomTarget = lowPower ? 0.9 : 1.05;
 
     // Low-power (mobile / mid-tier): demand-driven loop throttled to 30fps.
@@ -117,14 +115,12 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
             : "always";
 
     return (
-        <motion.div
-            className="absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: created ? 1 : 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
+        // Fade the canvas in on mount via pure CSS (.holo-canvas-fade) — driving
+        // this with React state from <Canvas onCreated> would update state inside
+        // the R3F commit, which crashes React 19's dev reconciler (it tries to
+        // JSON.stringify the circular Three.js scene graph).
+        <div className="absolute inset-0 holo-canvas-fade">
             <Canvas
-                onCreated={() => setCreated(true)}
                 gl={{
                     antialias: true,
                     alpha: true,
@@ -193,6 +189,6 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
                     {reducedMotion && <RenderOnce />}
                 </Suspense>
             </Canvas>
-        </motion.div>
+        </div>
     );
 }

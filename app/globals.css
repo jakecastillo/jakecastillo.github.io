@@ -369,6 +369,15 @@ html.lenis, html.lenis body { height: auto; }
   75% { transform: translate3d(-7%, 7%, 0) scale(0.95); }
 }
 
+/* Holo canvas fade-in on mount — masks the first-frame shader-compile hitch.
+   Pure CSS (runs on mount) so no React state updates inside the R3F commit
+   (an onCreated->setState fade crashes React 19's dev reconciler). */
+.holo-canvas-fade { animation: holo-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes holo-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ----------------------------------------------------------------------- */
 /*           prefers-reduced-motion — designed calm fallback               */
 /*   Kill looping keyframe animations + transform motion, but PRESERVE     */
