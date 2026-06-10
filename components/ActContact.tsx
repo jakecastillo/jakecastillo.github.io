@@ -165,7 +165,7 @@ export default function ActContact() {
                                                     className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
                                                 />
                                                 <span className="flex min-w-0 flex-col">
-                                                    <span className="truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
+                                                    <span className="link-underline-onhover truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
                                                         {link.label}
                                                     </span>
                                                     <span className="truncate font-mono text-xs tracking-wide text-subtle-foreground">

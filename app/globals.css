@@ -242,6 +242,53 @@ h1, h2, h3 {
   color: transparent;
 }
 
+/* Affordance underline for text links — 1px violet hairline that wipes in from
+   the leading edge. transform-only (compositor-cheap); the global reduced-motion
+   transition cap turns it into a near-instant state swap. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* Group-driven variant: underline reveals when the ANCESTOR .group is hovered
+   (for links where the hover target is a wrapping anchor, not the text span). */
+.link-underline-onhover {
+  position: relative;
+}
+.link-underline-onhover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .link-underline-onhover::after,
+.group:focus-visible .link-underline-onhover::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
 /* ----------------------------------------------------------------------- */
 /*                          Lenis (smooth scroll)                          */
 /* ----------------------------------------------------------------------- */
