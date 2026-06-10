@@ -25,9 +25,11 @@ type BloomLike = { intensity: number };
 /**
  * Single source of render-loop control. The <Canvas> runs frameloop="demand", so
  * the expensive GL + bloom render only happens when we call invalidate(). This
- * one rAF timestamp-gates invalidate() at the target fps, and PAUSES it entirely
- * when the tab is hidden or the hero (and thus the holo) is scrolled out of view
- * — letting the cheap CSS aurora carry the lower page (the biggest battery win).
+ * one rAF timestamp-gates invalidate() at `fps` while the holo is in view, and
+ * THROTTLES to the cheaper `idleFps` once the hero is scrolled past — the holo
+ * keeps rotating everywhere (its motion is slow enough to look identical at the
+ * lower rate), just rendering less often to ease battery on the long lower page.
+ * Only a hidden tab pauses it entirely (nothing to render offscreen).
  *
  * Crucially, ALL of this state lives in refs + listeners, never React state, so
  * this component and the <Canvas> above it never re-render. Re-rendering the
@@ -35,7 +37,7 @@ type BloomLike = { intensity: number };
  * JSON.stringify the circular Three.js scene graph ("Converting circular
  * structure to JSON"). Imperative loop control keeps the Canvas props static.
  */
-function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolean }) {
+function LoopDriver({ fps, idleFps, reducedMotion }: { fps: number; idleFps: number; reducedMotion: boolean }) {
     const invalidate = useThree((s) => s.invalidate);
 
     useEffect(() => {
@@ -47,10 +49,6 @@ function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolea
 
         let raf = 0;
         let last = 0;
-        // Sub-frame tolerance: a bare 1000/fps gate skips any native rAF tick
-        // arriving fractionally early, dropping ~1/3 of 60Hz frames. The 4ms
-        // slack lets each on-time frame through (true 60/30fps) without doubling.
-        const interval = 1000 / fps - 4;
         const visible = { current: typeof document !== "undefined" ? !document.hidden : true };
         const heroOnScreen = { current: true };
 
@@ -59,14 +57,14 @@ function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolea
         };
         document.addEventListener("visibilitychange", onVisibility);
 
-        // Pause once the hero (#home) is scrolled well out of view.
+        // Throttle (not pause) once the hero (#home) is scrolled well out of view,
+        // so the holo keeps rotating everywhere — just rendered less often.
         let io: IntersectionObserver | null = null;
         const hero = document.getElementById("home");
         if (hero && "IntersectionObserver" in window) {
             io = new IntersectionObserver(
                 ([entry]) => {
                     heroOnScreen.current = entry.isIntersecting;
-                    if (entry.isIntersecting) invalidate(); // wake immediately on return
                 },
                 { rootMargin: "200px 0px 200px 0px", threshold: 0 },
             );
@@ -75,7 +73,11 @@ function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolea
 
         const tick = (t: number) => {
             raf = requestAnimationFrame(tick);
-            if (!visible.current || !heroOnScreen.current) return; // paused → skip invalidate (no GPU render)
+            if (!visible.current) return; // tab hidden → nothing to render offscreen
+            // Sub-frame tolerance (the -4): a bare 1000/rate gate skips native rAF
+            // ticks arriving fractionally early, dropping ~1/3 of frames. Use the
+            // lower idle rate once the holo is scrolled past the hero.
+            const interval = 1000 / (heroOnScreen.current ? fps : idleFps) - 4;
             if (t - last < interval) return;
             last = t;
             invalidate();
@@ -87,7 +89,7 @@ function LoopDriver({ fps, reducedMotion }: { fps: number; reducedMotion: boolea
             document.removeEventListener("visibilitychange", onVisibility);
             io?.disconnect();
         };
-    }, [invalidate, fps, reducedMotion]);
+    }, [invalidate, fps, idleFps, reducedMotion]);
 
     return null;
 }
@@ -110,9 +112,10 @@ function BloomBoot({ bloomRef, target }: { bloomRef: React.RefObject<BloomLike |
 export default function Scene({ lowPower = false, reducedMotion = false }: SceneProps) {
     const bloomRef = useRef<BloomLike | null>(null);
     const bloomTarget = lowPower ? 0.9 : 1.05;
-    // Full-power ~60fps; low-power ~30fps. The loop is demand-driven and paused
-    // when offscreen, so even "60" only runs while the holo is actually visible.
+    // Render rate while the holo is in view (hero) vs. throttled once scrolled
+    // past it — the holo keeps rotating throughout; only the cadence drops.
     const fps = lowPower ? 30 : 60;
+    const idleFps = lowPower ? 20 : 30;
 
     return (
         // Fade the canvas in on mount via pure CSS (.holo-canvas-fade) — masks the
@@ -142,10 +145,10 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
 
                     <HoloLattice lowPower={lowPower} reducedMotion={reducedMotion} />
 
-                    {/* Demand-loop driver: invalidates at the target fps while the
-                        holo is visible; pauses when hidden / scrolled past; renders
-                        one frame then idles under reduced motion. */}
-                    <LoopDriver fps={fps} reducedMotion={reducedMotion} />
+                    {/* Demand-loop driver: invalidates at the target fps in the
+                        hero, throttles (keeps rotating) when scrolled past, pauses
+                        on a hidden tab, renders one frame under reduced motion. */}
+                    <LoopDriver fps={fps} idleFps={idleFps} reducedMotion={reducedMotion} />
 
                     {/* Bloom is what makes the Fresnel rim + wireframe read as a
                         glowing hologram. On low-power devices it runs at a cheaper
