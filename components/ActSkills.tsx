@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import {
     BrainCircuit,
     Boxes,
@@ -12,7 +12,7 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import Container from "@/components/Container";
-import { scaleIn } from "@/components/motion";
+import { scaleIn, clipReveal, fadeUp } from "@/components/motion";
 import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -46,6 +46,8 @@ const groups: { title: string; icon: LucideIcon; skills: string[] }[] = [
 ];
 
 export default function ActSkills() {
+    const reducedMotion = useReducedMotion();
+    const headingVariants = reducedMotion ? fadeUp : clipReveal;
     return (
         <section className="section-y relative border-t border-border overflow-hidden">
             {/* Background wash + single restrained violet glow blob (decorative). */}
@@ -70,11 +72,17 @@ export default function ActSkills() {
                     <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
                         04 / stack
                     </p>
-                    <h2 className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]">
+                    <motion.h2
+                        variants={headingVariants}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.3 }}
+                        className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
+                    >
                         THE
                         <br />
                         <span className="text-primary">STACK</span>
-                    </h2>
+                    </motion.h2>
                 </motion.header>
 
                 {/* Even responsive matrix — every group an equal cell so nothing

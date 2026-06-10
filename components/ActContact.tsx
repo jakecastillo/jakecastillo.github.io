@@ -1,9 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
-import { scaleIn, viewportOnce } from "@/components/motion";
+import { scaleIn, viewportOnce, clipReveal, fadeUp } from "@/components/motion";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
 
@@ -30,6 +30,9 @@ export default function ActContact() {
         "DEVSECOPS",
         resumeData.location.toUpperCase(),
     ];
+
+    const reducedMotion = useReducedMotion();
+    const headingVariants = reducedMotion ? fadeUp : clipReveal;
 
     return (
         <section
@@ -68,7 +71,10 @@ export default function ActContact() {
                         </motion.div>
 
                         <motion.h2
-                            {...reveal(0.06)}
+                            variants={headingVariants}
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, amount: 0.3 }}
                             className="text-7xl font-bold text-foreground tracking-tight [overflow-wrap:anywhere]"
                         >
                             Let&rsquo;s build

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { clipReveal, fadeUp } from "@/components/motion";
 import { resumeData } from "@/data/resume";
 import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
 import ArchitectureSchematic from "@/components/ArchitectureSchematic";
@@ -40,6 +41,8 @@ const processSteps: ProcessStep[] = [
 ];
 
 export default function ActPhilosophy() {
+    const reducedMotion = useReducedMotion();
+    const headingVariants = reducedMotion ? fadeUp : clipReveal;
     return (
         <section className="section-y container-page">
             {/* Belief */}
@@ -50,13 +53,19 @@ export default function ActPhilosophy() {
                 <p className="mb-5 font-mono text-xs uppercase tracking-[0.35em] text-primary">
                     02 / approach
                 </p>
-                <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
+                <motion.h2
+                    variants={headingVariants}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, amount: 0.3 }}
+                    className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]"
+                >
                     ENGINEER THE
                     <br />
                     <span className="text-primary text-glow">
                         SYSTEMS WE RELY ON.
                     </span>
-                </h2>
+                </motion.h2>
                 <div className="mt-8 mb-7 h-px w-12 bg-border-strong" />
                 <p className="measure text-lg leading-relaxed text-muted-foreground">
                     {resumeData.summary}
