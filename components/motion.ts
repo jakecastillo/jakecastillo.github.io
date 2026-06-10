@@ -20,6 +20,19 @@ export const scaleIn: Variants = {
   show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: EASE } },
 };
 
+// Signature "laser wipe" — a left-to-right clip reveal that rhymes with the
+// holo boot's scanline. NOTE: MotionConfig reducedMotion="user" does NOT
+// auto-drop clipPath, so consumers MUST branch to fadeUp under reduced motion
+// (see ActPhilosophy/ActSkills/ActContact). Use on section headings only.
+export const clipReveal: Variants = {
+  hidden: { clipPath: "inset(0 100% 0 0)", opacity: 0 },
+  show: {
+    clipPath: "inset(0 0 0 0)",
+    opacity: 1,
+    transition: { duration: 0.5, ease: EASE },
+  },
+};
+
 export const staggerContainer: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.08, delayChildren: 0.04 } },
