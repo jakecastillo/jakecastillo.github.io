@@ -1,24 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-    motion,
-    AnimatePresence,
-    useScroll,
-    useSpring,
-} from "framer-motion";
+import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { stageSections } from "@/data/sections";
 
 export default function StageManager() {
     const [activeId, setActiveId] = useState(stageSections[0].id);
 
-    // Tie the vertical marker to overall scroll progress (no perpetual loop).
+    // Drive the marker straight from scrollYProgress — Lenis already eases the
+    // scroll, so an extra useSpring would double-smooth into a floaty rail.
     const { scrollYProgress } = useScroll();
-    const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 120,
-        damping: 30,
-        restDelta: 0.001,
-    });
 
     useEffect(() => {
         // Track per-section visibility ratios and surface the most-visible one.
@@ -103,7 +94,7 @@ export default function StageManager() {
                     <motion.span
                         aria-hidden="true"
                         className="absolute top-0 left-0 w-full bg-primary origin-top"
-                        style={{ height: "100%", scaleY: smoothProgress }}
+                        style={{ height: "100%", scaleY: scrollYProgress }}
                     />
                 </div>
             </div>
