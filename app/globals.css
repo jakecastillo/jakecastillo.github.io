@@ -289,6 +289,33 @@ h1, h2, h3 {
   transform-origin: left center;
 }
 
+/* One-shot specular sweep for the single filled violet CTA. Hover-triggered,
+   never looping. Low-alpha so it reads as a sheen, not a flash. Gated to
+   hover-capable pointers; the global reduced-motion cap shortens it harmlessly. */
+.cta-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.cta-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+}
+@media (hover: hover) {
+  .cta-sheen:hover::before {
+    transform: translateX(120%);
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
 /* ----------------------------------------------------------------------- */
 /*                          Lenis (smooth scroll)                          */
 /* ----------------------------------------------------------------------- */
