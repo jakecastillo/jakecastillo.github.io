@@ -30,33 +30,41 @@ function detectLowPower(): boolean {
 
 export default function BackgroundScene() {
     const [show, setShow] = useState(false);
+    const [reduced, setReduced] = useState(false);
     // Computed once via lazy init (read outside render-time mutation). Safe on
     // the server, where it resolves to the static `false` fallback.
     const [lowPower] = useState(detectLowPower);
 
     useEffect(() => {
-        // 1) Honour reduced-motion: keep only the static backdrop.
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-        // 2) Low-end gate. Mobile / touch DOES get the holo now (in a cheaper
-        //    low-res mode — see detectLowPower → Scene), so we only skip WebGL
-        //    for data-saver and genuinely memory/CPU-constrained devices where
-        //    it would jank or drain battery.
+        // Skip WebGL entirely only for genuinely constrained devices (data-saver
+        // / sub-4GB / sub-4-core): they keep the static gradient + aurora.
         const nav = navigator as HardwareNavigator;
         const lowMemory = (nav.deviceMemory ?? 8) < 4;
         const lowCores = (nav.hardwareConcurrency ?? 8) < 4;
         const saveData = nav.connection?.saveData === true;
-
         if (lowMemory || lowCores || saveData) return;
+
+        const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (prefersReduced) {
+            // Capable hardware + reduced motion: still mount the holo as a single
+            // frozen LIT frame (brand identity intact) — no boot, no loop. Defer
+            // the state updates out of the effect body (no synchronous setState).
+            queueMicrotask(() => {
+                setReduced(true);
+                setShow(true);
+            });
+            return;
+        }
 
         const w = window as unknown as {
             requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
         };
         const start = () => setShow(true);
-        // Mount soon (idle, but within 400ms) so the holo doesn't visibly lag the
-        // page; the always-on aurora covers the brief gap before it appears.
-        if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(start, { timeout: 400 });
-        else setTimeout(start, 200);
+        // Mount promptly (≤280ms) so the boot underlays the hero cascade rather
+        // than arriving after it; the always-on aurora covers the brief gap.
+        if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(start, { timeout: 280 });
+        else setTimeout(start, 180);
     }, []);
 
     return (
@@ -70,7 +78,7 @@ export default function BackgroundScene() {
                 <div className="aurora-blob aurora-blob--cyan aurora-2" />
                 <div className="aurora-blob aurora-blob--violet aurora-3" />
             </div>
-            {show && <Scene lowPower={lowPower} />}
+            {show && <Scene lowPower={lowPower} reducedMotion={reduced} />}
         </div>
     );
 }
