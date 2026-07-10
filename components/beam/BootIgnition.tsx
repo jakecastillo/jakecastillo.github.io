@@ -50,7 +50,13 @@ export default function BootIgnition() {
     const [leaving, setLeaving] = useState(false);
 
     useEffect(() => {
-        if (!decideShouldPlay()) {
+        const play = decideShouldPlay();
+        // The pre-hydration cover has bridged paint→hydration; now that we know
+        // whether the animated overlay plays, drop it. On the play branch the
+        // z-100 overlay (same background) takes over seamlessly; on the skip
+        // branch the real page shows through.
+        document.getElementById("boot-cover")?.remove();
+        if (!play) {
             setBootDone();
             return;
         }

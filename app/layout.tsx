@@ -136,6 +136,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden grain vignette`}
       >
+        {/* Pre-hydration boot cover — opaque background from first paint so the
+            SSR hero never flashes before BootIgnition mounts on first visits.
+            The inline script HIDES it (display:none) for repeat visits and
+            reduced-motion; it must NOT remove the node, or React would hydrate
+            the body and find this server-rendered child gone → hydration
+            mismatch (React #418). BootIgnition removes the node for real after
+            it mounts. The script does NOT write the seen flag (decideShouldPlay
+            in BootIgnition stays the single writer). suppressHydrationWarning
+            silences the dev warning for the script-added inline style. */}
+        <div id="boot-cover" aria-hidden="true" suppressHydrationWarning />
+        <noscript>
+          <style>{`#boot-cover{display:none}`}</style>
+        </noscript>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var s=false;try{s=sessionStorage.getItem('beam:boot')==='1'}catch(e){s=true}var r=matchMedia('(prefers-reduced-motion: reduce)').matches;if(s||r){document.getElementById('boot-cover')?.style.setProperty('display','none')}}catch(e){document.getElementById('boot-cover')?.style.setProperty('display','none')}",
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

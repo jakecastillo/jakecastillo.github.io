@@ -422,6 +422,17 @@ html.lenis, html.lenis body { height: auto; }
 }
 
 /* ---- THE BEAM: boot ignition overlay ---------------------------------- */
+/* Pre-hydration static cover: paints the same background color from the very
+   first paint on genuine first visits, bridging paint→hydration so the SSR
+   hero never flashes before BootIgnition mounts. z-99 sits BELOW the animated
+   overlay (z-100) so BootIgnition paints over it seamlessly. Removed by an
+   inline script on repeat/reduced-motion, and by BootIgnition once mounted. */
+#boot-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: var(--background);
+}
 .boot-ignition {
   position: fixed;
   inset: 0;
