@@ -6,6 +6,39 @@ import { useBeamStore } from "@/hooks/useBeamStore";
 const SEEN_KEY = "beam:boot";
 
 /**
+ * Play/skip decision, captured once per page load BEFORE the seen flag is
+ * written. React StrictMode (dev) runs effect → cleanup → effect; deciding
+ * from storage inside the effect made invocation 2 read the flag invocation 1
+ * just wrote and early-return WITHOUT re-arming the timer/listeners cleanup
+ * had torn down — a frozen, unskippable overlay. Both invocations must agree
+ * on the same pre-write value so the second one re-arms identically.
+ */
+let shouldPlay: boolean | null = null;
+
+function decideShouldPlay(): boolean {
+    if (shouldPlay !== null) return shouldPlay;
+    const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+    ).matches;
+    let seen = false;
+    try {
+        seen = sessionStorage.getItem(SEEN_KEY) === "1";
+    } catch {
+        /* storage blocked → treat as seen; never trap the user */
+        seen = true;
+    }
+    shouldPlay = !reduced && !seen;
+    if (shouldPlay) {
+        try {
+            sessionStorage.setItem(SEEN_KEY, "1");
+        } catch {
+            /* ignore */
+        }
+    }
+    return shouldPlay;
+}
+
+/**
  * First-visit ignition overlay (≤1.5s, skippable, once per session).
  * Pure CSS keyframes — no motion lib on the critical path. The overlay is
  * rendered only when it will actually play, so LCP content underneath paints
@@ -17,24 +50,9 @@ export default function BootIgnition() {
     const [leaving, setLeaving] = useState(false);
 
     useEffect(() => {
-        const reduced = window.matchMedia(
-            "(prefers-reduced-motion: reduce)",
-        ).matches;
-        let seen = false;
-        try {
-            seen = sessionStorage.getItem(SEEN_KEY) === "1";
-        } catch {
-            /* storage blocked → treat as seen; never trap the user */
-            seen = true;
-        }
-        if (reduced || seen) {
+        if (!decideShouldPlay()) {
             setBootDone();
             return;
-        }
-        try {
-            sessionStorage.setItem(SEEN_KEY, "1");
-        } catch {
-            /* ignore */
         }
         // Whether the overlay plays depends on sessionStorage + matchMedia,
         // which are unavailable during SSR/first render — so gating it in an
@@ -42,11 +60,13 @@ export default function BootIgnition() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setPlay(true);
 
+        let fadeTimer: number | undefined;
         const finish = () => {
+            shouldPlay = false; // a real remount must not replay the boot
             setLeaving(true);
             setBootDone();
             // Let the fade-out class play, then unmount.
-            window.setTimeout(() => setPlay(false), 400);
+            fadeTimer = window.setTimeout(() => setPlay(false), 400);
         };
         const timer = window.setTimeout(finish, 1000); // flare+line = 1.0s, fade = 0.4s
         const skip = () => {
@@ -57,6 +77,7 @@ export default function BootIgnition() {
         window.addEventListener("keydown", skip, { once: true });
         return () => {
             window.clearTimeout(timer);
+            window.clearTimeout(fadeTimer);
             window.removeEventListener("pointerdown", skip);
             window.removeEventListener("keydown", skip);
         };
