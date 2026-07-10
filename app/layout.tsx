@@ -7,6 +7,7 @@ import BackgroundScene from "@/components/BackgroundScene";
 import Footer from "@/components/Footer";
 import MotionProvider from "@/components/MotionProvider";
 import GsapProvider from "@/components/beam/GsapProvider";
+import BootIgnition from "@/components/beam/BootIgnition";
 import TouchActive from "@/components/TouchActive";
 import { resumeData } from "@/data/resume";
 
@@ -176,6 +177,7 @@ export default function RootLayout({
         </header>
 
         <MotionProvider>
+          <BootIgnition />
           <SmoothScroll />
           <GsapProvider />
           <TouchActive />
