@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Container from "@/components/Container";
 import EtchHeading from "@/components/beam/EtchHeading";
+import PrismBands from "@/components/beam/PrismBands";
 import { scaleIn } from "@/components/motion";
 import { TechIcon } from "@/components/TechIcon";
 import { resumeData } from "@/data/resume";
@@ -84,6 +85,8 @@ export default function ActSkills() {
                     </EtchHeading>
                 </motion.header>
 
+                <PrismBands count={groups.length} />
+
                 {/* Even responsive matrix — every group an equal cell so nothing
                     crams into a single rail. Seated on a readable panel so the
                     pills stay legible over the living background. */}
@@ -91,7 +94,7 @@ export default function ActSkills() {
                     variants={groupContainer}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.15 }}
+                    viewport={{ once: true, amount: 0.3 }}
                     className="panel grid grid-cols-1 items-start gap-x-10 gap-y-12 p-8 sm:grid-cols-2 sm:p-10 lg:grid-cols-3 lg:p-12"
                 >
                     {groups.map((group) => (
