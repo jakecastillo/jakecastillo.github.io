@@ -76,15 +76,14 @@ export default function PrismBands({ count = 8 }: { count?: number }) {
         >
             {/* Incoming beam */}
             <path d="M 200 0 L 200 52" stroke="#8b5cf6" strokeWidth="1.5" />
-            {/* Prism vertex */}
-            <circle cx="200" cy="56" r="3" fill="#a78bfa">
-                <animate
-                    attributeName="opacity"
-                    values="0.6;1;0.6"
-                    dur="2.4s"
-                    repeatCount="indefinite"
-                />
-            </circle>
+            {/* Prism vertex — CSS pulse (not SMIL) so reduced-motion can kill it */}
+            <circle
+                cx="200"
+                cy="56"
+                r="3"
+                fill="#a78bfa"
+                className="prism-vertex"
+            />
             {/* Fanned bands */}
             {bands.map((b, i) => (
                 <path

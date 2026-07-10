@@ -459,3 +459,19 @@ html.lenis, html.lenis body { height: auto; }
 }
 @keyframes beam-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes beam-line-rise { from { top: 50%; opacity: 1; } to { top: -4%; opacity: 0; } }
+
+/* ---- THE BEAM: prism vertex pulse -------------------------------------- */
+/* CSS-driven (not SMIL) so prefers-reduced-motion actually gates it. */
+.prism-vertex {
+  animation: prism-vertex-pulse 2.4s ease-in-out infinite;
+}
+@keyframes prism-vertex-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prism-vertex {
+    animation: none;
+    opacity: 1; /* lit end-state: vertex reads as struck, just not pulsing */
+  }
+}
