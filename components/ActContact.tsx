@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
+import Beacon from "@/components/beam/Beacon";
 import EtchHeading from "@/components/beam/EtchHeading";
 import { scaleIn, viewportOnce } from "@/components/motion";
 import { contactLinks } from "@/data/links";
@@ -96,8 +97,10 @@ export default function ActContact() {
                         initial="hidden"
                         whileInView="show"
                         viewport={viewportOnce}
-                        className="rounded-xl border border-border-subtle bg-surface/80 backdrop-blur-sm p-8"
+                        className="relative rounded-xl border border-border-subtle bg-surface/80 backdrop-blur-sm p-8"
                     >
+                        <Beacon />
+
                         {/* PRIMARY CTA — dominant, filled violet */}
                         {primary ? (
                             <a
