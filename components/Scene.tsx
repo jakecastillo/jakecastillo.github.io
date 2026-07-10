@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import HoloLattice from "./canvas/HoloLattice";
+import BeamRibbon from "./canvas/BeamRibbon";
 import { damp } from "./canvas/anim";
 
 interface SceneProps {
@@ -144,6 +145,11 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
                     <fog attach="fog" args={["#070611", 5.5, 17]} />
 
                     <HoloLattice lowPower={lowPower} reducedMotion={reducedMotion} />
+
+                    {/* The Beam: a scroll-drawn ribbon of light threading the
+                        lattice — its drawn length IS document scroll progress.
+                        Props constant after mount (no Canvas re-render). */}
+                    <BeamRibbon lowPower={lowPower} reducedMotion={reducedMotion} />
 
                     {/* Demand-loop driver: invalidates at the target fps in the
                         hero, throttles (keeps rotating) when scrolled past, pauses
