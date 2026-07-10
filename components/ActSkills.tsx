@@ -13,6 +13,7 @@ import {
     type LucideIcon,
 } from "lucide-react";
 import Container from "@/components/Container";
+import EtchHeading from "@/components/beam/EtchHeading";
 import { scaleIn } from "@/components/motion";
 import { TechIcon } from "@/components/TechIcon";
 import { resumeData } from "@/data/resume";
@@ -73,11 +74,14 @@ export default function ActSkills() {
                     <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
                         04 / stack
                     </p>
-                    <h2 className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]">
+                    <EtchHeading
+                        as="h2"
+                        className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
+                    >
                         THE
                         <br />
                         <span className="text-primary">STACK</span>
-                    </h2>
+                    </EtchHeading>
                 </motion.header>
 
                 {/* Even responsive matrix — every group an equal cell so nothing

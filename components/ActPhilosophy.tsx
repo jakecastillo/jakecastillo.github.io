@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { resumeData } from "@/data/resume";
 import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
 import ArchitectureSchematic from "@/components/ArchitectureSchematic";
+import EtchHeading from "@/components/beam/EtchHeading";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -69,10 +70,13 @@ export default function ActPhilosophy() {
                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
                         How I Build
                     </p>
-                    <p className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                    <EtchHeading
+                        as="p"
+                        className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+                    >
                         Build Where the Risk Lives
                         <span className="text-primary">.</span>
-                    </p>
+                    </EtchHeading>
                 </motion.header>
 
                 <ProcessSpine steps={processSteps} />

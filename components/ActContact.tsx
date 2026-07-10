@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
+import EtchHeading from "@/components/beam/EtchHeading";
 import { scaleIn, viewportOnce } from "@/components/motion";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
@@ -67,15 +68,15 @@ export default function ActContact() {
                             <span>Available for new work</span>
                         </motion.div>
 
-                        <motion.h2
-                            {...reveal(0.06)}
+                        <EtchHeading
+                            as="h2"
                             className="text-7xl font-bold text-foreground tracking-tight [overflow-wrap:anywhere]"
                         >
                             Let&rsquo;s build
                             <br />
                             something good
                             <span className="animate-pulse text-primary">.</span>
-                        </motion.h2>
+                        </EtchHeading>
 
                         <motion.p
                             {...reveal(0.12)}
