@@ -7,11 +7,28 @@ import {
     useReducedMotion,
     useScroll,
     useTransform,
+    type Variants,
 } from "framer-motion";
 import { resumeData, type Job } from "@/data/resume";
 import { fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 import { ArrowRight } from "lucide-react";
+
+// Orchestrated reveal for the static list. `show` is the normal staggered
+// entrance; `instant` is the arrival-snap / reduced-motion path — useReveal's
+// orchestrate mode animates to the `instant` label, and BOTH levels must
+// resolve it with zero-duration transitions, otherwise the children would
+// still play their 0.45s variant fades (MotionProvider's reducedMotion="user"
+// strips transforms, NOT opacity).
+const listVariants: Variants = {
+    ...staggerContainer,
+    instant: { transition: { staggerChildren: 0, delayChildren: 0 } },
+};
+
+const itemVariants: Variants = {
+    ...fadeRight,
+    instant: { opacity: 1, x: 0, transition: { duration: 0 } },
+};
 
 // Run the upgrade before paint on the client so there's no static→immersive
 // flash; fall back to useEffect on the server (no-op) to avoid the SSR warning.
@@ -67,7 +84,7 @@ function StaticTimeline({ total }: { total: number }) {
                 {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
             </p>
             <motion.ol
-                variants={staggerContainer}
+                variants={listVariants}
                 {...list}
                 className="relative flex flex-col gap-16 pl-8 sm:pl-10"
             >
@@ -81,7 +98,7 @@ function StaticTimeline({ total }: { total: number }) {
                     className="pointer-events-none absolute left-0 top-0 bottom-0 w-px origin-top bg-primary glow-primary"
                 />
                 {resumeData.experience.map((job, index) => (
-                    <motion.li key={index} variants={fadeRight}>
+                    <motion.li key={index} variants={itemVariants}>
                         <TimelineNode job={job} index={index} total={total} variant="vertical" />
                     </motion.li>
                 ))}

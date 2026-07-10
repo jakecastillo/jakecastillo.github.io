@@ -31,7 +31,7 @@ type RevealResult<T> =
     | {
           ref: Attach<T>;
           initial: false;
-          animate: TargetAndTransition | "show";
+          animate: TargetAndTransition | "instant";
           transition: { duration: 0 };
       }
     | {
@@ -67,8 +67,13 @@ type RevealResult<T> =
  * media state in some engines and left reduced users mid-fade.
  *
  * `orchestrate: true` — for a stagger PARENT that drives child variants by
- * label: instant mode animates to the `show` label so children still inherit
- * it (a plain inline target would not propagate).
+ * label (a plain inline target would not propagate to children). Instant mode
+ * animates to a dedicated `instant` label, NOT `show`: resolving `show` would
+ * still run the container's staggerChildren and each child's own variant
+ * transition (0.45s opacity fades that MotionProvider does not strip for
+ * reduced-motion users). The consumer must define an `instant` variant on the
+ * container (staggerChildren/delayChildren 0) AND on each child (final target,
+ * duration 0) — see ActExperience's StaticTimeline.
  */
 export function useReveal<T extends HTMLElement = HTMLDivElement>(
     { orchestrate = false }: { orchestrate?: boolean } = {},
@@ -122,7 +127,7 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(
         return {
             ref,
             initial: false,
-            animate: orchestrate ? "show" : INSTANT_LEAF,
+            animate: orchestrate ? "instant" : INSTANT_LEAF,
             transition: { duration: 0 },
         };
     }
