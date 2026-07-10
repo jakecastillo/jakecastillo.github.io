@@ -170,7 +170,7 @@ export default function RootLayout({
           <a
             href="#home"
             aria-label="Jake Castillo — home"
-            className="flex items-center gap-2 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+            className="-m-2.5 flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full p-2.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
           >
             <svg width="26" height="26" viewBox="0 0 100 100" aria-hidden="true">
               <defs>

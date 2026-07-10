@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-    AnimatePresence,
     motion,
     useMotionValue,
     useReducedMotion,
@@ -167,7 +166,7 @@ function MagneticButton({
                 than it arrives. */}
             <span
                 role="tooltip"
-                className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-foreground opacity-0 translate-y-1 shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-all duration-[120ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:duration-[180ms] group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:duration-[180ms]"
+                className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-foreground opacity-0 translate-y-1 shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-all duration-[120ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:duration-[180ms] group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:duration-[180ms] coarse:hidden"
             >
                 {label}
             </span>
@@ -190,12 +189,14 @@ function MagneticButton({
                     {children}
                 </motion.span>
                 {/* Single label span = the link's accessible name. Visually hidden
-                    except on the ACTIVE item at desktop (persistent wayfinding), so
-                    the visible text always matches the accessible name (WCAG 2.5.3). */}
+                    except on the ACTIVE item, where it surfaces as the dock's
+                    leading text segment on touch (coarse pointers, which never see
+                    the hover tooltip) and on desktop (lg+). The visible text always
+                    matches the accessible name (WCAG 2.5.3). */}
                 <span
                     className={
                         isActive
-                            ? "sr-only lg:not-sr-only lg:whitespace-nowrap lg:text-sm lg:font-medium"
+                            ? "sr-only whitespace-nowrap text-sm font-medium coarse:not-sr-only lg:not-sr-only"
                             : "sr-only"
                     }
                 >
@@ -219,14 +220,6 @@ export default function Navigation() {
     const lenis = useScrollStore((state) => state.lenis);
     const enableMotion = useEnableMotion();
     const activeId = useActiveSection();
-
-    // Human-readable label for the currently-visible section. Surfaced inline
-    // on mobile so coarse-pointer users (who never see hover tooltips) always
-    // know where they are in the page.
-    const activeLabel =
-        navSections.find((section) => section.id === activeId)?.navLabel ??
-        sections.find((section) => section.id === activeId)?.navLabel ??
-        "";
 
     const handleNavClick =
         (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -253,26 +246,11 @@ export default function Navigation() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2.5 sm:bottom-[calc(2rem+env(safe-area-inset-bottom))]"
+            className="pointer-events-auto fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center sm:bottom-[calc(2rem+env(safe-area-inset-bottom))]"
         >
-            {/* Inline active-section label. Coarse-pointer / touch users never
-                see the hover tooltips, so the current section is surfaced here.
-                Hidden on fine-pointer (md+ desktop) where the icon dock +
-                tooltips already communicate location. */}
-            <AnimatePresence mode="wait">
-                <motion.span
-                    key={activeLabel}
-                    aria-hidden="true"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="rounded-full border border-border bg-surface-overlay/70 px-3 py-1 text-xs font-medium leading-none tracking-[0.06em] text-foreground shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] backdrop-blur-xl md:hidden"
-                >
-                    {activeLabel}
-                </motion.span>
-            </AnimatePresence>
-
+            {/* The current section is surfaced as the ACTIVE dock item's inline
+                label (visible on touch + desktop), so no separate chip floats
+                over page content — taps above the dock reach the content behind. */}
             <ul className="flex items-center gap-1.5 rounded-full border border-border bg-surface-overlay/70 px-3 py-2 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55),0_0_60px_-30px_rgba(139,92,246,0.25)] backdrop-blur-xl sm:gap-2 sm:px-4">
                 {navSections.map((section) => (
                     <li key={section.id}>

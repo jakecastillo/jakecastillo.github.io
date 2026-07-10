@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Pointer-capability variants — visibility keyed to whether the primary
+   pointer can hover (desktop) vs cannot (touch/coarse), NOT to viewport
+   width. `coarse:` = touch devices where hover is impossible; `fine:` =
+   hover-capable pointers. Used so the dock surfaces a persistent visible
+   label on touch (where tooltips never appear) without leaking onto desktop. */
+@custom-variant coarse (@media (hover: none));
+@custom-variant fine (@media (hover: hover));
+
 /* =========================================================================
    VOID & LASER — design system
    Near-monochrome void base + a single dominant violet accent ("laser"),

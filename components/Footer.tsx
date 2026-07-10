@@ -6,7 +6,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer className="relative z-10 border-t border-border-subtle">
-      <div className="container-page flex flex-col items-center justify-between gap-5 py-10 sm:flex-row">
+      <div className="container-page flex flex-col items-center justify-between gap-5 pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:flex-row md:pb-10">
         <p className="font-mono text-xs text-subtle-foreground">
           © {year} Jake Castillo · Built with Next.js &amp; Three.js
         </p>
