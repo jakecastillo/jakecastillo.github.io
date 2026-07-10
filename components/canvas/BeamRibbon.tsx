@@ -4,7 +4,15 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollStore } from "@/hooks/useScrollStore";
+import { useBeamStore } from "@/hooks/useBeamStore";
 import { damp } from "./anim";
+
+// Relay hold: the ribbon is the LAST leg of the boot relay (spark → line →
+// underline → ribbon). It stays dark until the boot-line→underline crossfade
+// has landed (bootDone + crossfade tail), then flares in from the head.
+// Read via getState() inside useFrame — never a hook subscription — so the
+// Canvas subtree never re-renders (React 19 constraint, see Scene.tsx).
+const REVEAL_HOLD_MS = 700;
 
 // The Beam — a scroll-drawn ribbon of light threading the 3D world. Its drawn
 // length IS document scroll progress; a hot cyan-white head leads the draw.
@@ -37,6 +45,7 @@ const vertexShader = /* glsl */ `
 
 const fragmentShader = /* glsl */ `
   uniform float uHead;      // 0..1 drawn progress (== document scroll)
+  uniform float uReveal;    // 0..1 boot-relay gate: dark until the underline handoff
   uniform float uTime;
   uniform vec3 uViolet;
   uniform vec3 uCyan;
@@ -75,7 +84,10 @@ const fragmentShader = /* glsl */ `
     // Ordered dither grain on the glow falloff — gated by the drawn mask so
     // the undrawn tube stays truly invisible (no ghost path at page top).
     a += (bayer(gl_FragCoord.xy) - 0.5) * 0.06 * clamp(drawn + head, 0.0, 1.0);
-    gl_FragColor = vec4(col * uIntensity * (1.0 + head * 2.5), clamp(a, 0.0, 1.0));
+    // Boot-relay flare-in: alpha gated by uReveal; while revealing, the head
+    // runs extra hot (the flare) and settles as uReveal reaches 1.
+    float flare = 1.0 + (1.0 - uReveal) * head * 2.0;
+    gl_FragColor = vec4(col * uIntensity * (1.0 + head * 2.5) * flare, clamp(a * uReveal, 0.0, 1.0));
   }
 `;
 
@@ -105,6 +117,7 @@ export default function BeamRibbon({
     const uniforms = useMemo(
         () => ({
             uHead: { value: reducedMotion ? 1 : 0 },
+            uReveal: { value: reducedMotion ? 1 : 0 },
             uTime: { value: 0 },
             uViolet: { value: VIOLET },
             uCyan: { value: CYAN },
@@ -118,6 +131,14 @@ export default function BeamRibbon({
         if (!m) return;
         m.uniforms.uTime.value = state.clock.getElapsedTime();
         if (reducedMotion) return; // static fully-drawn frame
+        // Boot-relay gate: hold the ribbon dark until the underline crossfade
+        // has landed (bootDone + hold), then damp uReveal up — the flare-in.
+        const { bootDone, bootDoneAt } = useBeamStore.getState();
+        const held =
+            !bootDone || performance.now() - bootDoneAt < REVEAL_HOLD_MS;
+        m.uniforms.uReveal.value = held
+            ? 0
+            : damp(m.uniforms.uReveal.value, 1, 3.5, delta);
         // Chase document scroll progress with a light damp so the head glides.
         const target = useScrollStore.getState().progress;
         m.uniforms.uHead.value = damp(

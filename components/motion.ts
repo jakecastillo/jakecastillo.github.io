@@ -26,12 +26,13 @@ export const staggerContainer: Variants = {
 };
 
 /* ---- Hero boot handoff choreography ------------------------------------
-   The boot veil's 0.3s fade begins at setBootDone(). delayChildren 0.15 puts
-   the first identity child at the point where the ease-out fade has already
-   dropped the overlay below ~0.1 opacity — the name rises out of the last of
-   the dissolving veil instead of playing behind it. Identity leads (0.15s),
-   the terminal answers 0.5s later (0.65s). All delays are custom-driven so
-   the skip/repeat/reduced paths stay instant. */
+   setBootDone() fires when the boot line LANDS on the hero underline's rect
+   (~1.2s; the veil's compositor fade is already done at ~1.1s). delayChildren
+   0.15 starts the identity cascade just after the landing settles — the name
+   rises up to MEET the landed line, which then crossfades 1:1 into
+   HeroUnderline. Identity leads (0.15s), the terminal answers 0.5s later
+   (0.65s). All delays are custom-driven so the skip/repeat/reduced paths
+   stay instant. */
 
 /** Identity column container — cascades name → title → tagline. */
 export const heroCascade: Variants = {

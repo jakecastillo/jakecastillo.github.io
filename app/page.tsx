@@ -67,7 +67,13 @@ export default function Home() {
                   </picture>
                 </span>
               </span>
-              <span className="relative inline-block font-mono text-sm uppercase tracking-[0.35em] text-accent">
+              {/* data-boot-anchor: BootIgnition measures this span's rect (the
+                  SSR-static layout IS the final layout) so the boot line can
+                  land exactly on HeroUnderline's rect before the crossfade. */}
+              <span
+                data-boot-anchor
+                className="relative inline-block font-mono text-sm uppercase tracking-[0.35em] text-accent"
+              >
                 {resumeData.name}
                 <HeroUnderline />
               </span>
