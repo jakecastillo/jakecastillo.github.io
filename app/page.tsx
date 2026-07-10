@@ -12,6 +12,8 @@ import ActContact from "@/components/ActContact";
 import HeaderTypewriter from "@/components/HeaderTypewriter";
 import TiltEnable from "@/components/TiltEnable";
 import Container from "@/components/Container";
+import HeroUnderline from "@/components/beam/HeroUnderline";
+import { useBeamStore } from "@/hooks/useBeamStore";
 import { resumeData } from "@/data/resume";
 
 const pills = [
@@ -21,6 +23,8 @@ const pills = [
 ];
 
 export default function Home() {
+  const bootDone = useBeamStore((s) => s.bootDone);
+
   return (
     <div className="relative w-full">
       <StageManager />
@@ -52,8 +56,9 @@ export default function Home() {
                   </picture>
                 </span>
               </span>
-              <span className="font-mono text-sm uppercase tracking-[0.35em] text-accent">
+              <span className="relative inline-block font-mono text-sm uppercase tracking-[0.35em] text-accent">
                 {resumeData.name}
+                <HeroUnderline />
               </span>
             </motion.div>
 
@@ -71,7 +76,7 @@ export default function Home() {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              animate="show"
+              animate={bootDone ? "show" : "hidden"}
               className="flex w-full flex-col items-start gap-6"
             >
               <motion.p
@@ -122,7 +127,7 @@ export default function Home() {
           <motion.div
             variants={fadeUp}
             initial="hidden"
-            animate="show"
+            animate={bootDone ? "show" : "hidden"}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: 0.55 }}
             className="w-full lg:col-span-5"
           >
