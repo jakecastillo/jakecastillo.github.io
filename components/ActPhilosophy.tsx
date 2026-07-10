@@ -5,6 +5,7 @@ import { resumeData } from "@/data/resume";
 import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
 import ArchitectureSchematic from "@/components/ArchitectureSchematic";
 import EtchHeading from "@/components/beam/EtchHeading";
+import ManifestoReveal from "@/components/beam/ManifestoReveal";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -51,13 +52,13 @@ export default function ActPhilosophy() {
                 <p className="mb-5 font-mono text-xs uppercase tracking-[0.35em] text-primary">
                     02 / approach
                 </p>
-                <h2 className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere]">
+                <ManifestoReveal className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere] sm:text-7xl lg:text-8xl">
                     ENGINEER THE
                     <br />
                     <span className="text-primary text-glow">
                         SYSTEMS WE RELY ON.
                     </span>
-                </h2>
+                </ManifestoReveal>
                 <div className="mt-8 mb-7 h-px w-12 bg-border-strong" />
                 <p className="measure text-lg leading-relaxed text-muted-foreground">
                     {resumeData.summary}

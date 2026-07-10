@@ -1,11 +1,75 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import {
+    motion,
+    useReducedMotion,
+    useScroll,
+    useTransform,
+    type MotionValue,
+} from "framer-motion";
 
 export type ProcessStep = { index: string; title: string; body: string };
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * One process node. Extracted so the per-node ignition `useTransform` is a
+ * single hook per component — no rules-of-hooks violation in a `.map` loop.
+ * The dot lights (0.25 → 1 opacity) as the drawn rail reaches its fraction.
+ */
+function SpineNode({
+    step,
+    i,
+    count,
+    drawn,
+    reduced,
+}: {
+    step: ProcessStep;
+    i: number;
+    count: number;
+    drawn: MotionValue<number>;
+    reduced: boolean;
+}) {
+    const nodeOpacity = useTransform(
+        drawn,
+        [i / count, (i + 0.5) / count],
+        [0.25, 1],
+    );
+
+    return (
+        <motion.li
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.4, ease: EASE, delay: i * 0.04 }}
+            className="relative"
+        >
+            {/* Node dot — centered on the rail. Rail center ≈ 3.5px from the
+                <ol> edge; the dot lives in the <li> (offset by pl-8/sm:pl-10)
+                and is 10px wide, so its left edge sits 33.5px / 41.5px back to
+                land the dot's center on the rail at both breakpoints. Ignites
+                as the drawn rail passes it. */}
+            <motion.span
+                aria-hidden="true"
+                initial={false}
+                style={{ opacity: reduced ? 1 : nodeOpacity }}
+                className="absolute -left-[33.5px] top-2 h-2.5 w-2.5 rounded-full bg-primary glow-primary sm:-left-[41.5px]"
+            />
+            <div className="flex items-baseline gap-3">
+                <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-accent">
+                    {step.index}
+                </span>
+                <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                    {step.title}
+                </h4>
+            </div>
+            <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
+                {step.body}
+            </p>
+        </motion.li>
+    );
+}
 
 export default function ProcessSpine({ steps }: { steps: ProcessStep[] }) {
     const ref = useRef<HTMLOListElement>(null);
@@ -17,6 +81,14 @@ export default function ProcessSpine({ steps }: { steps: ProcessStep[] }) {
         offset: ["start 80%", "end 65%"],
     });
     const drawn = useTransform(scrollYProgress, [0, 1], [0, 1]);
+    // Hot head rides the drawn rail's tip (framer interpolates the calc strings).
+    const headTop = useTransform(
+        drawn,
+        [0, 1],
+        ["0.75rem", "calc(100% - 0.75rem)"],
+    );
+
+    const count = steps.length;
 
     return (
         <ol
@@ -34,36 +106,28 @@ export default function ProcessSpine({ steps }: { steps: ProcessStep[] }) {
                 style={{ scaleY: reduced ? 1 : drawn }}
                 className="pointer-events-none absolute left-[3px] top-3 bottom-3 w-px origin-top bg-primary glow-primary"
             />
+            {/* Hot head — the beam's leading node riding the rail tip. Gated on
+                !reduced: under reduced motion it must not appear. (Removal fires
+                as a post-mount re-render once useReducedMotion resolves, so the
+                head is reliably gone — an opacity gate here is left stuck at the
+                SSR value by the section's pre-existing hydration mismatch.) */}
+            {!reduced && (
+                <motion.span
+                    aria-hidden="true"
+                    style={{ top: headTop }}
+                    className="pointer-events-none absolute left-[3px] h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_14px_3px_rgba(45,212,191,0.55)]"
+                />
+            )}
 
             {steps.map((step, i) => (
-                <motion.li
+                <SpineNode
                     key={step.index}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.6 }}
-                    transition={{ duration: 0.4, ease: EASE, delay: i * 0.04 }}
-                    className="relative"
-                >
-                    {/* Node dot — centered on the rail. Rail center ≈ 3.5px from the
-                        <ol> edge; the dot lives in the <li> (offset by pl-8/sm:pl-10)
-                        and is 10px wide, so its left edge sits 33.5px / 41.5px back to
-                        land the dot's center on the rail at both breakpoints. */}
-                    <span
-                        aria-hidden="true"
-                        className="absolute -left-[33.5px] top-2 h-2.5 w-2.5 rounded-full bg-primary glow-primary sm:-left-[41.5px]"
-                    />
-                    <div className="flex items-baseline gap-3">
-                        <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-accent">
-                            {step.index}
-                        </span>
-                        <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                            {step.title}
-                        </h4>
-                    </div>
-                    <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
-                        {step.body}
-                    </p>
-                </motion.li>
+                    step={step}
+                    i={i}
+                    count={count}
+                    drawn={drawn}
+                    reduced={!!reduced}
+                />
             ))}
         </ol>
     );
