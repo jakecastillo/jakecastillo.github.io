@@ -41,6 +41,11 @@ export default function EtchHeading({
                 mask: "lines",
                 autoSplit: true, // re-split on font load / resize
             });
+            // Hide the etch hairline from mount: the fromTo below sits at a
+            // non-zero timeline position, so it does NOT immediate-render like
+            // the lines .from() does — without this, the line sits fully drawn
+            // (a floating glow under invisible text) until the trigger fires.
+            if (etch) gsap.set(etch, { scaleX: 0 });
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: wrapRef.current,
