@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { stageSections } from "@/data/sections";
+import { useActStore } from "@/hooks/useActStore";
 
 export default function StageManager() {
-    const [activeId, setActiveId] = useState(stageSections[0].id);
+    const activeId = useActStore((s) => s.activeActId);
+    const setActiveId = useActStore((s) => s.setActiveActId);
 
     // Drive the marker straight from scrollYProgress — Lenis already eases the
     // scroll, so an extra useSpring would double-smooth into a floaty rail.
@@ -53,7 +55,9 @@ export default function StageManager() {
 
         elements.forEach((el) => observer.observe(el));
         return () => observer.disconnect();
-    }, []);
+        // setActiveId is a zustand action — referentially stable across
+        // renders, so including it here doesn't change when this effect runs.
+    }, [setActiveId]);
 
     const currentAct =
         stageSections.find((act) => act.id === activeId) ?? stageSections[0];

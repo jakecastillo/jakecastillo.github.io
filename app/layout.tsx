@@ -6,6 +6,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import BackgroundScene from "@/components/BackgroundScene";
 import Footer from "@/components/Footer";
 import MotionProvider from "@/components/MotionProvider";
+import GsapProvider from "@/components/beam/GsapProvider";
 import TouchActive from "@/components/TouchActive";
 import { resumeData } from "@/data/resume";
 
@@ -176,6 +177,7 @@ export default function RootLayout({
 
         <MotionProvider>
           <SmoothScroll />
+          <GsapProvider />
           <TouchActive />
 
           {/* Cinematic background (code-split, reduced-motion aware) */}
