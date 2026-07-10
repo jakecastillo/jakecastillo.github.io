@@ -1,20 +1,22 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { resumeData } from "@/data/resume";
 import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
 import ArchitectureSchematic from "@/components/ArchitectureSchematic";
 import EtchHeading from "@/components/beam/EtchHeading";
 import ManifestoReveal from "@/components/beam/ManifestoReveal";
+import { useReveal } from "@/hooks/useReveal";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-const reveal = {
-    initial: { opacity: 0, y: 20 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.2 },
-    transition: { duration: 0.4, ease: EASE },
-} as const;
+// Cheap opacity/y reveal; the arrival-snap + re-fire wiring lives in useReveal.
+// (ManifestoReveal below is a separate GSAP scrubbed system that reverses on its
+// own — the outer fade here is independent of it.)
+const reveal: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
+};
 
 // "Build Where the Risk Lives" — general software-solutions + innovator process.
 // Owner-approved copy; the ONLY copy change in this pass.
@@ -42,11 +44,15 @@ const processSteps: ProcessStep[] = [
 ];
 
 export default function ActPhilosophy() {
+    const belief = useReveal<HTMLDivElement>();
+    const buildHeader = useReveal<HTMLElement>();
+    const schematic = useReveal<HTMLDivElement>();
     return (
         <section className="section-y container-page">
             {/* Belief */}
             <motion.div
-                {...reveal}
+                variants={reveal}
+                {...belief}
                 className="panel flex flex-col p-8 sm:p-12 lg:p-16"
             >
                 <p className="mb-5 font-mono text-xs uppercase tracking-[0.35em] text-primary">
@@ -67,7 +73,11 @@ export default function ActPhilosophy() {
 
             {/* How I Build */}
             <div className="mt-20 sm:mt-28">
-                <motion.header {...reveal} className="mb-10 sm:mb-14">
+                <motion.header
+                    variants={reveal}
+                    {...buildHeader}
+                    className="mb-10 sm:mb-14"
+                >
                     <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
                         How I Build
                     </p>
@@ -82,7 +92,11 @@ export default function ActPhilosophy() {
 
                 <ProcessSpine steps={processSteps} />
 
-                <motion.div {...reveal} className="mt-16 sm:mt-20">
+                <motion.div
+                    variants={reveal}
+                    {...schematic}
+                    className="mt-16 sm:mt-20"
+                >
                     <ArchitectureSchematic />
                 </motion.div>
             </div>

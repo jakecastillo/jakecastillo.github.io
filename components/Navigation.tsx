@@ -46,6 +46,26 @@ function useEnableMotion() {
 function useActiveSection() {
     const [activeId, setActiveId] = useState<string>(observedIds[0] ?? "home");
 
+    // Deep-link / back-forward arrival: bind the highlight straight to the URL
+    // hash so a cold-load of /#skills (or a browser back to a hash) lights the
+    // matching dock item immediately, instead of leaving a stale "home"/wrong
+    // section lit until the observer catches up. The observer below refines it
+    // as the user scrolls.
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const syncFromHash = () => {
+            const id = window.location.hash.slice(1);
+            if (id && observedIds.includes(id)) setActiveId(id);
+        };
+        syncFromHash();
+        window.addEventListener("hashchange", syncFromHash);
+        window.addEventListener("popstate", syncFromHash);
+        return () => {
+            window.removeEventListener("hashchange", syncFromHash);
+            window.removeEventListener("popstate", syncFromHash);
+        };
+    }, []);
+
     useEffect(() => {
         if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
             return;

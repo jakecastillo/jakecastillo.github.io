@@ -16,21 +16,20 @@ import Container from "@/components/Container";
 import EtchHeading from "@/components/beam/EtchHeading";
 import PrismBands from "@/components/beam/PrismBands";
 import { scaleIn } from "@/components/motion";
+import { useReveal } from "@/hooks/useReveal";
 import { TechIcon } from "@/components/TechIcon";
 import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Constant variants (no useReducedMotion branch) so SSR == client markup;
-// MotionProvider auto-drops the y transform for reduced-motion users.
-const groupContainer: Variants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.06 } },
-};
-
-const item: Variants = {
+// MotionProvider auto-drops the y transform for reduced-motion users. Each cell
+// reveals on its own (per-group, not one tall panel-level trigger) so a
+// deep-link to #skills can never land on a viewport of opacity-0 content that
+// only pops after ~700px more scroll.
+const reveal: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
+    show: {
         opacity: 1,
         y: 0,
         transition: { duration: 0.3, ease: EASE },
@@ -51,6 +50,7 @@ const groups: { title: string; icon: LucideIcon; skills: string[]; showIcons: bo
 ];
 
 export default function ActSkills() {
+    const header = useReveal<HTMLElement>();
     return (
         <section className="section-y relative border-t border-border overflow-hidden">
             {/* Background wash + single restrained violet glow blob (decorative). */}
@@ -66,10 +66,8 @@ export default function ActSkills() {
             <Container className="relative z-10">
                 {/* Offset oversized heading — overhangs the grid for asymmetric tension. */}
                 <motion.header
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={{ duration: 0.3, ease: EASE }}
+                    variants={reveal}
+                    {...header}
                     className="mb-16 max-w-3xl"
                 >
                     <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
@@ -89,41 +87,26 @@ export default function ActSkills() {
 
                 {/* Even responsive matrix — every group an equal cell so nothing
                     crams into a single rail. Seated on a readable panel so the
-                    pills stay legible over the living background. */}
-                <motion.div
-                    variants={groupContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.3 }}
-                    className="panel grid grid-cols-1 items-start gap-x-10 gap-y-12 p-8 sm:grid-cols-2 sm:p-10 lg:grid-cols-3 lg:p-12"
-                >
+                    pills stay legible over the living background. Each cell owns
+                    its own reveal (no panel-level gate), so nothing waits behind
+                    a 2000px+ container to satisfy an amount threshold. */}
+                <div className="panel grid grid-cols-1 items-start gap-x-10 gap-y-12 p-8 sm:grid-cols-2 sm:p-10 lg:grid-cols-3 lg:p-12">
                     {groups.map((group) => (
                         <SkillGroup
                             key={group.title}
-                            variants={item}
                             icon={group.icon}
                             title={group.title}
                             skills={group.skills}
                             showIcons={group.showIcons}
                         />
                     ))}
-                </motion.div>
+                </div>
 
                 <div className="mt-24 pt-12 border-t border-border">
                     <h3 className="text-xs font-mono tracking-[0.25em] text-muted-foreground mb-8">CERTIFICATIONS</h3>
                     <div className="flex flex-wrap gap-8">
                         {resumeData.certifications.map((cert) => (
-                            <motion.div
-                                key={cert.name}
-                                variants={scaleIn}
-                                initial="hidden"
-                                whileInView="show"
-                                viewport={{ once: true, amount: 0.2 }}
-                                className="surface-2 p-8 rounded-lg transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)] active:scale-[0.98]"
-                            >
-                                <h4 className="text-xl font-bold tracking-tight mb-3">{cert.name}</h4>
-                                <p className="text-sm text-muted-foreground">{cert.issuer}</p>
-                            </motion.div>
+                            <CertCard key={cert.name} name={cert.name} issuer={cert.issuer} />
                         ))}
                     </div>
                 </div>
@@ -132,21 +115,34 @@ export default function ActSkills() {
     );
 }
 
+function CertCard({ name, issuer }: { name: string; issuer: string }) {
+    const cert = useReveal<HTMLDivElement>();
+    return (
+        <motion.div
+            variants={scaleIn}
+            {...cert}
+            className="surface-2 p-8 rounded-lg transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)] active:scale-[0.98]"
+        >
+            <h4 className="text-xl font-bold tracking-tight mb-3">{name}</h4>
+            <p className="text-sm text-muted-foreground">{issuer}</p>
+        </motion.div>
+    );
+}
+
 function SkillGroup({
     title,
     skills,
-    variants,
     icon: Icon,
     showIcons,
 }: {
     title: string;
     skills: string[];
-    variants: Variants;
     icon: LucideIcon;
     showIcons: boolean;
 }) {
+    const group = useReveal<HTMLDivElement>();
     return (
-        <motion.div variants={variants}>
+        <motion.div variants={reveal} {...group}>
             <h3 className="mb-5 flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-foreground">
                 <Icon
                     aria-hidden="true"

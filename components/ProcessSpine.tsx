@@ -7,11 +7,24 @@ import {
     useScroll,
     useTransform,
     type MotionValue,
+    type Variants,
 } from "framer-motion";
+import { useReveal } from "@/hooks/useReveal";
 
 export type ProcessStep = { index: string; title: string; body: string };
 
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+// Cheap node entrance (opacity/y). The scrubbed rail + dot ignition below is a
+// separate scroll-linked system and is left untouched.
+const nodeReveal: Variants = {
+    hidden: { opacity: 0, y: 18 },
+    show: (delay: number = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.4, ease: EASE, delay },
+    }),
+};
 
 /**
  * One process node. Extracted so the per-node ignition `useTransform` is a
@@ -36,13 +49,13 @@ function SpineNode({
         [i / count, (i + 0.5) / count],
         [0.25, 1],
     );
+    const node = useReveal<HTMLLIElement>();
 
     return (
         <motion.li
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.4, ease: EASE, delay: i * 0.04 }}
+            variants={nodeReveal}
+            custom={i * 0.04}
+            {...node}
             className="relative"
         >
             {/* Node dot — centered on the rail. Rail center ≈ 3.5px from the

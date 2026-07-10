@@ -1,26 +1,76 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
 import Beacon from "@/components/beam/Beacon";
 import EtchHeading from "@/components/beam/EtchHeading";
-import { scaleIn, viewportOnce } from "@/components/motion";
+import { scaleIn } from "@/components/motion";
+import { useReveal } from "@/hooks/useReveal";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Constant markup (no useReducedMotion branch) so SSR == client; MotionProvider
-// drops the y transform for reduced-motion users automatically.
-const reveal = (delay = 0) => ({
-    initial: { opacity: 0, y: 20 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.2 },
-    transition: { duration: 0.3, ease: EASE, delay },
-});
+// drops the y transform for reduced-motion users automatically. `custom`
+// supplies the stagger delay; arrival-snap/re-fire wiring lives in useReveal.
+const reveal: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: (delay: number = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.3, ease: EASE, delay },
+    }),
+};
+
+// Secondary contact link — its own reveal so a deep-link / back-nav to #contact
+// never lands it blank, and it performs again when scrubbed back up.
+function ContactLink({
+    link,
+    delay,
+}: {
+    link: (typeof contactLinks)[number];
+    delay: number;
+}) {
+    const item = useReveal<HTMLLIElement>();
+    const Icon = link.icon;
+    return (
+        <motion.li variants={reveal} custom={delay} {...item}>
+            <a
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                download={link.download ? "" : undefined}
+                className="group flex min-h-11 items-center justify-between gap-4 rounded-lg border-b border-border-subtle px-3 py-3 transition-[color,border-color,transform] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
+            >
+                <span className="flex min-w-0 items-center gap-4">
+                    <Icon
+                        aria-hidden="true"
+                        className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                    />
+                    <span className="flex min-w-0 flex-col">
+                        <span className="link-underline-onhover truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
+                            {link.label}
+                        </span>
+                        <span className="truncate font-mono text-xs tracking-wide text-subtle-foreground">
+                            {link.displayLabel}
+                        </span>
+                    </span>
+                </span>
+                <ArrowUpRight
+                    aria-hidden="true"
+                    className="h-5 w-5 shrink-0 -translate-x-2 translate-y-2 text-primary opacity-0 transition-all group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100"
+                />
+            </a>
+        </motion.li>
+    );
+}
 
 export default function ActContact() {
+    const badge = useReveal<HTMLDivElement>();
+    const intro = useReveal<HTMLParagraphElement>();
+    const card = useReveal<HTMLDivElement>();
 
     const primary = contactLinks.find((link) => link.primary);
     const secondary = contactLinks.filter((link) => !link.primary);
@@ -59,7 +109,9 @@ export default function ActContact() {
                     <div className="md:pt-4">
                         {/* Cyan kept as the ONE genuine "available/online" signal in view */}
                         <motion.div
-                            {...reveal(0)}
+                            variants={reveal}
+                            custom={0}
+                            {...badge}
                             className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground"
                         >
                             <span
@@ -80,7 +132,9 @@ export default function ActContact() {
                         </EtchHeading>
 
                         <motion.p
-                            {...reveal(0.12)}
+                            variants={reveal}
+                            custom={0.12}
+                            {...intro}
                             className="measure mt-8 text-base text-muted-foreground"
                         >
                             I design and ship software solutions &mdash; modernizing
@@ -94,9 +148,7 @@ export default function ActContact() {
                         tint) keeps text >= 4.5:1 over the orb */}
                     <motion.div
                         variants={scaleIn}
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={viewportOnce}
+                        {...card}
                         className="relative rounded-xl border border-border-subtle bg-surface/80 backdrop-blur-sm p-8"
                     >
                         <Beacon />
@@ -137,48 +189,13 @@ export default function ActContact() {
 
                         {/* SECONDARY links — clearly subordinate */}
                         <ul className="mt-6 grid grid-cols-1 gap-2 text-left">
-                            {secondary.map((link, index) => {
-                                const Icon = link.icon;
-                                return (
-                                    <motion.li
-                                        key={link.key}
-                                        {...reveal(0.24 + index * 0.06)}
-                                    >
-                                        <a
-                                            href={link.href}
-                                            target={
-                                                link.external ? "_blank" : undefined
-                                            }
-                                            rel={
-                                                link.external
-                                                    ? "noopener noreferrer"
-                                                    : undefined
-                                            }
-                                            download={link.download ? "" : undefined}
-                                            className="group flex min-h-11 items-center justify-between gap-4 rounded-lg border-b border-border-subtle px-3 py-3 transition-[color,border-color,transform] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
-                                        >
-                                            <span className="flex min-w-0 items-center gap-4">
-                                                <Icon
-                                                    aria-hidden="true"
-                                                    className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-                                                />
-                                                <span className="flex min-w-0 flex-col">
-                                                    <span className="link-underline-onhover truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
-                                                        {link.label}
-                                                    </span>
-                                                    <span className="truncate font-mono text-xs tracking-wide text-subtle-foreground">
-                                                        {link.displayLabel}
-                                                    </span>
-                                                </span>
-                                            </span>
-                                            <ArrowUpRight
-                                                aria-hidden="true"
-                                                className="h-5 w-5 shrink-0 -translate-x-2 translate-y-2 text-primary opacity-0 transition-all group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100"
-                                            />
-                                        </a>
-                                    </motion.li>
-                                );
-                            })}
+                            {secondary.map((link, index) => (
+                                <ContactLink
+                                    key={link.key}
+                                    link={link}
+                                    delay={0.24 + index * 0.06}
+                                />
+                            ))}
                         </ul>
 
                         {/* Credibility markers — verifiable, derived from resumeData.

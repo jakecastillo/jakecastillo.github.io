@@ -9,7 +9,8 @@ import {
     useTransform,
 } from "framer-motion";
 import { resumeData, type Job } from "@/data/resume";
-import { fadeRight, staggerContainer, viewportOnce } from "@/components/motion";
+import { fadeRight, staggerContainer } from "@/components/motion";
+import { useReveal } from "@/hooks/useReveal";
 import { ArrowRight } from "lucide-react";
 
 // Run the upgrade before paint on the client so there's no static→immersive
@@ -58,6 +59,7 @@ export default function ActExperience() {
 // Reduced-motion / touch / coarse-pointer: a static, vertical case-study list —
 // no pin, no horizontal transform, no useScroll, opacity-only reveals.
 function StaticTimeline({ total }: { total: number }) {
+    const list = useReveal<HTMLOListElement>({ orchestrate: true });
     return (
         <section className="section-y container-page [padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
             <h2 className="sr-only">Experience</h2>
@@ -66,9 +68,7 @@ function StaticTimeline({ total }: { total: number }) {
             </p>
             <motion.ol
                 variants={staggerContainer}
-                initial="hidden"
-                whileInView="show"
-                viewport={viewportOnce}
+                {...list}
                 className="relative flex flex-col gap-16 pl-8 sm:pl-10"
             >
                 <span aria-hidden="true" className="pointer-events-none absolute left-0 top-0 bottom-0 w-px bg-border-subtle" />
@@ -76,7 +76,7 @@ function StaticTimeline({ total }: { total: number }) {
                     aria-hidden="true"
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
-                    viewport={{ once: true, amount: 0.1 }}
+                    viewport={{ once: false, amount: 0.1 }}
                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                     className="pointer-events-none absolute left-0 top-0 bottom-0 w-px origin-top bg-primary glow-primary"
                 />
