@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Cloud, GraduationCap, Github, Mail, MapPin } from "lucide-react";
-import { fadeUp, staggerContainer } from "@/components/motion";
+import { fadeUp, heroCascade, heroChild, heroStagger, heroTerminal } from "@/components/motion";
 import TerminalTyping from "@/components/TerminalTyping";
 import StageManager from "@/components/StageManager";
 import ActPhilosophy from "@/components/ActPhilosophy";
@@ -24,6 +24,8 @@ const pills = [
 
 export default function Home() {
   const bootDone = useBeamStore((s) => s.bootDone);
+  const bootPlayed = useBeamStore((s) => s.bootPlayed);
+  const heroState = bootDone ? "show" : "hidden";
 
   return (
     <div className="relative w-full">
@@ -37,9 +39,18 @@ export default function Home() {
       >
         <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Identity + CTAs — open on desktop; carries a readable card on mobile,
-              where it stacks above the terminal over the living background. */}
-          <div className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
-            <motion.div initial={false} className="flex items-center gap-3">
+              where it stacks above the terminal over the living background.
+              When the boot overlay actually plays (bootPlayed), the identity
+              children snap to `hidden` under the opaque veil, then cascade
+              name → title → tagline as the veil clears. On skip/reduced/repeat
+              paths `animate` stays undefined: the SSR-static hero is LCP. */}
+          <motion.div
+            variants={heroCascade}
+            initial={false}
+            animate={bootPlayed ? heroState : undefined}
+            className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none"
+          >
+            <motion.div variants={heroChild} initial={false} className="flex items-center gap-3">
               <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-accent p-[2px]">
                 <span className="block h-full w-full overflow-hidden rounded-full border-2 border-background">
                   <picture>
@@ -62,11 +73,12 @@ export default function Home() {
               </span>
             </motion.div>
 
-            <motion.div initial={false}>
+            <motion.div variants={heroChild} initial={false}>
               <HeaderTypewriter />
             </motion.div>
 
             <motion.p
+              variants={heroChild}
               initial={false}
               className="measure text-balance text-xl font-medium text-foreground sm:text-2xl"
             >
@@ -74,9 +86,10 @@ export default function Home() {
             </motion.p>
 
             <motion.div
-              variants={staggerContainer}
+              variants={heroStagger}
+              custom={bootPlayed ? 0.55 : 0.04}
               initial="hidden"
-              animate={bootDone ? "show" : "hidden"}
+              animate={heroState}
               className="flex w-full flex-col items-start gap-6"
             >
               <motion.p
@@ -121,14 +134,16 @@ export default function Home() {
                 </a>
               </motion.div>
             </motion.div>
-          </div>
+          </motion.div>
 
-          {/* Signature: interactive terminal */}
+          {/* Signature: interactive terminal — answers 0.5s after the identity
+              column leads (delay baked into the heroTerminal variant; a
+              `transition` prop here would be dead code against it). */}
           <motion.div
-            variants={fadeUp}
+            variants={heroTerminal}
+            custom={bootPlayed ? 0.65 : 0}
             initial="hidden"
-            animate={bootDone ? "show" : "hidden"}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: 0.55 }}
+            animate={heroState}
             className="w-full lg:col-span-5"
           >
             <TerminalTyping />

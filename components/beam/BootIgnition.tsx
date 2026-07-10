@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useBeamStore } from "@/hooks/useBeamStore";
 
 const SEEN_KEY = "beam:boot";
@@ -46,8 +46,10 @@ function decideShouldPlay(): boolean {
  */
 export default function BootIgnition() {
     const setBootDone = useBeamStore((s) => s.setBootDone);
+    const markBootPlaying = useBeamStore((s) => s.markBootPlaying);
     const [play, setPlay] = useState(false);
     const [leaving, setLeaving] = useState(false);
+    const overlayRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const play = decideShouldPlay();
@@ -60,44 +62,82 @@ export default function BootIgnition() {
             setBootDone();
             return;
         }
+        // Tell the hero its identity cascade will run — it snaps to `hidden`
+        // under the opaque overlay so the reveal plays FOR the visitor.
+        markBootPlaying();
         // Whether the overlay plays depends on sessionStorage + matchMedia,
         // which are unavailable during SSR/first render — so gating it in an
         // effect (one extra client render) is the correct, unavoidable pattern.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setPlay(true);
 
+        let finished = false;
         let fadeTimer: number | undefined;
         const finish = () => {
+            if (finished) return; // animationend, watchdog and skip can race
+            finished = true;
             shouldPlay = false; // a real remount must not replay the boot
+            window.clearTimeout(watchdog);
+            // Drop the skip listeners now — an unfired one must not linger
+            // (and re-run finish) after the boot has ended.
+            window.removeEventListener("pointerdown", skip);
+            window.removeEventListener("keydown", skip);
+            window.removeEventListener("animationend", onAnimationEnd);
+            // The veil's boot-veil-fade is scheduled at 1.15s (self-clearing
+            // even if this handler runs late). If we're ending EARLY (skip),
+            // pull the fade forward by rewriting its delay to the animation's
+            // own elapsed time — the same 0.3s fade, just starting now. Past
+            // 1.15s the fade is already underway/done: leave it alone.
+            const el = overlayRef.current;
+            const veil = el
+                ?.getAnimations()
+                .find(
+                    (a): a is CSSAnimation =>
+                        a instanceof CSSAnimation &&
+                        a.animationName === "boot-veil-fade",
+                );
+            const elapsed = Number(veil?.currentTime ?? NaN);
+            if (el && veil && Number.isFinite(elapsed) && elapsed < 1150) {
+                el.style.animationDelay = `${Math.max(0, Math.round(elapsed))}ms`;
+            }
             setLeaving(true);
             setBootDone();
-            // Let the fade-out class play, then unmount.
-            fadeTimer = window.setTimeout(() => setPlay(false), 400);
+            // Let the 0.3s fade-out play, then unmount.
+            fadeTimer = window.setTimeout(() => setPlay(false), 350);
         };
-        const timer = window.setTimeout(finish, 1000); // flare+line = 1.0s, fade = 0.4s
-        const skip = () => {
-            window.clearTimeout(timer);
-            finish();
+        // End the boot the moment the line's rise keyframe actually completes
+        // (animation events bubble to window), with a generous timer as a
+        // watchdog — a saturated main thread can never hold the veil hostage.
+        const onAnimationEnd = (e: AnimationEvent) => {
+            if (e.animationName === "beam-line-rise") finish();
         };
+        const skip = () => finish();
+        const watchdog = window.setTimeout(finish, 1600); // rise ends ~1.15s
+        window.addEventListener("animationend", onAnimationEnd);
         window.addEventListener("pointerdown", skip, { once: true });
         window.addEventListener("keydown", skip, { once: true });
         return () => {
-            window.clearTimeout(timer);
+            window.clearTimeout(watchdog);
             window.clearTimeout(fadeTimer);
+            window.removeEventListener("animationend", onAnimationEnd);
             window.removeEventListener("pointerdown", skip);
             window.removeEventListener("keydown", skip);
         };
-    }, [setBootDone]);
+    }, [setBootDone, markBootPlaying]);
 
     if (!play) return null;
 
     return (
         <div
+            ref={overlayRef}
             aria-hidden="true"
             className={`boot-ignition ${leaving ? "boot-ignition--leaving" : ""}`}
         >
             <span className="boot-ignition__spark" />
             <span className="boot-ignition__line" />
+            <span className="boot-ignition__skip">
+                tap / press any key to skip
+            </span>
         </div>
     );
 }
