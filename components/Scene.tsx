@@ -3,7 +3,8 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Noise } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import HoloLattice from "./canvas/HoloLattice";
 import BeamRibbon from "./canvas/BeamRibbon";
 import { damp } from "./canvas/anim";
@@ -163,25 +164,31 @@ export default function Scene({ lowPower = false, reducedMotion = false }: Scene
                         the boot (BloomBoot) so the holo "powers on". */}
                     <EffectComposer>
                         {lowPower ? (
-                            <Bloom
-                                ref={bloomRef}
-                                intensity={reducedMotion ? bloomTarget : 0}
-                                luminanceThreshold={0.1}
-                                luminanceSmoothing={0.5}
-                                radius={0.7}
-                                levels={5}
-                                resolutionScale={0.5}
-                                mipmapBlur
-                            />
+                            <>
+                                <Bloom
+                                    ref={bloomRef}
+                                    intensity={reducedMotion ? bloomTarget : 0}
+                                    luminanceThreshold={0.1}
+                                    luminanceSmoothing={0.5}
+                                    radius={0.7}
+                                    levels={5}
+                                    resolutionScale={0.5}
+                                    mipmapBlur
+                                />
+                                <Noise premultiply blendFunction={BlendFunction.SCREEN} opacity={0.045} />
+                            </>
                         ) : (
-                            <Bloom
-                                ref={bloomRef}
-                                intensity={reducedMotion ? bloomTarget : 0}
-                                luminanceThreshold={0.1}
-                                luminanceSmoothing={0.5}
-                                radius={0.75}
-                                mipmapBlur
-                            />
+                            <>
+                                <Bloom
+                                    ref={bloomRef}
+                                    intensity={reducedMotion ? bloomTarget : 0}
+                                    luminanceThreshold={0.1}
+                                    luminanceSmoothing={0.5}
+                                    radius={0.75}
+                                    mipmapBlur
+                                />
+                                <Noise premultiply blendFunction={BlendFunction.SCREEN} opacity={0.045} />
+                            </>
                         )}
                     </EffectComposer>
 
