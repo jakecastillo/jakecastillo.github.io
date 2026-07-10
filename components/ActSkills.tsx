@@ -50,7 +50,6 @@ const groups: { title: string; icon: LucideIcon; skills: string[]; showIcons: bo
 ];
 
 export default function ActSkills() {
-    const header = useReveal<HTMLElement>();
     return (
         <section className="section-y relative border-t border-border overflow-hidden">
             {/* Background wash + single restrained violet glow blob (decorative). */}
@@ -65,23 +64,17 @@ export default function ActSkills() {
 
             <Container className="relative z-10">
                 {/* Offset oversized heading — overhangs the grid for asymmetric tension. */}
-                <motion.header
-                    variants={reveal}
-                    {...header}
-                    className="mb-16 max-w-3xl"
+                <EtchHeading
+                    as="h2"
+                    className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
+                    eyebrow="04 / stack"
+                    eyebrowClassName="text-xs font-mono tracking-[0.25em] text-primary mb-4"
+                    wrapperClassName="mb-16 max-w-3xl"
                 >
-                    <p className="text-xs font-mono tracking-[0.25em] text-primary mb-4">
-                        04 / stack
-                    </p>
-                    <EtchHeading
-                        as="h2"
-                        className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
-                    >
-                        THE
-                        <br />
-                        <span className="text-primary">STACK</span>
-                    </EtchHeading>
-                </motion.header>
+                    THE
+                    <br />
+                    <span className="text-primary">STACK</span>
+                </EtchHeading>
 
                 <PrismBands count={groups.length} />
 

@@ -45,7 +45,6 @@ const processSteps: ProcessStep[] = [
 
 export default function ActPhilosophy() {
     const belief = useReveal<HTMLDivElement>();
-    const buildHeader = useReveal<HTMLElement>();
     const schematic = useReveal<HTMLDivElement>();
     return (
         <section className="section-y container-page">
@@ -73,22 +72,16 @@ export default function ActPhilosophy() {
 
             {/* How I Build */}
             <div className="mt-20 sm:mt-28">
-                <motion.header
-                    variants={reveal}
-                    {...buildHeader}
-                    className="mb-10 sm:mb-14"
+                <EtchHeading
+                    as="p"
+                    className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+                    eyebrow="How I Build"
+                    eyebrowClassName="font-mono text-xs uppercase tracking-[0.3em] text-primary"
+                    wrapperClassName="mb-10 sm:mb-14"
                 >
-                    <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
-                        How I Build
-                    </p>
-                    <EtchHeading
-                        as="p"
-                        className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-                    >
-                        Build Where the Risk Lives
-                        <span className="text-primary">.</span>
-                    </EtchHeading>
-                </motion.header>
+                    Build Where the Risk Lives
+                    <span className="text-primary">.</span>
+                </EtchHeading>
 
                 <ProcessSpine steps={processSteps} />
 
