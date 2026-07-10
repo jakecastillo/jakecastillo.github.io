@@ -69,8 +69,17 @@ function StaticTimeline({ total }: { total: number }) {
                 initial="hidden"
                 whileInView="show"
                 viewport={viewportOnce}
-                className="relative flex flex-col gap-16 border-l border-border-subtle pl-8 sm:pl-10"
+                className="relative flex flex-col gap-16 pl-8 sm:pl-10"
             >
+                <span aria-hidden="true" className="pointer-events-none absolute left-0 top-0 bottom-0 w-px bg-border-subtle" />
+                <motion.span
+                    aria-hidden="true"
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="pointer-events-none absolute left-0 top-0 bottom-0 w-px origin-top bg-primary glow-primary"
+                />
                 {resumeData.experience.map((job, index) => (
                     <motion.li key={index} variants={fadeRight}>
                         <TimelineNode job={job} index={index} total={total} variant="vertical" />
@@ -87,6 +96,7 @@ function ImmersiveTimeline({ total }: { total: number }) {
     const targetRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({ target: targetRef });
     const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
+    const headLeft = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
     // Map scroll progress → active node index for the "NN / TT" counter.
     const [active, setActive] = useState(0);
@@ -110,17 +120,27 @@ function ImmersiveTimeline({ total }: { total: number }) {
                             aria-live="polite"
                             aria-label={`Role ${format(active + 1)} of ${format(total)}`}
                         >
-                            <span className="text-foreground">{format(active + 1)}</span>
+                            <motion.span
+                                key={active}
+                                initial={{ opacity: 0.4, textShadow: "0 0 12px rgba(45,212,191,0.9)" }}
+                                animate={{ opacity: 1, textShadow: "0 0 0px rgba(45,212,191,0)" }}
+                                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                className="inline-block text-foreground"
+                            >
+                                {format(active + 1)}
+                            </motion.span>
                             <span className="text-subtle-foreground"> / {format(total)}</span>
                         </span>
                     </div>
-                    <div
-                        className="h-[2px] w-full overflow-hidden rounded-full bg-border-subtle"
-                        aria-hidden="true"
-                    >
+                    <div className="relative h-[2px] w-full rounded-full bg-border-subtle" aria-hidden="true">
                         <motion.div
                             style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
                             className="h-full w-full rounded-full bg-primary glow-primary"
+                        />
+                        {/* Beam hot head riding the bar tip */}
+                        <motion.span
+                            style={{ left: headLeft }}
+                            className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_14px_3px_rgba(45,212,191,0.55)]"
                         />
                     </div>
                 </div>
