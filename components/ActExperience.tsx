@@ -13,6 +13,7 @@ import { resumeData, type Job } from "@/data/resume";
 import { fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 import { useActStore } from "@/hooks/useActStore";
+import { useScrollStore } from "@/hooks/useScrollStore";
 import { ArrowDown, ArrowRight } from "lucide-react";
 
 // Orchestrated reveal for the static list. `show` is the normal staggered
@@ -133,6 +134,68 @@ function ImmersiveTimeline({ total }: { total: number }) {
         setActive((prev) => (prev === next ? prev : next));
     });
 
+    // Keyboard focus rescue. In the pin a card's on-screen X is driven by
+    // vertical scroll, so tabbing to an off-viewport VIEW COMPANY would either
+    // fly the page 1000s of px with the focus ring invisible the whole flight,
+    // or strand the ring off-screen entirely. On focusin outside the viewport we
+    // jump the pin *immediately* to the progress that centers the focused node,
+    // so the ring is on-screen at once and tabbing lands as discrete stops
+    // (no scrub-through). Immediate == parity with the reduced-motion path.
+    const lenis = useScrollStore((state) => state.lenis);
+    useEffect(() => {
+        const section = targetRef.current;
+        if (!section) return;
+
+        const handleFocusIn = (event: FocusEvent) => {
+            const el = event.target as HTMLElement | null;
+            if (!el || !section.contains(el)) return;
+
+            const rect = el.getBoundingClientRect();
+            const onScreen =
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= window.innerHeight &&
+                rect.right <= window.innerWidth;
+            if (onScreen) return;
+
+            const node = el.closest<HTMLElement>("[data-node-index]");
+            const strip = node?.parentElement ?? null; // the x-translated flex row
+
+            const current = lenis ? lenis.scroll : window.scrollY;
+            const absTop = section.getBoundingClientRect().top + current;
+            const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
+            const p0 = Math.min(1, Math.max(0, (current - absTop) / scrollable));
+
+            // The row translates 0% → -70% of its own width across the pin, so a
+            // node's on-screen X is linear in progress: solve for the progress
+            // that centers THIS element horizontally (the outro spacer means the
+            // last node centers before progress 1, so a flat index/(N-1) map
+            // over-scrolls it off-screen). Fall back to the index map if the row
+            // can't be measured.
+            let progress: number;
+            if (strip && strip.offsetWidth > 0) {
+                const elCenter = rect.left + rect.width / 2;
+                progress =
+                    p0 +
+                    (elCenter - window.innerWidth / 2) / (0.7 * strip.offsetWidth);
+            } else {
+                const index = node ? Number(node.dataset.nodeIndex) : 0;
+                progress = total > 1 ? index / (total - 1) : 0;
+            }
+            progress = Math.min(1, Math.max(0, progress));
+            const y = absTop + progress * scrollable;
+
+            if (lenis) {
+                lenis.scrollTo(y, { immediate: true });
+            } else {
+                window.scrollTo(0, y);
+            }
+        };
+
+        section.addEventListener("focusin", handleFocusIn);
+        return () => section.removeEventListener("focusin", handleFocusIn);
+    }, [lenis, total]);
+
     return (
         <section ref={targetRef} className="relative h-[300vh]">
             <h2 className="sr-only">Experience</h2>
@@ -218,6 +281,7 @@ function TimelineNode({
 
     return (
         <div
+            data-node-index={index}
             className={
                 isHorizontal
                     ? "relative flex w-[82vw] shrink-0 flex-col justify-start sm:w-[80vw] md:w-[60vw] lg:w-[44vw]"

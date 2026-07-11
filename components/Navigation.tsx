@@ -235,9 +235,28 @@ export default function Navigation() {
 
             event.preventDefault();
             if (lenis) {
-                lenis.scrollTo(target, { offset: -8 });
+                // Distance-scaled duration: a fixed 0.9s warp teleport-blurs
+                // through everything on long jumps (top → contact peaked at
+                // ~42k px/s). Scale time with distance so near jumps stay
+                // snappy and far jumps read as a deliberate flight, sharing the
+                // same exp easing as the wheel so nothing fights the raf loop.
+                const distance = Math.abs(target.getBoundingClientRect().top);
+                lenis.scrollTo(target, {
+                    offset: -8,
+                    duration: Math.min(2.2, 0.9 + distance / 4500),
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                });
             } else {
-                target.scrollIntoView({ behavior: "smooth", block: "start" });
+                // No Lenis: either reduced-motion (jump instantly, matching the
+                // disabled-smoothing parity) or Lenis hasn't idle-initialised yet
+                // (a brief smooth native scroll is fine).
+                const reduce = window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches;
+                target.scrollIntoView({
+                    behavior: reduce ? "auto" : "smooth",
+                    block: "start",
+                });
             }
             window.history.replaceState(null, "", href);
         };
