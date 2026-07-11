@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 const SITE_URL = "https://jakecastillo.github.io";
 const TITLE = "Jake Castillo | Software Engineer";
 const DESCRIPTION =
-  "Full-stack software engineer in Honolulu modernizing government and enterprise systems — migrating legacy platforms to modern React, NestJS, and AWS.";
+  "Software engineer in Honolulu building reliable solutions across cloud, web, and platform systems — React, NestJS, AWS.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
   keywords: [
     "Jake Castillo",
     "Software engineer",
-    "Full-stack engineer",
-    "Legacy modernization",
+    "Solutions",
+    "Cloud architecture",
     "AWS",
     "React",
     "NestJS",
@@ -53,6 +53,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     type: "profile",
+    firstName: "Jake",
+    lastName: "Castillo",
+    username: "jakecastillo",
     url: SITE_URL,
     siteName: "Jake Castillo",
     title: TITLE,
@@ -81,7 +84,6 @@ export const metadata: Metadata = {
       { url: "/favicon.ico", sizes: "48x48" },
     ],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
-    shortcut: ["/favicon.ico"],
   },
   manifest: "/site.webmanifest",
   robots: { index: true, follow: true },
@@ -116,7 +118,7 @@ const jsonLd = {
         "@type": "CollegeOrUniversity",
         name: resumeData.education.institution,
       },
-      knowsAbout: ["Full-stack development", "Legacy modernization", "AWS", "React", "NestJS", "DevSecOps", "TypeScript"],
+      knowsAbout: ["Software engineering", "Solutions architecture", "Cloud architecture", "AWS", "React", "NestJS", "DevSecOps", "TypeScript"],
       sameAs: [resumeData.github, resumeData.linkedin],
     },
     {
