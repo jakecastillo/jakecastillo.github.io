@@ -3,11 +3,16 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { stageSections } from "@/data/sections";
-import { useActStore } from "@/hooks/useActStore";
+import { selectExpPinned, useActStore } from "@/hooks/useActStore";
 
 export default function StageManager() {
     const activeId = useActStore((s) => s.activeActId);
     const setActiveId = useActStore((s) => s.setActiveActId);
+    // Yield the fixed left rail while the Experience act is pinned: cards scrub
+    // across the full viewport (passing under x<130) and the act indicator would
+    // slice through them — and, on unpin, float over "THE STACK". Tucking it out
+    // for the whole pin also parks it well before unpin completes.
+    const pinned = useActStore(selectExpPinned);
 
     // Drive the marker straight from scrollYProgress — Lenis already eases the
     // scroll, so an extra useSpring would double-smooth into a floaty rail.
@@ -66,7 +71,12 @@ export default function StageManager() {
         // Nudged down from top-12 to clear the fixed header brand mark that now
         // sits at top-5 left-5; this keeps the act indicator from colliding with
         // it while staying aligned to the left gutter.
-        <div className="fixed top-24 left-12 z-40 hidden lg:block">
+        <motion.div
+            inert={pinned ? true : undefined}
+            animate={{ opacity: pinned ? 0 : 1, x: pinned ? -12 : 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed top-24 left-12 z-40 hidden lg:block"
+        >
             <div className="flex flex-col items-start gap-2">
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -102,6 +112,6 @@ export default function StageManager() {
                     />
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

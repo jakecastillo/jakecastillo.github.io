@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import MotionProvider from "@/components/MotionProvider";
 import GsapProvider from "@/components/beam/GsapProvider";
 import BootIgnition from "@/components/beam/BootIgnition";
+import BrandMark from "@/components/BrandMark";
 import TouchActive from "@/components/TouchActive";
 import { resumeData } from "@/data/resume";
 
@@ -165,36 +166,9 @@ export default function RootLayout({
           Skip to content
         </a>
 
-        {/* Persistent brand mark (orbital glyph wordmark) */}
-        <header className="fixed left-5 top-5 z-40">
-          <a
-            href="#home"
-            aria-label="Jake Castillo — home"
-            className="-m-2.5 flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full p-2.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
-          >
-            <svg width="26" height="26" viewBox="0 0 100 100" aria-hidden="true">
-              <defs>
-                <linearGradient id="brandmark" x1="0" y1="0" x2="0.7" y2="1">
-                  <stop offset="0%" stopColor="#a78bfa" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-              <circle cx="57" cy="23" r="7.5" fill="url(#brandmark)" />
-              <path
-                d="M57 37 L57 63 Q57 80 40 80 Q28 80 28 68"
-                fill="none"
-                stroke="url(#brandmark)"
-                strokeWidth="13"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="73" cy="73" r="7.5" fill="#2dd4bf" />
-            </svg>
-            <span className="hidden font-mono text-xs uppercase tracking-[0.3em] text-foreground/80 sm:inline">
-              Jake Castillo
-            </span>
-          </a>
-        </header>
+        {/* Persistent brand mark (orbital glyph wordmark) + top scrim.
+            Client component: yields the wordmark while the Experience act is pinned. */}
+        <BrandMark />
 
         <MotionProvider>
           <BootIgnition />

@@ -12,7 +12,8 @@ import {
 import { resumeData, type Job } from "@/data/resume";
 import { fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
-import { ArrowRight } from "lucide-react";
+import { useActStore } from "@/hooks/useActStore";
+import { ArrowDown, ArrowRight } from "lucide-react";
 
 // Orchestrated reveal for the static list. `show` is the normal staggered
 // entrance; `instant` is the arrival-snap / reduced-motion path — useReveal's
@@ -99,7 +100,7 @@ function StaticTimeline({ total }: { total: number }) {
                 />
                 {resumeData.experience.map((job, index) => (
                     <motion.li key={index} variants={itemVariants}>
-                        <TimelineNode job={job} index={index} total={total} variant="vertical" />
+                        <TimelineNode job={job} index={index} variant="vertical" />
                     </motion.li>
                 ))}
             </motion.ol>
@@ -115,6 +116,16 @@ function ImmersiveTimeline({ total }: { total: number }) {
     const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
     const headLeft = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
+    // Announce to the chrome-yield choreography (dock / act rail / brand
+    // wordmark) that the PINNED experience is live, so fixed chrome can slide
+    // out of the collision zone while this act is scrubbed. Cleared on unmount
+    // so the calm static fallback never triggers the auto-hide.
+    const setExpImmersive = useActStore((s) => s.setExpImmersive);
+    useEffect(() => {
+        setExpImmersive(true);
+        return () => setExpImmersive(false);
+    }, [setExpImmersive]);
+
     // Map scroll progress → active node index for the "NN / TT" counter.
     const [active, setActive] = useState(0);
     useMotionValueEvent(scrollYProgress, "change", (latest) => {
@@ -125,16 +136,24 @@ function ImmersiveTimeline({ total }: { total: number }) {
     return (
         <section ref={targetRef} className="relative h-[300vh]">
             <h2 className="sr-only">Experience</h2>
-            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-                {/* Progress + node counter: shows how many entries exist and where you are. */}
-                <div className="container-page absolute inset-x-0 bottom-6 z-20 flex flex-col gap-3 lg:bottom-12">
+            {/* pb reserves the bottom lane for the progress row so vertically
+                centered cards never scrub into it (chrome gets an exclusive lane). */}
+            <div className="sticky top-0 flex h-screen items-center overflow-hidden pb-24 lg:pb-28">
+                {/* Progress + node counter: shows how many entries exist and where you are.
+                    Hugs the bottom edge (bottom-6, no lg lift) so the tallest case-study
+                    card — which can exceed a short viewport — keeps its in-card VIEW
+                    COMPANY clear of the "SCROLL TO EXPLORE" label. The dock yields this
+                    lane during the pin, so nothing competes for the bottom band. */}
+                <div className="container-page absolute inset-x-0 bottom-6 z-20 flex flex-col gap-3">
                     <div className="flex items-center justify-between font-mono text-xs tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-2">
-                            SCROLL TO EXPLORE <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                            SCROLL TO EXPLORE <ArrowDown className="h-4 w-4" aria-hidden="true" />
                         </span>
+                        {/* aria-label only (no aria-live) — the counter is a static
+                            queryable label, not an announcement stream that would
+                            fire on every scrub tick. */}
                         <span
                             className="tabular-nums"
-                            aria-live="polite"
                             aria-label={`Role ${format(active + 1)} of ${format(total)}`}
                         >
                             <motion.span
@@ -170,7 +189,7 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     <div className="w-0 shrink-0 md:w-[8vw]" />
 
                     {resumeData.experience.map((job, index) => (
-                        <TimelineNode key={index} job={job} index={index} total={total} variant="horizontal" />
+                        <TimelineNode key={index} job={job} index={index} variant="horizontal" />
                     ))}
 
                     {/* Outro spacer — wide enough to fully reveal the last node at -70% */}
@@ -188,12 +207,10 @@ function format(n: number) {
 function TimelineNode({
     job,
     index,
-    total,
     variant,
 }: {
     job: Job;
     index: number;
-    total: number;
     variant: "horizontal" | "vertical";
 }) {
     const numeral = format(index + 1);
@@ -220,10 +237,13 @@ function TimelineNode({
             {/* Readability scrim: luminance-elevated surface (subtle border + tint)
                 keeps muted text ≥4.5:1 even over the bright orb core. */}
             <div className="rounded-xl border border-border-subtle bg-surface/80 p-8 backdrop-blur-sm">
-                {/* Role / period / company hierarchy — reads as a STAR case-study header */}
+                {/* Role / period / company hierarchy — reads as a STAR case-study header.
+                    The role numeral lives on the bottom progress counter (and the
+                    watermark), so the eyebrow carries the period alone — no doubled
+                    "NN / TT" label competing with the counter. */}
                 <header className="mb-6 flex flex-col gap-2">
                     <span className="font-mono text-xs uppercase tracking-[0.2em] text-subtle-foreground">
-                        {job.period} <span className="text-subtle-foreground">· {numeral} / {format(total)}</span>
+                        {job.period}
                     </span>
                     <h3 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground text-glow">
                         {job.title}
@@ -250,18 +270,21 @@ function TimelineNode({
                         </li>
                     ))}
                 </ul>
-            </div>
 
-            {job.companyUrl && (
-                <a
-                    href={job.companyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-mono text-sm tracking-wider text-white transition-[color,background-color,transform] duration-150 hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
-                >
-                    VIEW COMPANY <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-            )}
+                {/* VIEW COMPANY lives INSIDE the scrim panel so it can never float
+                    below the card and graze the viewport bottom / collide with the
+                    fixed progress row's "SCROLL TO EXPLORE" label as cards scrub. */}
+                {job.companyUrl && (
+                    <a
+                        href={job.companyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-mono text-sm tracking-wider text-white transition-[color,background-color,transform] duration-150 hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+                    >
+                        VIEW COMPANY <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
+                )}
+            </div>
 
             {/* Faint watermark numeral — kept subtle behind the content */}
             <div

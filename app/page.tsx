@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Cloud, GraduationCap, Github, Mail, MapPin } from "lucide-react";
 import { fadeUp, heroCascade, heroChild, heroStagger, heroTerminal } from "@/components/motion";
 import TerminalTyping from "@/components/TerminalTyping";
@@ -26,6 +26,13 @@ export default function Home() {
   const bootDone = useBeamStore((s) => s.bootDone);
   const bootPlayed = useBeamStore((s) => s.bootPlayed);
   const heroState = bootDone ? "show" : "hidden";
+
+  // Fade the hero SCROLL cue out over the first sliver of scroll: it shares the
+  // left gutter with the fixed act rail, so once the page moves the rail owns
+  // that lane and the cue must clear it (scroll-linked, so it stays calm under
+  // reduced motion — opacity only).
+  const { scrollY } = useScroll();
+  const scrollCueOpacity = useTransform(scrollY, [0, 160], [1, 0]);
 
   return (
     <div className="relative w-full">
@@ -159,9 +166,7 @@ export default function Home() {
         {/* Scroll indicator — offset to the left gutter so it clears the
             centered quick-nav dock (which owns the bottom-center lane). */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9, duration: 0.4 }}
+          style={{ opacity: scrollCueOpacity }}
           aria-hidden="true"
           className="absolute bottom-8 left-6 flex flex-col items-center gap-2 text-muted-foreground sm:left-10 lg:left-12"
         >

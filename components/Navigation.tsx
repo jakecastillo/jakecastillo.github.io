@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { navSections, sections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
+import { selectExpPinned, useActStore } from "@/hooks/useActStore";
 
 // All section ids we observe to determine what's in view. Every section is now
 // a dock item (home, about, exp, skills, contact), so the active-section
@@ -220,6 +221,10 @@ export default function Navigation() {
     const lenis = useScrollStore((state) => state.lenis);
     const enableMotion = useEnableMotion();
     const activeId = useActiveSection();
+    // While the Experience act is pinned + scrubbed, the dock shares the
+    // bottom-center lane with the act's own progress row. Yield: slide down +
+    // fade so the progress bar / hot head own that lane, then breathe back in.
+    const pinned = useActStore(selectExpPinned);
 
     const handleNavClick =
         (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -243,10 +248,16 @@ export default function Navigation() {
         // independent of) the terminal boot animation finishing.
         <motion.nav
             aria-label="Primary"
+            // React 19 `inert` fully removes the yielded dock from pointer + tab
+            // + a11y trees, so it can't catch clicks meant for the pinned act or
+            // trap keyboard focus behind an invisible chrome layer.
+            inert={pinned ? true : undefined}
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: pinned ? 0 : 1, y: pinned ? 28 : 0 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center sm:bottom-[calc(2rem+env(safe-area-inset-bottom))]"
+            className={`fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex -translate-x-1/2 flex-col items-center sm:bottom-[calc(2rem+env(safe-area-inset-bottom))] ${
+                pinned ? "pointer-events-none" : "pointer-events-auto"
+            }`}
         >
             {/* The current section is surfaced as the ACTIVE dock item's inline
                 label (visible on touch + desktop), so no separate chip floats
