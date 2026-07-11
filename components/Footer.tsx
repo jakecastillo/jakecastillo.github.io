@@ -6,7 +6,11 @@ export default function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer className="relative z-10 border-t border-border-subtle">
-      <div className="container-page flex flex-col items-center justify-between gap-5 pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:flex-row md:pb-10">
+      {/* Bottom padding clears the fixed dock at EVERY width (the dock exists
+          at all breakpoints; at 768 the centered dock band otherwise buries the
+          copyright line): dock offset (1rem, sm+: 2rem) + ~62px band +
+          breathing room, plus the same safe-area inset the dock adds. */}
+      <div className="container-page flex flex-col items-center justify-between gap-5 pt-10 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:flex-row sm:pb-[calc(8rem+env(safe-area-inset-bottom))]">
         <p className="font-mono text-xs text-subtle-foreground">
           © {year} Jake Castillo · Built with Next.js &amp; Three.js
         </p>
