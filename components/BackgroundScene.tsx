@@ -77,6 +77,18 @@ export default function BackgroundScene() {
         <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none">
             {/* Always-present ambient backdrop (also the reduced-motion / low-end fallback) */}
             <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
+            {/* Site-wide schematic grid (jc-wpd): the 40px texture that used to
+                live only in Act V, promoted UNDER the aurora as a whisper.
+                --border lines (10% white) at 0.12 layer opacity ≈ 1.2%
+                effective white — sub-1.5%, static CSS, zero motion. */}
+            <div
+                className="absolute inset-0 opacity-[0.12]"
+                style={{
+                    backgroundImage:
+                        "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+                    backgroundSize: "40px 40px",
+                }}
+            />
             {/* Ambient aurora — drifting glows that make the whole backdrop feel alive,
                 visible from first paint and on mobile (where the WebGL holo is gated off). */}
             <div className="aurora">

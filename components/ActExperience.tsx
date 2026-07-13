@@ -325,8 +325,10 @@ function TimelineNode({
             />
 
             {/* Readability scrim: luminance-elevated surface (subtle border + tint)
-                keeps muted text ≥4.5:1 even over the bright orb core. */}
-            <div className="rounded-xl border border-border-subtle bg-surface/80 p-8 backdrop-blur-sm">
+                keeps muted text ≥4.5:1 even over the bright orb core. surface/90
+                (jc-wpd): off-stage cards at the pin's viewport edge exit as a
+                dim surface, not raw text bleeding over the previous card. */}
+            <div className="rounded-xl border border-border-subtle bg-surface/90 p-8 backdrop-blur-sm">
                 {/* Role / period / company hierarchy — reads as a STAR case-study header.
                     The role numeral lives on the bottom progress counter (and the
                     watermark), so the eyebrow carries the period alone — no doubled

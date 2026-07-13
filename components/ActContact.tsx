@@ -102,17 +102,9 @@ export default function ActContact() {
                 paddingBottom: "calc(8rem + env(safe-area-inset-bottom))",
             }}
         >
-            {/* Background grid — decorative */}
-            <div
-                aria-hidden="true"
-                className="absolute inset-0 opacity-10 pointer-events-none"
-                style={{
-                    backgroundImage:
-                        "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-                    backgroundSize: "40px 40px",
-                }}
-            />
-
+            {/* The 40px grid texture is now a SITE-WIDE atmosphere layer
+                (BackgroundScene, jc-wpd) — the act-local copy is gone so the
+                texture reads as one world, not a one-act flourish. */}
             <Container className="relative z-10 w-full max-w-5xl">
                 {/* Asymmetric focal hierarchy: heading + intent on the left, action stack weighted right */}
                 <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.1fr_minmax(0,1fr)] md:gap-16">
