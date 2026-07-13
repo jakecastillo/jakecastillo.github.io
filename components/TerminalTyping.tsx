@@ -591,11 +591,10 @@ $ `;
                 standing hint at the genuinely fun command set, so the discovery
                 surface is always visible without any input. */}
             <div className="mt-1.5 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-wider text-subtle-foreground select-none">
-              <span className="flex items-center gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(45,212,191,0.6)]"
-                />
+              {/* Both readout spans are decorative for AT — the input's
+                  placeholder already carries the 'help' hint accessibly. */}
+              <span aria-hidden="true" className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(45,212,191,0.6)]" />
                 signal: live
               </span>
               <span aria-hidden="true" className="truncate">
