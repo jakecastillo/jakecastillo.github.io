@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { useBeamAnchors } from "@/hooks/useBeamAnchors";
 
 // Code-split the heavy Three.js scene out of the initial bundle and never let
 // it block first paint / LCP. Reduced-motion AND low-end / mobile users get a
@@ -34,6 +35,11 @@ export default function BackgroundScene() {
     // Computed once via lazy init (read outside render-time mutation). Safe on
     // the server, where it resolves to the static `false` fallback.
     const [lowPower] = useState(detectLowPower);
+
+    // DOM-side anchor measurement for the beam ribbon: projects the acts'
+    // real layout anchors to plain data the Canvas reads via getState-style
+    // access inside useFrame (no React state per scroll tick).
+    useBeamAnchors();
 
     useEffect(() => {
         // Skip WebGL entirely only for genuinely constrained devices (data-saver

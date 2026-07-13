@@ -13,6 +13,9 @@ export default function Beacon() {
     return (
         <div
             aria-hidden="true"
+            // Beam anchor: the ribbon's terminus parks on this element's
+            // center (the beacon behind the CTA card) — never below the fold.
+            data-beam-anchor="beacon"
             className="pointer-events-none absolute inset-0 -z-10 overflow-visible"
         >
             {/* Violet beacon swell */}

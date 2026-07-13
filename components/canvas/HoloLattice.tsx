@@ -158,10 +158,13 @@ export default function HoloLattice({
     if (!g) return;
     const t = state.clock.getElapsedTime();
     const m = matRef.current;
-    if (m) m.uniforms.uTime.value = t;
+    // Reduced motion renders whenever the scroll-pinned beam needs a frame
+    // (see LoopDriver) — freeze uTime there so the lattice stays a truly
+    // static lit frame instead of shimmering on scroll.
+    if (m && !reduced) m.uniforms.uTime.value = t;
 
     if (reduced) {
-      // Static LIT frame (frameloop is "never"/one-shot for this path anyway).
+      // Static LIT frame (rendered on demand only for this path).
       g.rotation.set(0.5, 0.6, 0);
       g.scale.setScalar(1);
       return;

@@ -83,6 +83,9 @@ export default function PrismBands({ count = 8 }: { count?: number }) {
                 r="3"
                 fill="#a78bfa"
                 className="prism-vertex"
+                // Beam anchor: the ribbon's head lands on the prism vertex as
+                // the stack act enters (measured by useBeamAnchors).
+                data-beam-anchor="prism"
             />
             {/* Fanned bands */}
             {bands.map((b, i) => (

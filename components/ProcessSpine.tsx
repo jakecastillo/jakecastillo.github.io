@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import {
     motion,
     useReducedMotion,
@@ -44,11 +44,21 @@ function SpineNode({
     drawn: MotionValue<number>;
     reduced: boolean;
 }) {
-    const nodeOpacity = useTransform(
-        drawn,
-        [i / count, (i + 0.5) / count],
-        [0.25, 1],
+    // Once-lit latch (beam memory): the dot ignites as the drawn rail reaches
+    // its fraction and STAYS lit when the rail retreats on scroll-back — the
+    // story doesn't un-happen. `lit` only ever ratchets forward.
+    const lit = useRef(0);
+    const mapOpacity = useCallback(
+        (v: number) => {
+            lit.current = Math.max(lit.current, v);
+            const start = i / count;
+            const span = 0.5 / count;
+            const t = Math.min(Math.max((lit.current - start) / span, 0), 1);
+            return 0.25 + 0.75 * t;
+        },
+        [i, count],
     );
+    const nodeOpacity = useTransform(drawn, mapOpacity);
     const node = useReveal<HTMLLIElement>();
 
     return (
@@ -113,6 +123,9 @@ export default function ProcessSpine({ steps }: { steps: ProcessStep[] }) {
     return (
         <ol
             ref={ref}
+            // Beam anchor: useBeamAnchors measures this list's rect — the
+            // ribbon's arrival keyframe lands on the rail's top node.
+            data-beam-anchor="spine"
             className="relative flex flex-col gap-10 pl-8 sm:gap-12 sm:pl-10"
         >
             {/* Rail track (faint, full height) */}

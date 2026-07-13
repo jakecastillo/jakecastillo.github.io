@@ -7,6 +7,7 @@ import { EffectComposer, Bloom, Noise } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import HoloLattice from "./canvas/HoloLattice";
 import BeamRibbon from "./canvas/BeamRibbon";
+import { getBeamAnchorFrame } from "@/hooks/useBeamAnchors";
 import { damp } from "./canvas/anim";
 
 interface SceneProps {
@@ -43,10 +44,32 @@ function LoopDriver({ fps, idleFps, reducedMotion }: { fps: number; idleFps: num
     const invalidate = useThree((s) => s.invalidate);
 
     useEffect(() => {
-        // Reduced motion: render exactly ONE (static, lit) frame, then idle.
+        // Reduced motion: render static, lit frames — one at mount, then only
+        // when the beam must stay glued to the content: on scroll (the ribbon
+        // mesh translates with the document; scroll-linked position, not
+        // animation — time uniforms are frozen on this path) and on anchor
+        // re-measures (resize/layout). Idle otherwise.
         if (reducedMotion) {
             invalidate();
-            return;
+            let raf = 0;
+            const onScroll = () => {
+                cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(() => invalidate());
+            };
+            window.addEventListener("scroll", onScroll, { passive: true });
+            let anchorVersion = getBeamAnchorFrame().version;
+            const versionPoll = setInterval(() => {
+                const v = getBeamAnchorFrame().version;
+                if (v !== anchorVersion) {
+                    anchorVersion = v;
+                    invalidate();
+                }
+            }, 250);
+            return () => {
+                cancelAnimationFrame(raf);
+                window.removeEventListener("scroll", onScroll);
+                clearInterval(versionPoll);
+            };
         }
 
         let raf = 0;
@@ -73,13 +96,27 @@ function LoopDriver({ fps, idleFps, reducedMotion }: { fps: number; idleFps: num
             io.observe(hero);
         }
 
+        // The beam ribbon is pinned to the document (it translates with
+        // scroll), so any scroll movement needs the FULL frame rate to stay
+        // visually glued to the 60fps content — the idle throttle only kicks
+        // in once the page has been still for a beat below the hero.
+        let lastScrollY = -1;
+        let lastScrollMove = 0;
+
         const tick = (t: number) => {
             raf = requestAnimationFrame(tick);
             if (!visible.current) return; // tab hidden → nothing to render offscreen
+            const y = window.scrollY;
+            if (y !== lastScrollY) {
+                lastScrollY = y;
+                lastScrollMove = t;
+            }
+            const active =
+                heroOnScreen.current || t - lastScrollMove < 250;
             // Sub-frame tolerance (the -4): a bare 1000/rate gate skips native rAF
             // ticks arriving fractionally early, dropping ~1/3 of frames. Use the
-            // lower idle rate once the holo is scrolled past the hero.
-            const interval = 1000 / (heroOnScreen.current ? fps : idleFps) - 4;
+            // lower idle rate once the page is still below the hero.
+            const interval = 1000 / (active ? fps : idleFps) - 4;
             if (t - last < interval) return;
             last = t;
             invalidate();
