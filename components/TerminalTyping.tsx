@@ -386,7 +386,7 @@ $ `;
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.1, ease: [0.25, 0.4, 0.25, 1] }}
+      transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       onAnimationComplete={() => {
         if (phase !== "opening") return;
         if (prefersReducedMotion) {

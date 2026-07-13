@@ -57,6 +57,17 @@
 
   --font-mono: var(--font-geist-mono);
   --font-sans: var(--font-geist-sans);
+
+  /* ---- System vocabulary (jc-nc1) ------------------------------------- */
+  /* ONE easing grammar: the brand expo-out. Every CSS transition, framer
+     tween (components/motion.ts EASE) and GSAP tween (CustomEase "beam",
+     registered in EtchHeading) resolves to this same curve. */
+  --ease-beam: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Radius ladder — the only three corner voices on the page. Derived from
+     the existing rounded-3xl / rounded-xl / rounded-full values in use. */
+  --radius-panel: 1.5rem;   /* act panels, hero card */
+  --radius-card: 0.75rem;   /* cards, rows, tooltips-as-cards */
+  --radius-control: 9999px; /* pills, buttons, chips, dock */
 }
 
 @theme inline {
@@ -85,6 +96,13 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* One timing grammar for every transition utility: Tailwind's Material
+     default (150ms cubic-bezier(0.4,0,0.2,1)) is replaced by the brand
+     expo-out at 200ms, so hover chrome across the page shares one curve
+     family with the framer/GSAP reveals (jc-nc1). */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: var(--ease-beam);
 
   /* Fluid, rem-anchored display scale (min @ ~360px, max @ ~1440px).
      rem min/max means Cmd/Ctrl+ zoom still enlarges the text. Existing
@@ -170,11 +188,11 @@ h1, h2, h3 {
   background: var(--surface-overlay);
   color: var(--foreground);
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   font-family: var(--font-mono), monospace;
   font-size: 0.875rem;
   transform: translateY(-150%);
-  transition: transform 0.18s ease-out;
+  transition: transform 0.2s var(--ease-beam);
 }
 .skip-link:focus { transform: translateY(0); }
 
@@ -207,7 +225,7 @@ h1, h2, h3 {
    mostly-opaque surface so text stays >= 4.5:1 even if backdrop-filter is a
    no-op (forced-colors, older engines). One class so the look tunes in one place. */
 .panel {
-  border-radius: 1.5rem;
+  border-radius: var(--radius-panel);
   border: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   -webkit-backdrop-filter: blur(8px);
@@ -264,7 +282,7 @@ h1, h2, h3 {
   background: var(--primary);
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s var(--ease-beam);
 }
 .link-underline:hover::after,
 .link-underline:focus-visible::after {
@@ -287,7 +305,7 @@ h1, h2, h3 {
   background: var(--primary);
   transform: scaleX(0);
   transform-origin: right center;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s var(--ease-beam);
 }
 .group:hover .link-underline-onhover::after,
 .group:focus-visible .link-underline-onhover::after {
@@ -320,7 +338,7 @@ h1, h2, h3 {
 @media (hover: hover) {
   .cta-sheen:hover::before {
     transform: translateX(120%);
-    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.55s var(--ease-beam);
   }
 }
 

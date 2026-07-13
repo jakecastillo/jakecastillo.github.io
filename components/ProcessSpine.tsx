@@ -9,11 +9,10 @@ import {
     type MotionValue,
     type Variants,
 } from "framer-motion";
+import { DUR, EASE, STAGGER } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 
 export type ProcessStep = { index: string; title: string; body: string };
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Cheap node entrance (opacity/y). The scrubbed rail + dot ignition below is a
 // separate scroll-linked system and is left untouched.
@@ -22,7 +21,7 @@ const nodeReveal: Variants = {
     show: (delay: number = 0) => ({
         opacity: 1,
         y: 0,
-        transition: { duration: 0.4, ease: EASE, delay },
+        transition: { duration: DUR.base, ease: EASE, delay },
     }),
 };
 
@@ -64,7 +63,7 @@ function SpineNode({
     return (
         <motion.li
             variants={nodeReveal}
-            custom={i * 0.04}
+            custom={i * STAGGER.tight}
             {...node}
             className="relative"
         >

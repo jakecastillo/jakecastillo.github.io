@@ -6,16 +6,15 @@ import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
 import ArchitectureSchematic from "@/components/ArchitectureSchematic";
 import EtchHeading from "@/components/beam/EtchHeading";
 import ManifestoReveal from "@/components/beam/ManifestoReveal";
+import { DUR, EASE } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Cheap opacity/y reveal; the arrival-snap + re-fire wiring lives in useReveal.
 // (ManifestoReveal below is a separate GSAP scrubbed system that reverses on its
 // own — the outer fade here is independent of it.)
 const reveal: Variants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
+    show: { opacity: 1, y: 0, transition: { duration: DUR.base, ease: EASE } },
 };
 
 // "Build Where the Risk Lives" — general software-solutions + innovator process.
@@ -54,8 +53,10 @@ export default function ActPhilosophy() {
                 {...belief}
                 className="panel flex flex-col p-8 sm:p-12 lg:p-16"
             >
-                <p className="mb-5 font-mono text-xs uppercase tracking-[0.35em] text-primary">
-                    02 / approach
+                {/* ONE eyebrow spec (jc-nc1); the act number lives on the stage
+                    rail alone — no doubled "02". */}
+                <p className="mb-5 font-mono text-xs uppercase tracking-[0.3em] text-primary">
+                    approach
                 </p>
                 <ManifestoReveal className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere] sm:text-7xl lg:text-8xl">
                     ENGINEER THE

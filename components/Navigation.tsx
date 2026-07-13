@@ -94,13 +94,11 @@ function MagneticButton({
     return (
         <motion.div style={{ x, y }} className="group relative">
             {/* Tooltip — visible on hover AND keyboard focus for discoverability.
-                The label/indicator swap is intentionally asymmetric: the resting
-                (exit) state carries a shorter duration (120ms) than the
-                hover/focus (enter) state (180ms), so it leaves slightly faster
-                than it arrives. */}
+                Rides the shared 200ms/--ease-beam transition default (jc-nc1):
+                one timing grammar with the rest of the chrome. */}
             <span
                 role="tooltip"
-                className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-foreground opacity-0 translate-y-1 shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-all duration-[120ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:duration-[180ms] group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:duration-[180ms] coarse:hidden"
+                className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-foreground opacity-0 translate-y-1 shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-all group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0 coarse:hidden"
             >
                 {label}
             </span>
@@ -113,10 +111,10 @@ function MagneticButton({
                 onMouseMove={handleMove}
                 onMouseLeave={reset}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors ease-out active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay ${
+                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay ${
                     isActive
-                        ? "bg-primary-muted px-3 text-primary duration-200 hover:bg-primary-muted lg:px-4"
-                        : "w-11 min-w-[44px] text-muted-foreground duration-[140ms] hover:text-primary"
+                        ? "bg-primary-muted px-3 text-primary hover:bg-primary-muted lg:px-4"
+                        : "w-11 min-w-[44px] text-muted-foreground hover:text-primary"
                 }`}
             >
                 <motion.span style={{ x: iconX, y: iconY }} className="inline-flex">
@@ -139,10 +137,8 @@ function MagneticButton({
                 {/* Active indicator dot beneath the icon. */}
                 <span
                     aria-hidden="true"
-                    className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity ease-out ${
-                        isActive
-                            ? "opacity-100 duration-200"
-                            : "opacity-0 duration-[140ms]"
+                    className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity ${
+                        isActive ? "opacity-100" : "opacity-0"
                     }`}
                 />
             </Link>

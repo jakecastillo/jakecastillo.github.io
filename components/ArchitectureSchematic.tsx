@@ -75,7 +75,7 @@ export default function ArchitectureSchematic() {
                     {platform.map((b) => (
                         <div
                             key={b.label}
-                            className="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface/60 px-3 py-3 text-sm text-muted-foreground"
+                            className="flex items-center gap-2 rounded-xl border border-border-subtle bg-surface/60 px-3 py-3 text-sm text-muted-foreground"
                         >
                             <b.icon
                                 size={16}
@@ -88,7 +88,7 @@ export default function ArchitectureSchematic() {
                 </div>
 
                 {/* The bet — isolated, accent-glowing module behind a clean seam */}
-                <div className="mt-3 flex items-center gap-3 rounded-lg border border-primary/50 bg-primary-muted px-3 py-3 text-sm text-foreground glow-primary">
+                <div className="mt-3 flex items-center gap-3 rounded-xl border border-primary/50 bg-primary-muted px-3 py-3 text-sm text-foreground glow-primary">
                     <Sparkles
                         size={16}
                         strokeWidth={1.75}

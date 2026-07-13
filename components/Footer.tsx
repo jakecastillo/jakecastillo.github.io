@@ -23,7 +23,7 @@ export default function Footer() {
               rel={l.external ? "noopener noreferrer" : undefined}
               download={l.download || undefined}
               aria-label={l.label}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-subtle-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-subtle-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
             >
               <l.icon size={18} strokeWidth={1.6} aria-hidden="true" />
             </a>

@@ -10,7 +10,7 @@ import {
     type Variants,
 } from "framer-motion";
 import { resumeData, type Job } from "@/data/resume";
-import { fadeRight, staggerContainer } from "@/components/motion";
+import { DUR, EASE, fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 import { selectExpPinned, useActStore } from "@/hooks/useActStore";
 import { useScrollStore } from "@/hooks/useScrollStore";
@@ -96,7 +96,7 @@ function StaticTimeline({ total }: { total: number }) {
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: false, amount: 0.1 }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: DUR.slow, ease: EASE }}
                     className="pointer-events-none absolute left-0 top-0 bottom-0 w-px origin-top bg-primary glow-primary"
                 />
                 {resumeData.experience.map((job, index) => (
@@ -229,7 +229,7 @@ function ImmersiveTimeline({ total }: { total: number }) {
                                 key={active}
                                 initial={{ opacity: 0.4, textShadow: "0 0 12px rgba(139,92,246,0.9)" }}
                                 animate={{ opacity: 1, textShadow: "0 0 0px rgba(139,92,246,0)" }}
-                                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                transition={{ duration: DUR.base, ease: EASE }}
                                 className="inline-block text-foreground"
                             >
                                 {format(active + 1)}
@@ -363,13 +363,15 @@ function TimelineNode({
 
                 {/* VIEW COMPANY lives INSIDE the scrim panel so it can never float
                     below the card and graze the viewport bottom / collide with the
-                    fixed progress row's "SCROLL TO EXPLORE" label as cards scrub. */}
+                    fixed progress row's "SCROLL TO EXPLORE" label as cards scrub.
+                    Voice: the ONE secondary CTA (mono uppercase GHOST pill) — the
+                    filled violet pill is reserved for the primary ask (jc-nc1). */}
                 {job.companyUrl && (
                     <a
                         href={job.companyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-mono text-sm tracking-wider text-white transition-[color,background-color,transform] duration-150 hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+                        className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
                     >
                         VIEW COMPANY <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </a>

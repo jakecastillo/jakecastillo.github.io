@@ -5,8 +5,14 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
+import { CustomEase } from "gsap/CustomEase";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
+gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText, CustomEase);
+
+// ONE easing grammar (jc-nc1): register the brand expo-out as a named GSAP
+// ease so GSAP tweens share the exact curve of --ease-beam / motion.ts EASE.
+// CustomEase.create is idempotent for a given id (re-registering overwrites).
+CustomEase.create("beam", "0.16, 1, 0.3, 1");
 
 /**
  * Section-heading reveal: lines rise out of a mask as the beam "etches" them,
@@ -17,8 +23,8 @@ gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
  * uncoordinated owners (framer fade + this GSAP timeline) raced and left the
  * lines never moving while the hairline swept alone. The optional `eyebrow`
  * rides the SAME timeline so the label + lines + hairline are one deterministic
- * sequence: eyebrow 0-0.25s, lines from 0.1s (0.7s, stagger 0.09), hairline at
- * "-=0.35".
+ * sequence: eyebrow 0-0.2s, lines from 0.1s (0.7s, stagger 0.08), hairline at
+ * "-=0.35". All tweens ride the "beam" CustomEase (jc-nc1).
  *
  * The tweens are built INSIDE onSplit per the GSAP 3.13+ autoSplit contract: a
  * re-split (font load / resize) rebuilds a fresh timeline against the new line
@@ -114,8 +120,8 @@ export default function EtchHeading({
                             {
                                 opacity: 0,
                                 y: 14,
-                                duration: 0.25,
-                                ease: "power2.out",
+                                duration: 0.2,
+                                ease: "beam",
                             },
                             0,
                         );
@@ -125,8 +131,8 @@ export default function EtchHeading({
                         {
                             yPercent: 110,
                             duration: 0.7,
-                            ease: "power4.out",
-                            stagger: 0.09,
+                            ease: "beam",
+                            stagger: 0.08,
                         },
                         0.1,
                     );
@@ -134,7 +140,7 @@ export default function EtchHeading({
                         tl.fromTo(
                             etch,
                             { scaleX: 0 },
-                            { scaleX: 1, duration: 0.5, ease: "power4.out" },
+                            { scaleX: 1, duration: 0.4, ease: "beam" },
                             "-=0.35",
                         );
                     }

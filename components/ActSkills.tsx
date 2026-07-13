@@ -15,11 +15,10 @@ import {
 import Container from "@/components/Container";
 import EtchHeading from "@/components/beam/EtchHeading";
 import PrismBands, { bandColor, bandColorA } from "@/components/beam/PrismBands";
+import { DUR, EASE, STAGGER } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 import { TechIcon } from "@/components/TechIcon";
 import { resumeData } from "@/data/resume";
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 // --- Band-arrival reveal vocabulary -----------------------------------------
 // Each skill group is an orchestrated container: its band-colored top border
@@ -29,17 +28,22 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 // fully composed state with zero animation (see hooks/useReveal.ts).
 const landGroup: Variants = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
+    show: {
+        transition: {
+            staggerChildren: STAGGER.base,
+            delayChildren: STAGGER.tight,
+        },
+    },
     instant: { transition: { staggerChildren: 0, delayChildren: 0 } },
 };
 const landLine: Variants = {
     hidden: { scaleX: 0 },
-    show: { scaleX: 1, transition: { duration: 0.55, ease: EASE } },
+    show: { scaleX: 1, transition: { duration: DUR.slow, ease: EASE } },
     instant: { scaleX: 1, transition: { duration: 0 } },
 };
 const landChild: Variants = {
     hidden: { opacity: 0, y: 14 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE } },
+    show: { opacity: 1, y: 0, transition: { duration: DUR.base, ease: EASE } },
     instant: { opacity: 1, y: 0, transition: { duration: 0 } },
 };
 
@@ -47,17 +51,22 @@ const landChild: Variants = {
 // the two seals stagger in (0.08) — never lockstep, never remounted.
 const certRow: Variants = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+    show: {
+        transition: {
+            staggerChildren: STAGGER.base,
+            delayChildren: STAGGER.tight,
+        },
+    },
     instant: { transition: { staggerChildren: 0, delayChildren: 0 } },
 };
 const certRailH: Variants = {
     hidden: { scaleX: 0 },
-    show: { scaleX: 1, transition: { duration: 0.8, ease: EASE } },
+    show: { scaleX: 1, transition: { duration: DUR.slow, ease: EASE } },
     instant: { scaleX: 1, transition: { duration: 0 } },
 };
 const certRailV: Variants = {
     hidden: { scaleY: 0 },
-    show: { scaleY: 1, transition: { duration: 0.8, ease: EASE } },
+    show: { scaleY: 1, transition: { duration: DUR.slow, ease: EASE } },
     instant: { scaleY: 1, transition: { duration: 0 } },
 };
 const certSeal: Variants = {
@@ -66,7 +75,7 @@ const certSeal: Variants = {
         opacity: 1,
         y: 0,
         scale: 1,
-        transition: { duration: 0.5, ease: EASE },
+        transition: { duration: DUR.base, ease: EASE },
     },
     instant: { opacity: 1, y: 0, scale: 1, transition: { duration: 0 } },
 };
@@ -128,11 +137,14 @@ export default function ActSkills() {
 
             <Container className="relative z-10">
                 {/* Offset oversized heading — overhangs the grid for asymmetric tension. */}
+                {/* Act-opener grammar (jc-nc1): caps black display, violet on the
+                    claim line; ONE eyebrow spec; the act number lives on the
+                    stage rail alone — no doubled "04". */}
                 <EtchHeading
                     as="h2"
-                    className="text-7xl font-bold tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
-                    eyebrow="04 / stack"
-                    eyebrowClassName="text-xs font-mono tracking-[0.25em] text-primary mb-4"
+                    className="text-7xl font-black uppercase tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
+                    eyebrow="stack"
+                    eyebrowClassName="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4"
                     wrapperClassName="mb-16 max-w-3xl"
                 >
                     THE
@@ -182,7 +194,7 @@ function CertTerminals() {
     const row = useReveal<HTMLDivElement>({ orchestrate: true });
     return (
         <div className="mt-24 pt-12 border-t border-border">
-            <h3 className="text-xs font-mono tracking-[0.25em] text-muted-foreground mb-10">
+            <h3 className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-10">
                 CERTIFICATIONS
             </h3>
             <motion.div variants={certRow} {...row} className="relative">
@@ -224,7 +236,7 @@ function CertTerminals() {
                         <motion.article
                             key={cert.name}
                             variants={certSeal}
-                            className="surface-2 relative overflow-hidden rounded-lg p-8 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)]"
+                            className="surface-2 relative overflow-hidden rounded-xl p-8 transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)]"
                         >
                             {/* Violet hairline etch (EtchHeading language). */}
                             <span
@@ -315,7 +327,7 @@ function SkillGroup({
                 {core.map((skill) => (
                     <span
                         key={skill}
-                        className="inline-flex items-center gap-2 rounded-md border bg-surface/70 px-3 py-1.5 text-sm font-semibold text-foreground cursor-default"
+                        className="inline-flex items-center gap-2 rounded-full border bg-surface/70 px-3 py-1.5 text-sm font-semibold text-foreground cursor-default"
                         style={{ borderColor: bandColorA(t, 0.35) }}
                     >
                         {iconChips ? (

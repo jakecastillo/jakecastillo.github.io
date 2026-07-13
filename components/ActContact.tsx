@@ -6,13 +6,11 @@ import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
 import Beacon from "@/components/beam/Beacon";
 import EtchHeading from "@/components/beam/EtchHeading";
-import { scaleIn } from "@/components/motion";
+import { DUR, EASE, STAGGER, scaleIn } from "@/components/motion";
 import { useBeamStore } from "@/hooks/useBeamStore";
 import { useReveal } from "@/hooks/useReveal";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
-
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Constant markup (no useReducedMotion branch) so SSR == client; MotionProvider
 // drops the y transform for reduced-motion users automatically. `custom`
@@ -22,7 +20,7 @@ const reveal: Variants = {
     show: (delay: number = 0) => ({
         opacity: 1,
         y: 0,
-        transition: { duration: 0.3, ease: EASE, delay },
+        transition: { duration: DUR.base, ease: EASE, delay },
     }),
 };
 
@@ -44,7 +42,7 @@ function ContactLink({
                 target={link.external ? "_blank" : undefined}
                 rel={link.external ? "noopener noreferrer" : undefined}
                 download={link.download ? "" : undefined}
-                className="group flex min-h-11 items-center justify-between gap-4 rounded-lg border-b border-border-subtle px-3 py-3 transition-[color,border-color,transform] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
+                className="group flex min-h-11 items-center justify-between gap-4 rounded-xl border-b border-border-subtle px-3 py-3 transition-[color,border-color,transform] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
             >
                 <span className="flex min-w-0 items-center gap-4">
                     <Icon
@@ -136,12 +134,15 @@ export default function ActContact() {
                                 filter: "blur(28px)",
                             }}
                         />
-                        {/* Cyan kept as the ONE genuine "available/online" signal in view */}
+                        {/* Cyan kept as the ONE genuine "available/online" signal in view.
+                            Label rides the shared eyebrow spec (mono, caps, 0.3em) but
+                            stays muted — violet next to the cyan dot would double-accent
+                            a status badge (jc-nc1). */}
                         <motion.div
                             variants={reveal}
                             custom={0}
                             {...badge}
-                            className="mb-6 flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground"
+                            className="mb-6 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground"
                         >
                             <span
                                 aria-hidden="true"
@@ -150,14 +151,19 @@ export default function ActContact() {
                             <span>Available for new work</span>
                         </motion.div>
 
+                        {/* Act-opener display grammar (jc-nc1): ALL-CAPS black with
+                            violet on the claim (last line) — caps via CSS, wording
+                            untouched. */}
                         <EtchHeading
                             as="h2"
-                            className="text-7xl font-bold text-foreground tracking-tight [overflow-wrap:anywhere]"
+                            className="text-7xl font-black uppercase text-foreground tracking-tight [overflow-wrap:anywhere]"
                         >
                             Let&rsquo;s build
                             <br />
-                            something good
-                            <span className="animate-pulse text-primary">.</span>
+                            <span className="text-primary text-glow">
+                                something good
+                                <span className="animate-pulse">.</span>
+                            </span>
                         </EtchHeading>
 
                         <motion.p
@@ -203,7 +209,10 @@ export default function ActContact() {
                                 onClick={(e) => {
                                     if (e.detail === 0) fireAsk();
                                 }}
-                                className="group glow-primary flex min-h-11 items-center justify-between gap-4 rounded-lg bg-primary-cta px-6 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
+                                // ONE primary-CTA voice (jc-nc1): filled violet PILL,
+                                // sans, sentence case — same shape as the hero's
+                                // "Email me" CTA.
+                                className="group glow-primary cta-sheen flex min-h-11 items-center justify-between gap-4 rounded-full bg-primary-cta px-7 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
                             >
                                 <span className="flex min-w-0 items-center gap-3">
                                     <primary.icon
@@ -232,7 +241,7 @@ export default function ActContact() {
                                 <ContactLink
                                     key={link.key}
                                     link={link}
-                                    delay={0.24 + index * 0.06}
+                                    delay={0.24 + index * STAGGER.tight}
                                 />
                             ))}
                         </ul>
