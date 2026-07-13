@@ -67,19 +67,26 @@ function SpineNode({
                 aria-hidden="true"
                 initial={false}
                 style={{ opacity: reduced ? 1 : nodeOpacity }}
-                className="absolute -left-[33.5px] top-2 h-2.5 w-2.5 rounded-full bg-primary glow-primary sm:-left-[41.5px]"
+                className="absolute -left-[33.5px] top-[34px] h-2.5 w-2.5 rounded-full bg-primary glow-primary sm:-left-[41.5px] sm:top-9"
             />
-            <div className="flex items-baseline gap-3">
-                <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-accent">
-                    {step.index}
-                </span>
-                <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                    {step.title}
-                </h4>
+            {/* Readability scrim (jc-l14): the step copy scrolls straight across
+                the viewport-fixed holo, so it carries the same bg-surface/80 +
+                backdrop-blur panel the timeline cards use — the holo yields to
+                text locally while staying vivid outside the card. Pure CSS, so
+                the reduced-motion static frame is equally protected. */}
+            <div className="rounded-xl border border-border-subtle bg-surface/80 p-6 backdrop-blur-sm">
+                <div className="flex items-baseline gap-3">
+                    <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-accent">
+                        {step.index}
+                    </span>
+                    <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                        {step.title}
+                    </h4>
+                </div>
+                <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
+                    {step.body}
+                </p>
             </div>
-            <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
-                {step.body}
-            </p>
         </motion.li>
     );
 }

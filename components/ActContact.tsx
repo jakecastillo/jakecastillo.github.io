@@ -106,7 +106,24 @@ export default function ActContact() {
             <Container className="relative z-10 w-full max-w-5xl">
                 {/* Asymmetric focal hierarchy: heading + intent on the left, action stack weighted right */}
                 <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-[1.1fr_minmax(0,1fr)] md:gap-16">
-                    <div className="md:pt-4">
+                    <div className="relative md:pt-4">
+                        {/* Local radial darkening (jc-l14): the headline, eyebrow
+                            and intro sit open over the viewport-fixed holo rim.
+                            Rather than boxing the asymmetric composition into a
+                            card, a feathered background-token veil scrolls WITH
+                            the column, so the holo yields exactly where the text
+                            is and stays vivid everywhere else. `filter: blur`
+                            feathers the edges (no hard scrim rectangle); static
+                            CSS, so the reduced-motion frame is equally covered. */}
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -inset-x-8 -inset-y-6 -z-10 rounded-[3rem] sm:-inset-x-12 sm:-inset-y-8"
+                            style={{
+                                background:
+                                    "color-mix(in srgb, var(--background) 92%, transparent)",
+                                filter: "blur(28px)",
+                            }}
+                        />
                         {/* Cyan kept as the ONE genuine "available/online" signal in view */}
                         <motion.div
                             variants={reveal}

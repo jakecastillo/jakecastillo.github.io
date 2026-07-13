@@ -45,8 +45,11 @@ export default function Home() {
         className="relative flex min-h-screen items-center py-24"
       >
         <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
-          {/* Identity + CTAs — open on desktop; carries a readable card on mobile,
-              where it stacks above the terminal over the living background.
+          {/* Identity + CTAs — a readable card on mobile, and a whisper of the
+              same scrim at lg (jc-l14): the tagline/paragraph cross the fixed
+              holo mesh at 1440/1920, so the full-bleed lg column keeps a quiet
+              bg-surface veil + light blur (borderless, shadowless — reads as
+              local darkening, not a card) instead of going fully transparent.
               When the boot overlay actually plays (bootPlayed), the identity
               children snap to `hidden` under the opaque veil, then cascade
               name → title → tagline as the veil clears. On skip/reduced/repeat
@@ -55,7 +58,7 @@ export default function Home() {
             variants={heroCascade}
             initial={false}
             animate={bootPlayed ? heroState : undefined}
-            className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none"
+            className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:border-0 lg:bg-surface/50 lg:shadow-none lg:backdrop-blur-[3px]"
           >
             <motion.div variants={heroChild} initial={false} className="flex items-center gap-3">
               <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-accent p-[2px]">
