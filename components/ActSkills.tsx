@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import {
     BrainCircuit,
@@ -100,6 +101,9 @@ const bandT = (i: number) =>
     groups.length === 1 ? 0 : i / (groups.length - 1);
 
 export default function ActSkills() {
+    // The visitor's hand on the spectrum: hovering a group header lights its
+    // prism band while the others yield (PrismBands renders the response).
+    const [hotBand, setHotBand] = useState<number | null>(null);
     return (
         <section className="section-y relative border-t border-border overflow-hidden">
             {/* Background wash + single restrained violet glow blob (decorative). */}
@@ -126,7 +130,10 @@ export default function ActSkills() {
                     <span className="text-primary">STACK</span>
                 </EtchHeading>
 
-                <PrismBands labels={groups.map((g) => g.title)} />
+                <PrismBands
+                    labels={groups.map((g) => g.title)}
+                    hotBand={hotBand}
+                />
 
                 {/* The landed spectrum — one cell per band, each tinted by its
                     band's ramp position. Seated on a readable panel; each cell
@@ -140,6 +147,7 @@ export default function ActSkills() {
                             skills={group.skills}
                             iconChips={group.iconChips}
                             t={bandT(i)}
+                            onHotChange={(on) => setHotBand(on ? i : null)}
                         />
                     ))}
                 </div>
@@ -247,12 +255,15 @@ function SkillGroup({
     icon: Icon,
     iconChips,
     t,
+    onHotChange,
 }: {
     title: string;
     skills: string[];
     icon: LucideIcon;
     iconChips: boolean;
     t: number;
+    /** Hover intent on the group header — lights this group's prism band. */
+    onHotChange?: (hot: boolean) => void;
 }) {
     const group = useReveal<HTMLDivElement>({ orchestrate: true });
     const color = bandColor(t);
@@ -273,6 +284,8 @@ function SkillGroup({
             />
             <motion.h3
                 variants={landChild}
+                onPointerEnter={() => onHotChange?.(true)}
+                onPointerLeave={() => onHotChange?.(false)}
                 className="mb-5 flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-foreground"
             >
                 <Icon

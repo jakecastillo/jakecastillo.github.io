@@ -39,8 +39,19 @@ const LABEL_Y = 192;
  * vector-effect: non-scaling-stroke so bands hold 2.5px at every viewport.
  * Drawn via stroke-dash scrub as the section scrolls through; decorative
  * (aria-hidden); reduced motion renders the fan fully drawn and labeled.
+ *
+ * `hotBand`: the visitor's hand on the spectrum — hovering a skill group
+ * header (ActSkills) thickens/brightens its band while the others dim.
+ * Transitions are plain CSS, so the global reduced-motion cap turns them
+ * into near-instant state changes automatically.
  */
-export default function PrismBands({ labels }: { labels: string[] }) {
+export default function PrismBands({
+    labels,
+    hotBand = null,
+}: {
+    labels: string[];
+    hotBand?: number | null;
+}) {
     const ref = useRef<SVGSVGElement>(null);
     const count = labels.length;
 
@@ -133,17 +144,31 @@ export default function PrismBands({ labels }: { labels: string[] }) {
                 // completes (measured by useBeamAnchors).
                 data-beam-anchor="prism"
             />
-            {/* Fanned bands — one per skill group, terminal labeled. */}
+            {/* Fanned bands — one per skill group, terminal labeled. Hovering
+                a group header makes its band hot (thicker, brighter) while
+                the rest of the spectrum yields. GSAP owns strokeDash* on the
+                paths; React only ever touches opacity/width/filter here. */}
             {bands.map((b, i) => (
-                <g key={b.label}>
+                <g
+                    key={b.label}
+                    data-band-hot={hotBand === i ? "" : undefined}
+                    style={{
+                        opacity: hotBand !== null && hotBand !== i ? 0.3 : 1,
+                        transition: "opacity 0.25s ease",
+                    }}
+                >
                     <path
                         data-band=""
                         d={b.d}
                         stroke={b.color}
-                        strokeWidth="2.5"
                         strokeLinecap="round"
                         vectorEffect="non-scaling-stroke"
-                        style={{ filter: `drop-shadow(0 0 5px ${b.color})` }}
+                        style={{
+                            strokeWidth: hotBand === i ? 4 : 2.5,
+                            filter: `drop-shadow(0 0 ${hotBand === i ? 9 : 5}px ${b.color})`,
+                            transition:
+                                "stroke-width 0.25s ease, filter 0.25s ease",
+                        }}
                     />
                     <circle cx={b.x2} cy={TERM_Y} r="2.5" fill={b.color} />
                     <text

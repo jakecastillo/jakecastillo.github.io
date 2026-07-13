@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useBeamStore } from "@/hooks/useBeamStore";
 import { getBeamAnchorFrame } from "@/hooks/useBeamAnchors";
@@ -31,11 +31,36 @@ const CYAN = new THREE.Color("#2dd4bf");
 // geometry-rebuild time so it stays constant across viewport sizes).
 const RADIUS_PX = 2.4;
 
+// Cursor heat (desktop, fine pointer): within this CSS-px radius of the
+// pointer the ribbon warms toward cyan and bows toward the cursor.
+const HEAT_RADIUS_PX = 110;
+const BOW_PX = 2.5;
+// The answered ask: one cyan shimmer travels tail→head along the ribbon.
+const SHIMMER_MS = 900;
+// Reduced-motion answer: instant brightness step, held briefly, stepped off.
+const RM_FLASH_MS = 450;
+
 const vertexShader = /* glsl */ `
+  uniform vec2 uPointer;   // pointer in mesh-LOCAL world units (z=0 plane)
+  uniform float uHeatR;    // cursor-heat radius (world units)
+  uniform float uHeatGain; // 0..1 pointer-present engage (damped; RM steps)
+  uniform float uBowAmp;   // bow displacement toward the pointer (world units)
   varying vec2 vUv;
+  varying float vHeat;
   void main() {
     vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vec3 pos = position;
+    // Cursor heat falloff — 1 at the pointer, 0 at the radius edge. The
+    // pointer uniform is pre-converted to mesh-local space CPU-side (the
+    // mesh translates with scroll), so plain local-XY distance is correct.
+    vec2 toPtr = uPointer - pos.xy;
+    float dist = length(toPtr);
+    float heat = smoothstep(uHeatR, uHeatR * 0.15, dist) * uHeatGain;
+    vHeat = heat;
+    // The bow: the ribbon leans 2-3px toward the cursor inside the radius.
+    // Pure vertex displacement — geometry is never rebuilt for the pointer.
+    if (dist > 1e-5) pos.xy += (toPtr / dist) * (heat * uBowAmp);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
 `;
 
@@ -50,7 +75,10 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uViolet;
   uniform vec3 uCyan;
   uniform float uIntensity;
+  uniform float uShimmer;  // arc position of the answer shimmer; <0 = inactive
+  uniform float uAskFlash; // reduced-motion answer: instant brightness step
   varying vec2 vUv;
+  varying float vHeat;     // cursor-heat influence from the vertex stage
 
   // 4x4 Bayer ordered dither — grain on the glow falloff ("human-made" texture).
   float bayer(vec2 p) {
@@ -92,6 +120,20 @@ const fragmentShader = /* glsl */ `
     vec3 base = mix(uViolet, uCyan, post * 0.85);
     vec3 col = mix(base, uCyan, clamp(head * 0.85 + nearHead * 0.35, 0.0, 1.0));
     float a = drawn * 0.42 * flow + ember * 0.42 + head * 0.9;
+    // Lit mask: interaction light only ever amplifies the drawn/burned body —
+    // the pointer must never reveal the undrawn tube ahead of the story.
+    float lit = clamp(drawn + ember + head, 0.0, 1.0);
+    // (a) Cursor heat — the ribbon warms toward cyan near the pointer.
+    col = mix(col, uCyan, vHeat * 0.5);
+    a += vHeat * 0.3 * lit;
+    // (b) The answered ask — one cyan shimmer travelling tail→head.
+    float shim = smoothstep(0.055, 0.0, abs(along - uShimmer));
+    col = mix(col, uCyan, shim * 0.85);
+    a += shim * 0.45 * lit;
+    // Reduced-motion answer: the whole drawn body steps brighter + cyan for a
+    // beat — an instant state change instead of a travelling shimmer.
+    col = mix(col, uCyan, uAskFlash * 0.35);
+    a += uAskFlash * 0.25 * lit;
     // Ordered dither grain on the glow falloff — gated by the lit mask so
     // the undrawn tube stays truly invisible (no ghost path at page top).
     a += (bayer(gl_FragCoord.xy) - 0.5) * 0.06 * clamp(drawn + ember + head, 0.0, 1.0);
@@ -125,6 +167,69 @@ export default function BeamRibbon({
     const unitsPerPx = useRef(0);
     const viewportW = useRef(0);
     const viewportH = useRef(0);
+
+    // Cursor heat — raw viewport px, written by a window-level listener (the
+    // canvas is pointer-events-none; same channel as HoloLattice's lean) and
+    // converted to mesh-local units per frame (the mapping shifts with scroll).
+    const pointerPx = useRef({ x: 0, y: 0, active: false });
+    // The answered ask — timestamps only; consumed inside useFrame.
+    const lastAskAt = useRef(0);
+    const shimmerStart = useRef(0);
+    const flashUntil = useRef(0);
+
+    // Stable function selector — same pattern as LoopDriver; selecting
+    // invalidate never re-renders the Canvas subtree (React 19 constraint).
+    const invalidate = useThree((s) => s.invalidate);
+
+    useEffect(() => {
+        // Fine pointers only: cursor heat is a desktop interaction by nature —
+        // never ship a dead pointermove→uniform loop on touch devices.
+        if (!window.matchMedia("(pointer: fine)").matches) return;
+        const onMove = (e: PointerEvent) => {
+            pointerPx.current.x = e.clientX;
+            pointerPx.current.y = e.clientY;
+            pointerPx.current.active = true;
+            // Reduced motion renders on demand only (no continuous loop) —
+            // ask for a frame so the instant heat step is actually visible.
+            if (reducedMotion) invalidate();
+        };
+        const onLeave = () => {
+            pointerPx.current.active = false;
+            if (reducedMotion) invalidate(); // render the heat-off step
+        };
+        window.addEventListener("pointermove", onMove, { passive: true });
+        document.documentElement.addEventListener("pointerleave", onLeave);
+        window.addEventListener("blur", onLeave);
+        return () => {
+            window.removeEventListener("pointermove", onMove);
+            document.documentElement.removeEventListener(
+                "pointerleave",
+                onLeave,
+            );
+            window.removeEventListener("blur", onLeave);
+        };
+    }, [reducedMotion, invalidate]);
+
+    // Reduced motion has no continuous loop, so the answered ask must request
+    // its own frames: one to step uAskFlash on, one after RM_FLASH_MS to step
+    // it off (otherwise the flash would stick — a standing-cyan violation).
+    // zustand's subscribe is a plain callback, not a React subscription — it
+    // cannot re-render the Canvas subtree.
+    useEffect(() => {
+        if (!reducedMotion) return;
+        let offTimer = 0;
+        const unsub = useBeamStore.subscribe((s, prev) => {
+            if (s.askAt !== prev.askAt && s.askAt > 0) {
+                invalidate();
+                window.clearTimeout(offTimer);
+                offTimer = window.setTimeout(() => invalidate(), RM_FLASH_MS + 60);
+            }
+        });
+        return () => {
+            window.clearTimeout(offTimer);
+            unsub();
+        };
+    }, [reducedMotion, invalidate]);
     // Placeholder geometry until the first anchor measurement lands; the mesh
     // stays invisible until then.
     const initialGeometry = useMemo(() => {
@@ -147,6 +252,12 @@ export default function BeamRibbon({
             uViolet: { value: VIOLET },
             uCyan: { value: CYAN },
             uIntensity: { value: lowPower ? 2.4 : 2.1 },
+            uPointer: { value: new THREE.Vector2(0, 0) },
+            uHeatR: { value: 0 },
+            uHeatGain: { value: 0 },
+            uBowAmp: { value: 0 },
+            uShimmer: { value: -1 },
+            uAskFlash: { value: 0 },
         }),
         [lowPower, reducedMotion],
     );
@@ -191,6 +302,12 @@ export default function BeamRibbon({
             old.dispose();
             mesh.visible = true;
 
+            // Interaction scales in world units — px-true at every viewport.
+            m.uniforms.uHeatR.value = HEAT_RADIUS_PX * u;
+            // Reduced motion: heat still answers (brightness step) but the
+            // ribbon never travels — no bow displacement.
+            m.uniforms.uBowAmp.value = reducedMotion ? 0 : BOW_PX * u;
+
             // Arc-length fractions of the anchor control points (TubeGeometry
             // samples arc-uniformly, so vUv.x IS arc fraction). Arrays rebuilt
             // here only — read-only in the per-frame path below.
@@ -230,6 +347,37 @@ export default function BeamRibbon({
         const scrollY = window.scrollY;
         mesh.position.y = scrollY * unitsPerPx.current;
 
+        // Cursor heat: viewport px → mesh-LOCAL world units. Same mapping the
+        // anchors use ((vh/2 - y) * u is world space at the z=0 plane), minus
+        // the mesh's live scroll translation so the shader compares apples to
+        // apples against untranslated vertex positions.
+        const u = unitsPerPx.current;
+        const ptr = pointerPx.current;
+        if (ptr.active && u > 0) {
+            m.uniforms.uPointer.value.set(
+                (ptr.x - viewportW.current / 2) * u,
+                (viewportH.current / 2 - ptr.y) * u - mesh.position.y,
+            );
+        }
+        const gainTarget = ptr.active ? 1 : 0;
+        m.uniforms.uHeatGain.value = reducedMotion
+            ? gainTarget // instant step — RM still answers, just without travel
+            : damp(m.uniforms.uHeatGain.value, gainTarget, 6, delta);
+
+        // The answered ask: latch each new askAt (getState() — never a
+        // subscription) into either the travelling shimmer or the RM flash.
+        const beam = useBeamStore.getState();
+        if (beam.askAt !== lastAskAt.current) {
+            lastAskAt.current = beam.askAt;
+            if (beam.askAt > 0) {
+                if (reducedMotion) {
+                    flashUntil.current = performance.now() + RM_FLASH_MS;
+                } else {
+                    shimmerStart.current = performance.now();
+                }
+            }
+        }
+
         // Framebuffer height in device px (gl_FragCoord space) for the
         // viewport-edge fade band.
         const bufH = state.gl.domElement.height;
@@ -261,11 +409,29 @@ export default function BeamRibbon({
             m.uniforms.uHead.value = 1;
             m.uniforms.uBurn.value = 1;
             m.uniforms.uReveal.value = 1;
+            // RM answer: brightness steps on, holds RM_FLASH_MS, steps off —
+            // an instant state change, never a travelling shimmer.
+            m.uniforms.uAskFlash.value =
+                performance.now() < flashUntil.current ? 1 : 0;
+            m.uniforms.uShimmer.value = -1;
         } else {
             m.uniforms.uTime.value = state.clock.getElapsedTime();
+            // The answer shimmer: one cyan band running tail→head (arc 0 up
+            // to the live head), then rearming (uShimmer < 0 = inactive).
+            if (shimmerStart.current > 0) {
+                const t =
+                    (performance.now() - shimmerStart.current) / SHIMMER_MS;
+                if (t >= 1) {
+                    shimmerStart.current = 0;
+                    m.uniforms.uShimmer.value = -1;
+                } else {
+                    m.uniforms.uShimmer.value =
+                        t * (m.uniforms.uHead.value + 0.08);
+                }
+            }
             // Boot-relay gate: hold the ribbon dark until the underline
             // crossfade has landed (bootDone + hold), then damp uReveal up.
-            const { bootDone, bootDoneAt } = useBeamStore.getState();
+            const { bootDone, bootDoneAt } = beam;
             const held =
                 !bootDone || performance.now() - bootDoneAt < REVEAL_HOLD_MS;
             m.uniforms.uReveal.value = held

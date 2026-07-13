@@ -24,9 +24,17 @@ interface BeamState {
      * clock even when a stalled main thread delays animation events.
      */
     handoff: boolean;
+    /**
+     * performance.now() of the last "answered ask" — the visitor pressing the
+     * contact CTA (pointerdown, so it works on touch). BeamRibbon reads this
+     * via getState() inside useFrame (never a subscription) and answers with
+     * one cyan shimmer along the ribbon; 0 = never asked.
+     */
+    askAt: number;
     setBootDone: () => void;
     markBootPlaying: () => void;
     markHandoff: () => void;
+    ask: () => void;
 }
 
 export const useBeamStore = create<BeamState>((set) => ({
@@ -34,6 +42,7 @@ export const useBeamStore = create<BeamState>((set) => ({
     bootDoneAt: 0,
     bootPlayed: false,
     handoff: false,
+    askAt: 0,
     // Idempotent: skip + watchdog + animationend can all race to end the boot.
     setBootDone: () =>
         set((s) =>
@@ -44,4 +53,5 @@ export const useBeamStore = create<BeamState>((set) => ({
     markBootPlaying: () =>
         set((s) => (s.bootPlayed ? {} : { bootPlayed: true })),
     markHandoff: () => set((s) => (s.handoff ? {} : { handoff: true })),
+    ask: () => set({ askAt: performance.now() }),
 }));

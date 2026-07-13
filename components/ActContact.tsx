@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
 import Beacon from "@/components/beam/Beacon";
 import EtchHeading from "@/components/beam/EtchHeading";
 import { scaleIn } from "@/components/motion";
+import { useBeamStore } from "@/hooks/useBeamStore";
 import { useReveal } from "@/hooks/useReveal";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
@@ -74,6 +76,16 @@ export default function ActContact() {
 
     const primary = contactLinks.find((link) => link.primary);
     const secondary = contactLinks.filter((link) => !link.primary);
+
+    // The answered ask: the primary CTA (the ask) drives the beacon behind it
+    // and the beam. Hover/focus warms the beacon; pointerdown (works on touch)
+    // fires the cyan answer pulse AND rings the ribbon via the beam store.
+    const [ctaHot, setCtaHot] = useState(false);
+    const [askCount, setAskCount] = useState(0);
+    const fireAsk = () => {
+        setAskCount((c) => c + 1);
+        useBeamStore.getState().ask();
+    };
 
     // Verifiable, non-numeric markers — real credentials + role + location only.
     const credibility = [
@@ -168,7 +180,7 @@ export default function ActContact() {
                         {...card}
                         className="relative rounded-xl border border-border-subtle bg-surface/80 backdrop-blur-sm p-8"
                     >
-                        <Beacon />
+                        <Beacon hot={ctaHot} askKey={askCount} />
 
                         {/* PRIMARY CTA — dominant, filled violet */}
                         {primary ? (
@@ -181,6 +193,16 @@ export default function ActContact() {
                                         : undefined
                                 }
                                 download={primary.download ? "" : undefined}
+                                onPointerEnter={() => setCtaHot(true)}
+                                onPointerLeave={() => setCtaHot(false)}
+                                onFocus={() => setCtaHot(true)}
+                                onBlur={() => setCtaHot(false)}
+                                onPointerDown={fireAsk}
+                                // Keyboard activation never emits pointerdown;
+                                // detail === 0 marks a keyboard-driven click.
+                                onClick={(e) => {
+                                    if (e.detail === 0) fireAsk();
+                                }}
                                 className="group glow-primary flex min-h-11 items-center justify-between gap-4 rounded-lg bg-primary-cta px-6 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
                             >
                                 <span className="flex min-w-0 items-center gap-3">

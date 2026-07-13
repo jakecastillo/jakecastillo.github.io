@@ -296,8 +296,10 @@ h1, h2, h3 {
 }
 
 /* One-shot specular sweep for the single filled violet CTA. Hover-triggered,
-   never looping. Low-alpha so it reads as a sheen, not a flash. Gated to
-   hover-capable pointers; the global reduced-motion cap shortens it harmlessly. */
+   never looping. 0.32-alpha white at 0.55s: bright + fast enough to actually
+   read mid-sweep over the violet fill (0.18/0.7s spent itself below the
+   perceptual threshold — adversarial-motion #16a). Gated to hover-capable
+   pointers; the global reduced-motion cap shortens it harmlessly. */
 .cta-sheen {
   position: relative;
   overflow: hidden;
@@ -310,7 +312,7 @@ h1, h2, h3 {
   background: linear-gradient(
     110deg,
     transparent 30%,
-    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.32) 50%,
     transparent 70%
   );
   transform: translateX(-120%);
@@ -318,7 +320,7 @@ h1, h2, h3 {
 @media (hover: hover) {
   .cta-sheen:hover::before {
     transform: translateX(120%);
-    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
