@@ -261,7 +261,13 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     <div className="w-0 shrink-0 md:w-[8vw]" />
 
                     {resumeData.experience.map((job, index) => (
-                        <TimelineNode key={index} job={job} index={index} variant="horizontal" />
+                        <TimelineNode
+                            key={index}
+                            job={job}
+                            index={index}
+                            variant="horizontal"
+                            isActive={index === active}
+                        />
                     ))}
 
                     {/* Outro spacer — wide enough to fully reveal the last node at -70% */}
@@ -280,10 +286,12 @@ function TimelineNode({
     job,
     index,
     variant,
+    isActive = false,
 }: {
     job: Job;
     index: number;
     variant: "horizontal" | "vertical";
+    isActive?: boolean;
 }) {
     const numeral = format(index + 1);
     const isHorizontal = variant === "horizontal";
@@ -291,6 +299,15 @@ function TimelineNode({
     return (
         <div
             data-node-index={index}
+            // In the pinned horizontal timeline the scroll-current role is
+            // driven by vertical scroll, so a screen-reader virtual cursor
+            // (JAWS/NVDA browse mode) reads nodes without ever moving DOM focus
+            // — the focusin pin-rescue never fires for it. Marking the
+            // scroll-current node aria-current gives that cursor an orientation
+            // anchor that tracks the visible pin (jc-sna). Horizontal only: the
+            // static list shows every role at once, so "current" is meaningless
+            // there.
+            aria-current={isHorizontal && isActive ? "true" : undefined}
             className={
                 isHorizontal
                     ? "relative flex w-[82vw] shrink-0 flex-col justify-start sm:w-[80vw] md:w-[60vw] lg:w-[44vw]"

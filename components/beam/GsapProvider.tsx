@@ -10,20 +10,36 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 
 /**
  * One-time GSAP setup. Lenis drives window scroll natively, so ScrollTrigger's
- * own scroll listener already works; the store subscription below just keeps
- * trigger positions exact during Lenis's smoothed frames (belt and suspenders).
+ * own scroll listener already fires on every frame — a store subscription that
+ * also called ScrollTrigger.update() just double-fired the same work (jc-aia),
+ * so it's gone.
+ *
+ * What DID matter was the refresh: Lenis initializes lazily (on idle), and
+ * ScrollTrigger's start/end positions must be recomputed once its smoothing is
+ * in play. Instead of a 1200ms magic timer that hoped Lenis had settled, we
+ * refresh exactly once off the store's `lenis` field — the moment SmoothScroll
+ * publishes the instance (or immediately, if it beat us here).
  */
 export default function GsapProvider() {
     useEffect(() => {
-        const unsub = useScrollStore.subscribe((state, prev) => {
-            if (state.offset !== prev.offset) ScrollTrigger.update();
-        });
-        // Lenis inits on idle; refresh measurements once everything settles.
-        const t = setTimeout(() => ScrollTrigger.refresh(), 1200);
-        return () => {
-            unsub();
-            clearTimeout(t);
+        let refreshed = false;
+        const refresh = () => {
+            if (refreshed) return;
+            refreshed = true;
+            ScrollTrigger.refresh();
         };
+        // Lenis may already be live before this effect runs.
+        if (useScrollStore.getState().lenis) {
+            refresh();
+            return;
+        }
+        const unsub = useScrollStore.subscribe((state) => {
+            if (state.lenis) {
+                refresh();
+                unsub();
+            }
+        });
+        return () => unsub();
     }, []);
     return null;
 }

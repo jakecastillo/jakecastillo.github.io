@@ -265,24 +265,35 @@ export default function BootIgnition() {
     if (!landing) return null;
 
     return (
-        <div
-            ref={overlayRef}
-            aria-hidden="true"
-            className={`boot-ignition ${leaving ? "boot-ignition--leaving" : ""}`}
-            style={
-                {
-                    "--land-x": `${landing.x}px`,
-                    "--land-y": `${landing.y}px`,
-                    "--land-scale": `${landing.scale}`,
-                } as React.CSSProperties
-            }
-        >
-            <span className="boot-ignition__veil" />
-            <span className="boot-ignition__spark" />
-            <span className="boot-ignition__line" />
-            <span className="boot-ignition__skip">
+        <>
+            {/* The visual overlay is decorative (aria-hidden), which also hides
+                its skip caption from AT — so screen-reader users got no skip
+                affordance (jc-crl). This sr-only live region carries the SAME
+                caption text OUTSIDE the hidden subtree so it is announced when
+                the boot starts. The skip binding is any pointerdown/keydown on
+                window, so no focusable control is needed. */}
+            <p role="status" className="sr-only">
                 tap / press any key to skip
-            </span>
-        </div>
+            </p>
+            <div
+                ref={overlayRef}
+                aria-hidden="true"
+                className={`boot-ignition ${leaving ? "boot-ignition--leaving" : ""}`}
+                style={
+                    {
+                        "--land-x": `${landing.x}px`,
+                        "--land-y": `${landing.y}px`,
+                        "--land-scale": `${landing.scale}`,
+                    } as React.CSSProperties
+                }
+            >
+                <span className="boot-ignition__veil" />
+                <span className="boot-ignition__spark" />
+                <span className="boot-ignition__line" />
+                <span className="boot-ignition__skip">
+                    tap / press any key to skip
+                </span>
+            </div>
+        </>
     );
 }

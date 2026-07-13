@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "_next/**",
+    // Generated / untracked local tooling — never source we ship, so keep it
+    // out of the repo-wide warning baseline (jc-fjx). Playwright MCP session
+    // scratch and any agent worktree checkouts would otherwise inflate the
+    // count with warnings that have nothing to do with the site.
+    ".playwright-mcp/**",
+    ".claude/worktrees/**",
   ]),
 ]);
 

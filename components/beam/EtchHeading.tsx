@@ -26,6 +26,14 @@ gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
  * non-deterministic, never-moving lines). Returning the timeline lets GSAP
  * revert it — ScrollTrigger included — before each re-split.
  *
+ * Played guard (jc-cbm): once the reveal has completed, a later re-split (a
+ * resize, or a font swap that lands after the reveal) must NOT rebuild the
+ * tween + once:true ScrollTrigger — GSAP would revert the finished timeline
+ * (snapping the heading hidden) and the fresh trigger, already past its start,
+ * would re-fire: a visible flash/replay. After completion we instead gsap.set
+ * the new line elements straight to their final state and return nothing, so
+ * there is no timeline to revert and no trigger to re-arm.
+ *
  * Reduced motion: no split, no tween — the heading (and eyebrow) just are.
  */
 export default function EtchHeading({
@@ -62,6 +70,10 @@ export default function EtchHeading({
             const etch = root.querySelector<HTMLElement>("[data-beam-etch]");
             if (!heading) return;
 
+            // Latched true when the reveal timeline completes; survives across
+            // autoSplit re-splits (closure over this single useGSAP run).
+            let played = false;
+
             const split = SplitText.create(heading, {
                 type: "lines",
                 mask: "lines",
@@ -70,6 +82,16 @@ export default function EtchHeading({
                 // the CURRENT line elements. Returning it lets GSAP revert the
                 // previous timeline (+ its ScrollTrigger) before re-splitting.
                 onSplit: (self) => {
+                    // Already revealed: a re-split must land the new lines final
+                    // and NOTHING else — no tween, no ScrollTrigger to re-fire.
+                    if (played) {
+                        gsap.set(self.lines, { yPercent: 0 });
+                        if (eyebrowEl)
+                            gsap.set(eyebrowEl, { opacity: 1, y: 0 });
+                        if (etch) gsap.set(etch, { scaleX: 1 });
+                        return;
+                    }
+
                     // Hairline starts collapsed. Its fromTo sits at a non-zero
                     // timeline position so it does NOT immediate-render; without
                     // this it would sit fully drawn (a glow under hidden text)
@@ -77,6 +99,9 @@ export default function EtchHeading({
                     if (etch) gsap.set(etch, { scaleX: 0 });
 
                     const tl = gsap.timeline({
+                        onComplete: () => {
+                            played = true;
+                        },
                         scrollTrigger: {
                             trigger: root,
                             start: "top 80%",
