@@ -8,12 +8,15 @@ import { useTiltStore } from "@/hooks/useTiltStore";
 import { damp } from "./anim";
 
 // "System Online" — a slowly rotating low-poly icosahedron rendered as a glowing
-// violet Fresnel rim + cyan wireframe with hologram scanlines and a slow sweep.
+// violet Fresnel rim + violet wireframe with hologram scanlines and a slow sweep;
+// cyan is reserved for the boot scan line only (the two-color discipline).
 // The camera-facing center stays dark so hero text over it remains legible; only
 // the grazing-angle silhouette + edges glow (the dark-mode Fresnel trick).
 
 const VIOLET = new THREE.Color("#8b5cf6");
-const CYAN = new THREE.Color("#22d3ee");
+// The ONE sanctioned cyan — matches the --accent design token (globals.css).
+// The whole site draws cyan from this single value; no second cyan exists.
+const CYAN = new THREE.Color("#2dd4bf");
 // Single source for the icosahedron radius: used by BOTH the geometry and the
 // uRadius uniform so the world-Y scanline wipe maps correctly (spec §2.2).
 const GEO_RADIUS = 1.3;
@@ -59,8 +62,9 @@ const fragmentShader = /* glsl */ `
     float wipe = smoothstep(yN - 0.05, yN + 0.05, r);     // form fills bottom->top
     float edge = smoothstep(0.06, 0.0, abs(r - yN));      // hot cyan scan bar at the line
 
-    // Violet rim, cyan biased toward the sweep + brightest edges.
-    vec3 col = mix(uViolet, uCyan, clamp(fres * 0.5 + band * 0.6, 0.0, 1.0));
+    // Violet-bodied orb: the cyan mix is capped so the body reads violet even at
+    // the grazing rim + sweep band. Cyan is reserved for the scan line / hot head.
+    vec3 col = mix(uViolet, uCyan, clamp(fres * 0.5 + band * 0.6, 0.0, 0.35));
     col = mix(col, uCyan, edge);                          // tint the scan line cyan
     float glow = uIntensity * (scan + band * 0.7) + uPulse * 1.5;
     vec3 outCol = col * glow * wipe + uCyan * edge * 1.6; // edge blooms even before fill
@@ -219,11 +223,12 @@ export default function HoloLattice({
         />
       </mesh>
 
-      {/* Cyan wireframe lattice. A touch brighter on low-power, where the lighter
-          bloom would otherwise leave the thin edges nearly invisible on a phone. */}
+      {/* Violet wireframe lattice — the orb body stays violet-dominant; cyan is
+          held back for the scan line only. A touch brighter on low-power, where the
+          lighter bloom would otherwise leave the thin edges nearly invisible. */}
       <mesh geometry={geometry} scale={1.004}>
         <meshBasicMaterial
-          color={CYAN}
+          color={VIOLET}
           wireframe
           transparent
           opacity={lowPower ? 0.3 : 0.16}

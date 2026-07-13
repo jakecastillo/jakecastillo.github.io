@@ -52,7 +52,7 @@ export default function HeroTerrain() {
                 position={[0, -2.5, 0]}
             >
                 <meshBasicMaterial
-                    color="#22d3ee"
+                    color="#2dd4bf"
                     wireframe
                     transparent
                     opacity={0.1}

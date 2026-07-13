@@ -242,7 +242,7 @@ h1, h2, h3 {
 
 /* Animated gradient text for the hero accent line */
 .text-laser {
-  background: linear-gradient(110deg, var(--primary-hover) 0%, #c4b5fd 40%, var(--accent) 100%);
+  background: linear-gradient(110deg, var(--primary-hover) 0%, #c4b5fd 40%, #c4b5fd 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -20,7 +20,8 @@ const REVEAL_HOLD_MS = 700;
 // ribbon reads as illumination in the void rather than a solid rope.
 
 const VIOLET = new THREE.Color("#8b5cf6");
-const CYAN = new THREE.Color("#22d3ee");
+// The ONE sanctioned cyan — matches the --accent design token (globals.css).
+const CYAN = new THREE.Color("#2dd4bf");
 
 // The beam's path through the world: enters top (hero handoff), weaves around
 // the lattice, exits bottom-center (contact beacon). View-space units at the

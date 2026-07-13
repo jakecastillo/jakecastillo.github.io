@@ -61,7 +61,7 @@ export default function Home() {
             className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:border-0 lg:bg-surface/50 lg:shadow-none lg:backdrop-blur-[3px]"
           >
             <motion.div variants={heroChild} initial={false} className="flex items-center gap-3">
-              <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-accent p-[2px]">
+              <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-primary p-[2px]">
                 <span className="block h-full w-full overflow-hidden rounded-full border-2 border-background">
                   <picture>
                     <source srcSet="/portrait/jake-320.avif" type="image/avif" />
@@ -82,7 +82,7 @@ export default function Home() {
                   land exactly on HeroUnderline's rect before the crossfade. */}
               <span
                 data-boot-anchor
-                className="relative inline-block font-mono text-sm uppercase tracking-[0.35em] text-accent"
+                className="relative inline-block font-mono text-sm uppercase tracking-[0.35em] text-muted-foreground"
               >
                 {resumeData.name}
                 <HeroUnderline />

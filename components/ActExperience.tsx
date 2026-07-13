@@ -221,8 +221,8 @@ function ImmersiveTimeline({ total }: { total: number }) {
                         >
                             <motion.span
                                 key={active}
-                                initial={{ opacity: 0.4, textShadow: "0 0 12px rgba(45,212,191,0.9)" }}
-                                animate={{ opacity: 1, textShadow: "0 0 0px rgba(45,212,191,0)" }}
+                                initial={{ opacity: 0.4, textShadow: "0 0 12px rgba(139,92,246,0.9)" }}
+                                animate={{ opacity: 1, textShadow: "0 0 0px rgba(139,92,246,0)" }}
                                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                                 className="inline-block text-foreground"
                             >

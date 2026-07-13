@@ -76,7 +76,7 @@ function SpineNode({
                 the reduced-motion static frame is equally protected. */}
             <div className="rounded-xl border border-border-subtle bg-surface/80 p-6 backdrop-blur-sm">
                 <div className="flex items-baseline gap-3">
-                    <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-accent">
+                    <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-muted-foreground">
                         {step.index}
                     </span>
                     <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">

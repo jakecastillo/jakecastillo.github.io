@@ -93,7 +93,7 @@ export default function StageManager() {
                         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className="flex flex-col"
                     >
-                        <span className="text-xs font-mono tracking-[0.4em] text-accent mb-1">
+                        <span className="text-xs font-mono tracking-[0.4em] text-muted-foreground mb-1">
                             {currentAct.stageLabel}
                         </span>
                         <span className="text-lg font-black tracking-tighter text-foreground text-glow">
