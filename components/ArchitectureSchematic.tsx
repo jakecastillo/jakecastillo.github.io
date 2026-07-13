@@ -105,7 +105,7 @@ export default function ArchitectureSchematic() {
             <Band
                 icon={Activity}
                 label="Observability"
-                tint="text-accent"
+                tint="text-muted-foreground"
                 position="bottom"
             />
         </figure>
