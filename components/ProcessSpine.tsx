@@ -7,28 +7,21 @@ import {
     useScroll,
     useTransform,
     type MotionValue,
-    type Variants,
 } from "framer-motion";
-import { DUR, EASE, STAGGER } from "@/components/motion";
-import { useReveal } from "@/hooks/useReveal";
 
 export type ProcessStep = { index: string; title: string; body: string };
-
-// Cheap node entrance (opacity/y). The scrubbed rail + dot ignition below is a
-// separate scroll-linked system and is left untouched.
-const nodeReveal: Variants = {
-    hidden: { opacity: 0, y: 18 },
-    show: (delay: number = 0) => ({
-        opacity: 1,
-        y: 0,
-        transition: { duration: DUR.base, ease: EASE, delay },
-    }),
-};
 
 /**
  * One process node. Extracted so the per-node ignition `useTransform` is a
  * single hook per component — no rules-of-hooks violation in a `.map` loop.
  * The dot lights (0.25 → 1 opacity) as the drawn rail reaches its fraction.
+ *
+ * ONE clock (jc-a7l): the step card's opacity derives from the SAME `drawn`
+ * MotionValue as its dot — cause (rail) and effect (text) can no longer
+ * decouple at fast scroll the way the old whileInView fade did. Both readers
+ * share the once-lit latch, so neither un-happens on scroll-back. Scroll-
+ * derived state is also inherently deep-link/arrival correct (jc-sj2): a
+ * restored scroll position lands with `drawn` already resolved.
  */
 function SpineNode({
     step,
@@ -58,13 +51,22 @@ function SpineNode({
         [i, count],
     );
     const nodeOpacity = useTransform(drawn, mapOpacity);
-    const node = useReveal<HTMLLIElement>();
+    // Step text rides the identical latched rail value over a slightly longer
+    // span — useTransform(drawn, [i/count, (i+0.7)/count], [0,1]) with memory.
+    const mapItemOpacity = useCallback(
+        (v: number) => {
+            lit.current = Math.max(lit.current, v);
+            const start = i / count;
+            const span = 0.7 / count;
+            return Math.min(Math.max((lit.current - start) / span, 0), 1);
+        },
+        [i, count],
+    );
+    const itemOpacity = useTransform(drawn, mapItemOpacity);
 
     return (
         <motion.li
-            variants={nodeReveal}
-            custom={i * STAGGER.tight}
-            {...node}
+            style={{ opacity: reduced ? 1 : itemOpacity }}
             className="relative"
         >
             {/* Node dot — centered on the rail. Rail center ≈ 3.5px from the

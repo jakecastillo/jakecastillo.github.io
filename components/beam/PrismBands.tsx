@@ -84,11 +84,13 @@ export default function PrismBands({
                 (p as SVGPathElement).style.strokeDasharray = `${len}`;
                 (p as SVGPathElement).style.strokeDashoffset = `${len}`;
             });
+            // scrub 0.25 (jc-a7l): Lenis already supplies inertia — a heavier
+            // scrub double-smoothed into rubber-banding on direction flips.
             const trigger = {
                 trigger: ref.current,
                 start: "top 85%",
                 end: "bottom 45%",
-                scrub: 0.4,
+                scrub: 0.25,
             } as const;
             gsap.to(paths, {
                 strokeDashoffset: 0,

@@ -47,12 +47,21 @@ export default function ActPhilosophy() {
     const schematic = useReveal<HTMLDivElement>();
     return (
         <section className="section-y container-page">
-            {/* Belief */}
-            <motion.div
-                variants={reveal}
-                {...belief}
-                className="panel flex flex-col p-8 sm:p-12 lg:p-16"
-            >
+            {/* Belief — UNBOXED (jc-a7l): the manifesto runs full-bleed as
+                typography-as-layout, no containing panel. A feathered
+                background-token veil (the jc-l14 text-over-holo pattern) dims
+                the holo locally behind the statement so the ember state keeps
+                its >=3:1 floor; only the summary paragraph sits on a scrim. */}
+            <motion.div variants={reveal} {...belief} className="relative">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-x-8 -inset-y-10 -z-10 rounded-[var(--radius-panel)] sm:-inset-x-14"
+                    style={{
+                        background:
+                            "color-mix(in srgb, var(--background) 92%, transparent)",
+                        filter: "blur(28px)",
+                    }}
+                />
                 {/* ONE eyebrow spec (jc-nc1); the act number lives on the stage
                     rail alone — no doubled "02". */}
                 <p className="mb-5 font-mono text-xs uppercase tracking-[0.3em] text-primary">
@@ -66,7 +75,7 @@ export default function ActPhilosophy() {
                     </span>
                 </ManifestoReveal>
                 <div className="mt-8 mb-7 h-px w-12 bg-border-strong" />
-                <p className="measure text-lg leading-relaxed text-muted-foreground">
+                <p className="measure rounded-xl border border-border-subtle bg-surface/80 p-6 text-lg leading-relaxed text-muted-foreground backdrop-blur-sm">
                     {resumeData.summary}
                 </p>
             </motion.div>
