@@ -27,6 +27,19 @@ export default function StageManager() {
 
         if (elements.length === 0) return;
 
+        // Deep-link / back-forward arrival: seed the active act straight from the
+        // URL hash so a cold-load of /#skills lights the matching act before the
+        // observer catches up. This store is now the SINGLE source of the active
+        // section — the dock (Navigation) reads it too, so the duplicate
+        // observer that used to live in Navigation is gone (jc-g2l).
+        const syncFromHash = () => {
+            const id = window.location.hash.slice(1);
+            if (id && stageSections.some((act) => act.id === id)) setActiveId(id);
+        };
+        syncFromHash();
+        window.addEventListener("hashchange", syncFromHash);
+        window.addEventListener("popstate", syncFromHash);
+
         const observer = new IntersectionObserver(
             (entries) => {
                 for (const entry of entries) {
@@ -59,7 +72,11 @@ export default function StageManager() {
         );
 
         elements.forEach((el) => observer.observe(el));
-        return () => observer.disconnect();
+        return () => {
+            observer.disconnect();
+            window.removeEventListener("hashchange", syncFromHash);
+            window.removeEventListener("popstate", syncFromHash);
+        };
         // setActiveId is a zustand action — referentially stable across
         // renders, so including it here doesn't change when this effect runs.
     }, [setActiveId]);

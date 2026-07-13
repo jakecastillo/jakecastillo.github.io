@@ -12,7 +12,7 @@ import {
 import { resumeData, type Job } from "@/data/resume";
 import { fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
-import { useActStore } from "@/hooks/useActStore";
+import { selectExpPinned, useActStore } from "@/hooks/useActStore";
 import { useScrollStore } from "@/hooks/useScrollStore";
 import { ArrowDown, ArrowRight } from "lucide-react";
 
@@ -126,6 +126,12 @@ function ImmersiveTimeline({ total }: { total: number }) {
         setExpImmersive(true);
         return () => setExpImmersive(false);
     }, [setExpImmersive]);
+
+    // Promote the x-translated track to its own compositor layer ONLY while the
+    // pin is engaged and scrubbed (selectExpPinned), then release the hint so a
+    // standing will-change doesn't hold GPU memory once the act scrolls away
+    // (jc-g2l).
+    const pinned = useActStore(selectExpPinned);
 
     // Map scroll progress → active node index for the "NN / TT" counter.
     const [active, setActive] = useState(0);
@@ -244,7 +250,10 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     </div>
                 </div>
 
-                <motion.div style={{ x }} className="relative flex gap-12 px-6 sm:px-12 md:gap-24 md:px-24">
+                <motion.div
+                    style={{ x, willChange: pinned ? "transform" : undefined }}
+                    className="relative flex gap-12 px-6 sm:px-12 md:gap-24 md:px-24"
+                >
                     {/* Continuous timeline line */}
                     <div className="absolute left-0 top-0 hidden h-[1px] w-full -translate-y-12 bg-border md:block" aria-hidden="true" />
 

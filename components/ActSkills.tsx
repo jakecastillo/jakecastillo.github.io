@@ -111,9 +111,19 @@ export default function ActSkills() {
                 aria-hidden="true"
                 className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent opacity-50 pointer-events-none"
             />
+            {/* Decorative violet glow. Pre-rendered as a radial-gradient paint
+                instead of a 600px bg-primary/10 circle under blur-[140px]: the
+                filtered version forced a full-viewport composite layer that the
+                compositor re-rasterized at the Skills act boundary (jc-g2l). A
+                gradient background-image is visually equivalent with zero filter
+                cost. */}
             <div
                 aria-hidden="true"
-                className="absolute w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] -right-40 top-1/2 -translate-y-1/2 pointer-events-none"
+                className="absolute w-[600px] h-[600px] -right-40 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{
+                    backgroundImage:
+                        "radial-gradient(circle, rgba(139,92,246,0.10) 0%, rgba(139,92,246,0.06) 40%, rgba(139,92,246,0) 72%)",
+                }}
             />
 
             <Container className="relative z-10">

@@ -9,14 +9,9 @@ import {
     useTransform,
 } from "framer-motion";
 import Link from "next/link";
-import { navSections, sections } from "@/data/sections";
+import { navSections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
 import { selectExpPinned, useActStore } from "@/hooks/useActStore";
-
-// All section ids we observe to determine what's in view. Every section is now
-// a dock item (home, about, exp, skills, contact), so the active-section
-// highlight must resolve correctly for all five ids — including "skills".
-const observedIds = sections.map((section) => section.id);
 
 /**
  * Tracks whether the device is a fine-pointer (e.g. mouse) device that is not
@@ -40,79 +35,17 @@ function useEnableMotion() {
 }
 
 /**
- * Observes the section elements and reports the id of the section currently
- * dominating the viewport, so the dock can highlight the matching button.
+ * The id of the section currently dominating the viewport, used to highlight the
+ * matching dock button. Reads the SAME activeActId that StageManager's single
+ * IntersectionObserver writes (shared via useActStore) — the second, duplicate
+ * observer that used to run here was removed (jc-g2l) to halve the per-boundary
+ * observer + setState work. Deep-link / back-forward immediacy is preserved:
+ * StageManager seeds activeActId from the URL hash on mount and on
+ * hashchange/popstate. Every act id (home/about/exp/skills/contact) is also a
+ * dock id, so the value maps 1:1 onto the buttons.
  */
 function useActiveSection() {
-    const [activeId, setActiveId] = useState<string>(observedIds[0] ?? "home");
-
-    // Deep-link / back-forward arrival: bind the highlight straight to the URL
-    // hash so a cold-load of /#skills (or a browser back to a hash) lights the
-    // matching dock item immediately, instead of leaving a stale "home"/wrong
-    // section lit until the observer catches up. The observer below refines it
-    // as the user scrolls.
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        const syncFromHash = () => {
-            const id = window.location.hash.slice(1);
-            if (id && observedIds.includes(id)) setActiveId(id);
-        };
-        syncFromHash();
-        window.addEventListener("hashchange", syncFromHash);
-        window.addEventListener("popstate", syncFromHash);
-        return () => {
-            window.removeEventListener("hashchange", syncFromHash);
-            window.removeEventListener("popstate", syncFromHash);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
-            return;
-        }
-
-        const visibility = new Map<string, number>();
-        const elements = observedIds
-            .map((id) => document.getElementById(id))
-            .filter((el): el is HTMLElement => el !== null);
-
-        if (elements.length === 0) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    visibility.set(
-                        entry.target.id,
-                        entry.isIntersecting ? entry.intersectionRatio : 0
-                    );
-                });
-
-                let bestId = "";
-                let bestRatio = 0;
-                visibility.forEach((ratio, id) => {
-                    if (ratio > bestRatio) {
-                        bestRatio = ratio;
-                        bestId = id;
-                    }
-                });
-
-                if (bestId && bestRatio > 0) {
-                    setActiveId(bestId);
-                }
-            },
-            {
-                // Bias toward the middle band of the viewport so the active
-                // section flips as a section crosses center, not its edge.
-                rootMargin: "-35% 0px -35% 0px",
-                threshold: [0, 0.25, 0.5, 0.75, 1],
-            }
-        );
-
-        elements.forEach((el) => observer.observe(el));
-        return () => observer.disconnect();
-    }, []);
-
-    return activeId;
+    return useActStore((s) => s.activeActId);
 }
 
 function MagneticButton({
