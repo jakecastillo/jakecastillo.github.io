@@ -36,6 +36,12 @@ export interface BeamAnchorPoint {
     anchor: boolean;
     /** For anchors: scrollY at which the head arrives here. 0 on midpoints. */
     arriveScroll: number;
+    /**
+     * Park window: scrollY until which the head HOLDS at this anchor after
+     * arriving (the prism act — the ribbon must never cross the prism
+     * un-split while the fan is still drawing). Set on the prism anchor only.
+     */
+    holdScroll?: number;
 }
 
 export interface BeamAnchorFrame {
@@ -49,6 +55,12 @@ export interface BeamAnchorFrame {
     maxScroll: number;
     /** <768px — vertical center-snaking path. */
     mobile: boolean;
+    /**
+     * Prism act window (scrollY), for act-aware consumers (HoloLattice dims
+     * while the prism holds the stage). 0 until the first measurement lands.
+     */
+    prismArriveScroll: number;
+    prismHoldScroll: number;
 }
 
 const frame: BeamAnchorFrame = {
@@ -59,6 +71,8 @@ const frame: BeamAnchorFrame = {
     unitsPerPx: 0,
     maxScroll: 0,
     mobile: false,
+    prismArriveScroll: 0,
+    prismHoldScroll: 0,
 };
 
 /** Read by BeamRibbon inside useFrame — plain data, no subscriptions. */
@@ -160,7 +174,8 @@ function framesDiffer(a: BeamAnchorPoint[], b: BeamAnchorPoint[]): boolean {
         if (
             Math.abs(a[i].x - b[i].x) > 0.5 ||
             Math.abs(a[i].y - b[i].y) > 0.5 ||
-            Math.abs(a[i].arriveScroll - b[i].arriveScroll) > 0.5
+            Math.abs(a[i].arriveScroll - b[i].arriveScroll) > 0.5 ||
+            Math.abs((a[i].holdScroll ?? 0) - (b[i].holdScroll ?? 0)) > 0.5
         ) {
             return true;
         }
@@ -228,6 +243,33 @@ function measure(): void {
         prev = p.arriveScroll;
     }
 
+    // Prism park window: after arriving, the head HOLDS on the vertex until
+    // the band fan has fully drawn (PrismBands scrubs from "top 85%" to
+    // "bottom 45%" of its SVG), so the ribbon never crosses the prism
+    // un-split. Measured off the fan SVG's bottom edge; clamped inside
+    // (arrive, beaconArrive) so the stop list stays strictly increasing.
+    const anchors = points.filter((p) => p.anchor);
+    const prismAnchor = anchors[2];
+    const beaconAnchor = anchors[3];
+    let prismHold = prismAnchor.arriveScroll;
+    const fanSvg = document
+        .querySelector('[data-beam-anchor="prism"]')
+        ?.closest("svg");
+    if (fanSvg) {
+        const fr = fanSvg.getBoundingClientRect();
+        prismHold = Math.min(
+            Math.max(
+                fr.bottom + scrollY - vh * 0.45,
+                prismAnchor.arriveScroll + 1,
+            ),
+            beaconAnchor.arriveScroll - 1,
+            maxScroll,
+        );
+    }
+    if (prismHold > prismAnchor.arriveScroll) {
+        prismAnchor.holdScroll = prismHold;
+    }
+
     if (
         !framesDiffer(points, frame.points) &&
         frame.viewportW === vw &&
@@ -242,6 +284,8 @@ function measure(): void {
     frame.unitsPerPx = VIEW_HEIGHT_WORLD / vh;
     frame.maxScroll = maxScroll;
     frame.mobile = mobile;
+    frame.prismArriveScroll = prismAnchor.arriveScroll;
+    frame.prismHoldScroll = prismAnchor.holdScroll ?? prismAnchor.arriveScroll;
     frame.version++;
 }
 

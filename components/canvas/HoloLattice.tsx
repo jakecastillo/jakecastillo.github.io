@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollStore } from "@/hooks/useScrollStore";
 import { useTiltStore } from "@/hooks/useTiltStore";
+import { getBeamAnchorFrame } from "@/hooks/useBeamAnchors";
 import { damp } from "./anim";
 
 // "System Online" — a slowly rotating low-poly icosahedron rendered as a glowing
@@ -82,6 +83,11 @@ export default function HoloLattice({
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
+  const wireMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  // Act-aware duck: 1 = full presence, dips while the prism act holds the
+  // stage (scroll window published by useBeamAnchors — module read inside
+  // useFrame, never a subscription; React 19 Canvas constraint).
+  const duck = useRef(1);
   const scrollOffset = useScrollStore((s) => s.offset);
   const tiltEnabled = useTiltStore((s) => s.enabled);
 
@@ -170,13 +176,37 @@ export default function HoloLattice({
       return;
     }
 
+    // --- Act IV duck: dim/park the lattice while the prism holds the stage ---
+    // Ramps down as the skills act enters (one viewport of approach), holds
+    // dim through the fan's park window, restores after the fan completes —
+    // the climax gets a dark stage instead of competing with the full bloom.
+    const bf = getBeamAnchorFrame();
+    let duckTarget = 1;
+    if (bf.prismArriveScroll > 0 && bf.viewportH > 0) {
+      const y = window.scrollY;
+      const vh = bf.viewportH;
+      const enter = Math.min(
+        Math.max((y - (bf.prismArriveScroll - vh)) / (vh * 0.6), 0),
+        1,
+      );
+      const exit = Math.min(
+        Math.max((y - bf.prismHoldScroll) / (vh * 0.7), 0),
+        1,
+      );
+      duckTarget = 1 - 0.68 * enter * (1 - exit);
+    }
+    duck.current = damp(duck.current, duckTarget, 3, delta);
+    if (wireMatRef.current) {
+      wireMatRef.current.opacity = (lowPower ? 0.3 : 0.16) * duck.current;
+    }
+
     // --- Boot envelope (uniforms only; frame-rate independent via damp) ---
     if (m) {
       const rev = m.uniforms.uReveal;
       if (rev.value < 1) rev.value = Math.min(1, damp(rev.value, 1, 3, delta));
       m.uniforms.uIntensity.value = damp(
         m.uniforms.uIntensity.value,
-        restingIntensity,
+        restingIntensity * duck.current,
         3.2,
         delta,
       );
@@ -231,6 +261,7 @@ export default function HoloLattice({
           lighter bloom would otherwise leave the thin edges nearly invisible. */}
       <mesh geometry={geometry} scale={1.004}>
         <meshBasicMaterial
+          ref={wireMatRef}
           color={VIOLET}
           wireframe
           transparent

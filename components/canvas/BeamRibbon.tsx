@@ -46,6 +46,7 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform float uViewH;     // framebuffer height (px) for the viewport-edge fade
   uniform float uEdge;      // fade band height (px) at top/bottom viewport edges
+  uniform float uPrismFrac; // arc fraction of the prism vertex (1.0 = disabled)
   uniform vec3 uViolet;
   uniform vec3 uCyan;
   uniform float uIntensity;
@@ -83,7 +84,13 @@ const fragmentShader = /* glsl */ `
     float flow = 0.75 + 0.25 * sin(along * 42.0 - uTime * 2.4);
     // Cyan warm-up trailing the head, so the draw front reads as heat.
     float nearHead = smoothstep(0.12, 0.0, uHead - along) * drawn;
-    vec3 col = mix(uViolet, uCyan, clamp(head * 0.85 + nearHead * 0.35, 0.0, 1.0));
+    // Post-prism recolor: the leg below the prism vertex carries the band
+    // ramp (violet -> cyan) — the beam that resumes after the fan is the
+    // split spectrum, not the raw violet thread. Ratio form (not smoothstep)
+    // so uPrismFrac = 1.0 cleanly disables it before the first measurement.
+    float post = clamp((along - uPrismFrac) / max(1.0 - uPrismFrac, 0.001), 0.0, 1.0);
+    vec3 base = mix(uViolet, uCyan, post * 0.85);
+    vec3 col = mix(base, uCyan, clamp(head * 0.85 + nearHead * 0.35, 0.0, 1.0));
     float a = drawn * 0.42 * flow + ember * 0.42 + head * 0.9;
     // Ordered dither grain on the glow falloff — gated by the lit mask so
     // the undrawn tube stays truly invisible (no ghost path at page top).
@@ -118,9 +125,6 @@ export default function BeamRibbon({
     const unitsPerPx = useRef(0);
     const viewportW = useRef(0);
     const viewportH = useRef(0);
-    // Reused scratch — never allocated per frame.
-    const headPoint = useRef(new THREE.Vector3());
-
     // Placeholder geometry until the first anchor measurement lands; the mesh
     // stays invisible until then.
     const initialGeometry = useMemo(() => {
@@ -139,6 +143,7 @@ export default function BeamRibbon({
             uTime: { value: 0 },
             uViewH: { value: 1 },
             uEdge: { value: 0 },
+            uPrismFrac: { value: 1 },
             uViolet: { value: VIOLET },
             uCyan: { value: CYAN },
             uIntensity: { value: lowPower ? 2.4 : 2.1 },
@@ -199,8 +204,19 @@ export default function BeamRibbon({
                 const p = frame.points[i];
                 if (!p.anchor) continue;
                 const t = i / (n - 1);
+                const f = lengths[Math.round(t * DIV)] / total;
                 ss.push(p.arriveScroll);
-                sf.push(lengths[Math.round(t * DIV)] / total);
+                sf.push(f);
+                // Park window (prism): duplicate the stop at the SAME arc
+                // fraction — between arriveScroll and holdScroll the
+                // interpolation below is flat, so the head sits welded to the
+                // vertex while the fan draws, and only resumes (recolored by
+                // the band ramp) once the fan completes.
+                if (p.holdScroll && p.holdScroll > p.arriveScroll) {
+                    ss.push(p.holdScroll);
+                    sf.push(f);
+                    m.uniforms.uPrismFrac.value = f;
+                }
             }
             // The final anchor is the curve's last point — force exact 1 so
             // the head parks flush on the beacon.
