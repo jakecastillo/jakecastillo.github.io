@@ -540,6 +540,27 @@ html.lenis, html.lenis body { height: auto; }
 @keyframes boot-skip-in { to { opacity: 0.55; } }
 @keyframes boot-skip-out { to { opacity: 0; } }
 
+/* ---- Terminal console: idle block caret -------------------------------- */
+/* A blinking violet block shown at the live prompt before focus, so the
+   console reads as interactive without any input. CSS-driven so
+   prefers-reduced-motion holds it static (still visible, just calm). */
+.terminal-caret {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1.05rem;
+  border-radius: 1px;
+  background: var(--primary-hover);
+  box-shadow: 0 0 8px 0 rgba(139, 92, 246, 0.5);
+  animation: terminal-caret-blink 1.1s steps(1) infinite;
+}
+@keyframes terminal-caret-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .terminal-caret { animation: none; opacity: 0.9; }
+}
+
 /* ---- THE BEAM: prism vertex pulse -------------------------------------- */
 /* CSS-driven (not SMIL) so prefers-reduced-motion actually gates it. */
 .prism-vertex {

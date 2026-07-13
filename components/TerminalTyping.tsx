@@ -416,18 +416,20 @@ $ `;
         fontFamily: "var(--font-geist-mono), 'SF Mono', Menlo, Monaco, monospace"
       }}
     >
-      {/* Window chrome — bar derived near the surface-overlay token (#2a2a32),
-          a touch lighter than the body for luminance elevation. */}
+      {/* Beam-console chrome — bar derived near the surface-overlay token
+          (#2a2a32). The three foreign macOS hues (red/yellow/green traffic
+          lights) are gone; in their place a single lit violet node (the beam
+          entering the frame) plus two dim status vents, all monochrome. */}
       <div className="relative flex items-center h-7 px-3 bg-[#2a2a32] border-b border-[#202028] shrink-0">
-        <div className="flex gap-2 absolute left-3">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e]" />
-          <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24]" />
-          <div className="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29]" />
+        <div className="flex items-center gap-2 absolute left-3" aria-hidden="true">
+          <span className="h-2 w-2 rounded-full bg-primary-hover shadow-[0_0_8px_1px_rgba(139,92,246,0.85)]" />
+          <span className="h-2 w-2 rounded-full border border-border-strong" />
+          <span className="h-2 w-2 rounded-full border border-border" />
         </div>
         <div className="w-full text-center">
-          <span className="text-[#c4c4c4] text-xs font-semibold flex items-center justify-center gap-1.5 opacity-90">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z" /></svg>
-            jake — -zsh
+          <span className="text-[color:var(--muted-foreground)] text-xs font-semibold flex items-center justify-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM1.5 8a6.5 6.5 0 1 1 13 0 6.5 6.5 0 0 1-13 0z" /></svg>
+            beam · console
           </span>
         </div>
       </div>
@@ -480,6 +482,10 @@ $ `;
       {/* Interactive phase */}
       {phase === "complete" && (
         <div className="p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
+          {/* Scrollback fills the card's height so the console never reads as a
+              half-empty panel; the live prompt + readout are pinned to the
+              bottom edge (see the console footer below), so the card earns its
+              full height at 1440x900 / 1920x1080 with no dead lower half. */}
           <div
             ref={scrollContainerRef}
             role="log"
@@ -489,10 +495,14 @@ $ `;
             className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-sm leading-relaxed scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--primary-hover)] rounded-sm"
           >
             {outputText}
+            <div className="h-1" />
+          </div>
 
-            {/* Input area attached to bottom of output */}
+          {/* Pinned console footer — the live prompt and a persistent system
+              readout, anchored to the bottom. */}
+          <div className="shrink-0 mt-1 border-t border-[#202028] pt-2">
             <form
-              className="flex items-center gap-2 min-w-0 pt-0" // removed border-t
+              className="flex items-center gap-2 min-w-0"
               onSubmit={async (e) => {
                 e.preventDefault();
                 const value = inputValue;
@@ -506,6 +516,13 @@ $ `;
               <span className="text-[color:var(--primary-hover)] select-none shrink-0 text-sm font-semibold">
                 {currentPath.length === 1 ? "~" : currentPath[currentPath.length - 1]} $
               </span>
+              {/* Idle block cursor: a visible caret BEFORE any focus/input so a
+                  first-time visitor sees the prompt is live. Static (not
+                  blinking) under reduced motion; the native caret takes over on
+                  focus. */}
+              {!isFocused && inputValue === "" && (
+                <span aria-hidden="true" className="terminal-caret shrink-0" />
+              )}
               <input
                 ref={inputRef}
                 value={inputValue}
@@ -564,13 +581,27 @@ $ `;
                 spellCheck={false}
                 autoCapitalize="none"
                 autoComplete="off"
-                placeholder=""
+                placeholder="type 'help'"
                 className="flex-1 min-w-0 bg-transparent text-[color:var(--foreground)] text-sm placeholder:text-gray-500 placeholder:opacity-50 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
                 aria-label="Terminal input"
               />
             </form>
-            {/* Dummy element to force scroll to bottom? No, scrollTop setting is better */}
-            <div className="h-2"></div>
+
+            {/* Persistent system readout — a live signal indicator plus a
+                standing hint at the genuinely fun command set, so the discovery
+                surface is always visible without any input. */}
+            <div className="mt-1.5 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-wider text-subtle-foreground select-none">
+              <span className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(45,212,191,0.6)]"
+                />
+                signal: live
+              </span>
+              <span aria-hidden="true" className="truncate">
+                type &lsquo;help&rsquo; &middot; &uarr; history
+              </span>
+            </div>
           </div>
         </div>
       )}
