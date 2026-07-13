@@ -14,32 +14,66 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
  * also called ScrollTrigger.update() just double-fired the same work (jc-aia),
  * so it's gone.
  *
- * What DID matter was the refresh: Lenis initializes lazily (on idle), and
- * ScrollTrigger's start/end positions must be recomputed once its smoothing is
- * in play. Instead of a 1200ms magic timer that hoped Lenis had settled, we
- * refresh exactly once off the store's `lenis` field — the moment SmoothScroll
- * publishes the instance (or immediately, if it beat us here).
+ * What DID matter was the refresh: trigger start/end positions are cached at
+ * setup, before late webfont/image layout shifts settle. Instead of a 1200ms
+ * magic timer that hoped everything had settled, ScrollTrigger.refresh() fires
+ * exactly once per page load, from whichever signal applies:
+ *
+ * - Primary: the store's `lenis` field — the moment SmoothScroll publishes
+ *   the instance (or immediately, if it beat this effect).
+ * - Fallback: SmoothScroll never constructs Lenis under prefers-reduced-motion,
+ *   so that signal never comes for the reduced-motion cohort. For them,
+ *   fonts.ready + window load — a strictly better "layout has settled" proxy
+ *   than the old blind timer — drives the one refresh instead.
  */
+
+/** Exactly-once latch, module-level so a StrictMode double-invoke (mount →
+    cleanup → remount) cannot run the refresh twice. */
+let didRefresh = false;
+
 export default function GsapProvider() {
     useEffect(() => {
-        let refreshed = false;
+        if (didRefresh) return;
+        let disposed = false;
+        let unsub: (() => void) | null = null;
         const refresh = () => {
-            if (refreshed) return;
-            refreshed = true;
+            if (didRefresh || disposed) return;
+            didRefresh = true;
             ScrollTrigger.refresh();
+            unsub?.();
+            unsub = null;
         };
-        // Lenis may already be live before this effect runs.
+
+        // Primary: Lenis may already be live before this effect runs.
         if (useScrollStore.getState().lenis) {
             refresh();
-            return;
+        } else {
+            unsub = useScrollStore.subscribe((state) => {
+                if (state.lenis) refresh();
+            });
         }
-        const unsub = useScrollStore.subscribe((state) => {
-            if (state.lenis) {
-                refresh();
-                unsub();
-            }
+
+        // Fallback for the no-Lenis (reduced-motion) path. The lenis check at
+        // resolution time keeps the two paths exclusive: if Lenis exists by
+        // settle, its path owns the refresh (didRefresh also guards), and the
+        // `disposed` flag makes a post-unmount resolution a no-op.
+        const loaded =
+            document.readyState === "complete"
+                ? Promise.resolve()
+                : new Promise<void>((resolve) =>
+                      window.addEventListener("load", () => resolve(), {
+                          once: true,
+                      }),
+                  );
+        Promise.all([document.fonts.ready, loaded]).then(() => {
+            if (!useScrollStore.getState().lenis) refresh();
         });
-        return () => unsub();
+
+        return () => {
+            disposed = true;
+            unsub?.();
+            unsub = null;
+        };
     }, []);
     return null;
 }
