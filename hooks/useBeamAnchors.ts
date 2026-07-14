@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // ---------------------------------------------------------------------------
 // useBeamAnchors — the DOM side of the anchor-driven beam.
@@ -130,6 +131,8 @@ function computePoints(
     beacon: AnchorRect,
     vw: number,
     mobile: boolean,
+    containerLeft: number,
+    containerWidth: number,
 ): BeamAnchorPoint[] {
     const pts: BeamAnchorPoint[] = [];
     const anchor = (a: AnchorRect) =>
@@ -156,14 +159,33 @@ function computePoints(
     // Desktop weave: sweep out of the hero underline toward the right gutter,
     // dive back left into the spine top, thread the (pinned) experience act
     // with a wide S, kiss the prism vertex, then settle onto the beacon.
+    //
+    // Midpoint x is CONTAINER-RELATIVE (containerLeft + f*containerWidth), not
+    // raw viewport (jc-ehh). All four true anchors live inside .container-page,
+    // which clamps to 90rem/1440px centered at >=1536px. Threading vw*f instead
+    // swung the S 150-240px into the outer gutters at 1920+ and sliced back
+    // across the cards at steep angles. With a container-relative lane, the
+    // fixed 1440 clamp makes the weave shape identical at 1920 and 2560 (just
+    // re-centered) and it never leaves the composition: every midpoint here
+    // lands INSIDE the content box (padding-inset) at 1440/1920/2560, so the
+    // lateral excursion beyond the outer card edge is 0 (< 40px requirement).
+    //
+    // z (depth behind the anchor plane) is capped to -0.35..-0.5. A midpoint at
+    // world z<0 projects toward screen-center by |z|/(5+|z|) of its distance
+    // from center (camera z=5). The widest midpoint sits ~530px off-center at
+    // 2560 (W=1440); at z=-0.35 that pull is 530*0.35/5.35 ~= 35px, and the
+    // deepest right swing (~500px, z=-0.4) ~= 37px — both < 40px from lane. The
+    // previous -0.9 midpoint drifted ~74px, dragging the visible path off its
+    // intended gutter/rail lane. Anchors stay at z=0 (exact welds).
+    const lane = (f: number) => containerLeft + f * containerWidth;
     anchor(hero);
-    pushMid(pts, hero, spine, 0.34, vw * 0.74, -0.7);
-    pushMid(pts, hero, spine, 0.74, vw * 0.3, -0.35);
+    pushMid(pts, hero, spine, 0.34, lane(0.78), -0.5);
+    pushMid(pts, hero, spine, 0.74, lane(0.28), -0.4);
     anchor(spine);
-    pushMid(pts, spine, prism, 0.28, vw * 0.8, -0.9);
-    pushMid(pts, spine, prism, 0.64, vw * 0.16, -0.5);
+    pushMid(pts, spine, prism, 0.28, lane(0.85), -0.4);
+    pushMid(pts, spine, prism, 0.64, lane(0.13), -0.35);
     anchor(prism);
-    pushMid(pts, prism, beacon, 0.5, vw * 0.7, -0.7);
+    pushMid(pts, prism, beacon, 0.5, lane(0.72), -0.5);
     anchor(beacon);
     return pts;
 }
@@ -184,8 +206,18 @@ function framesDiffer(a: BeamAnchorPoint[], b: BeamAnchorPoint[]): boolean {
 }
 
 function measure(): void {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    // Layout viewport (documentElement.client*), NOT window.inner*: the fixed
+    // inset-0 <Canvas> box is laid out EXCLUDING the classic scrollbar, and
+    // BeamRibbon projects worldX = (x - vw/2) * unitsPerPx into exactly that
+    // box. window.innerWidth INCLUDES the scrollbar, so on any scrollbar-
+    // visible platform (Windows; macOS+mouse; external monitors) every beam
+    // point was offset by (clientWidth - innerWidth)/2 — a full visual miss at
+    // the prism weld. Same single-source-of-truth precedent as BootIgnition's
+    // landing measure. vh likewise: with no horizontal scrollbar clientHeight
+    // == innerHeight (y stays exact); with one, clientHeight IS the canvas box.
+    const doc = document.documentElement;
+    const vw = doc.clientWidth;
+    const vh = doc.clientHeight;
     if (vw === 0 || vh === 0) return;
     const scrollY = window.scrollY;
 
@@ -222,10 +254,37 @@ function measure(): void {
         return;
     }
 
-    const doc = document.documentElement;
+    // The four beam anchors all live inside .container-page, which clamps to
+    // 90rem (1440px) centered at >=1536px. Measure that box ONCE so the desktop
+    // weave's shaping midpoints thread the CONTAINER, not the raw viewport —
+    // otherwise the S-curve swings into the outer gutters at 1920+ (jc-ehh).
+    // rect.left/width are viewport px (same space as the anchors' x, which never
+    // scroll horizontally). All .container-page instances share this box (each
+    // is width:100% max-width margin-inline:auto), so the first is authoritative.
+    // Fall back to the full viewport if the container isn't in the DOM yet.
+    let containerLeft = 0;
+    let containerWidth = vw;
+    const containerEl = document.querySelector(".container-page");
+    if (containerEl) {
+        const cr = containerEl.getBoundingClientRect();
+        if (cr.width > 0) {
+            containerLeft = cr.left;
+            containerWidth = cr.width;
+        }
+    }
+
     const maxScroll = Math.max(0, doc.scrollHeight - vh);
     const mobile = vw < 768;
-    const points = computePoints(hero, spine, prism, beacon, vw, mobile);
+    const points = computePoints(
+        hero,
+        spine,
+        prism,
+        beacon,
+        vw,
+        mobile,
+        containerLeft,
+        containerWidth,
+    );
 
     // Arrival keyframes: the head lands on each anchor as it crosses the
     // reading zone (ARRIVAL_VIEWPORT_FRACTION of the viewport), clamped to
@@ -313,6 +372,17 @@ export function useBeamAnchors(): void {
 
         window.addEventListener("resize", schedule);
 
+        // A WIDTH-only resize crossing the 1536 breakpoint changes the desktop
+        // weave (vw-scaled midpoints) but often nets zero document-height
+        // delta — so the ResizeObserver below can miss it, leaving the ribbon
+        // wrong until the 600ms scroll self-heal. ScrollTrigger.refresh() DOES
+        // fire on any such resize (it re-caches every trigger); piggyback on it
+        // to remeasure immediately. Guarded so the no-GSAP / reduced-motion
+        // cohort (ScrollTrigger possibly never registered) can never crash.
+        const stHasEvents =
+            typeof ScrollTrigger?.addEventListener === "function";
+        if (stHasEvents) ScrollTrigger.addEventListener("refresh", schedule);
+
         // Document height changes (ScrollTrigger pin-spacer insertion, lazy
         // content) move every downstream anchor — remeasure.
         let ro: ResizeObserver | null = null;
@@ -337,6 +407,8 @@ export function useBeamAnchors(): void {
             cancelAnimationFrame(raf);
             window.removeEventListener("resize", schedule);
             window.removeEventListener("scroll", onScroll);
+            if (stHasEvents)
+                ScrollTrigger.removeEventListener("refresh", schedule);
             ro?.disconnect();
         };
     }, []);

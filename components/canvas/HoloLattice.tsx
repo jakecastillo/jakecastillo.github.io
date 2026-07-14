@@ -47,6 +47,26 @@ const fragmentShader = /* glsl */ `
   varying vec3 vNormalV;
   varying vec3 vViewV;
   varying float vWorldY;
+
+  // 4x4 Bayer ordered dither — copied VERBATIM from BeamRibbon so the two
+  // shaders share ONE grain language. Breaks smooth low-frequency gradients
+  // into a sub-8-bit-step stipple; see the dither line in main() for why.
+  float bayer(vec2 p) {
+    vec2 q = floor(mod(p, 4.0));
+    float i = q.x + q.y * 4.0;
+    // 4x4 Bayer matrix values /16, expressed procedurally-free as a lookup chain
+    float m = 0.0;
+    if (i < 1.0) m = 0.0;       else if (i < 2.0) m = 8.0;
+    else if (i < 3.0) m = 2.0;  else if (i < 4.0) m = 10.0;
+    else if (i < 5.0) m = 12.0; else if (i < 6.0) m = 4.0;
+    else if (i < 7.0) m = 14.0; else if (i < 8.0) m = 6.0;
+    else if (i < 9.0) m = 3.0;  else if (i < 10.0) m = 11.0;
+    else if (i < 11.0) m = 1.0; else if (i < 12.0) m = 9.0;
+    else if (i < 13.0) m = 15.0;else if (i < 14.0) m = 7.0;
+    else if (i < 15.0) m = 13.0;else m = 5.0;
+    return m / 16.0;
+  }
+
   void main() {
     // Fresnel: bright at grazing angles (silhouette), dark facing the camera.
     float fres = pow(1.0 - clamp(dot(vNormalV, vViewV), 0.0, 1.0), uPower);
@@ -70,6 +90,29 @@ const fragmentShader = /* glsl */ `
     float glow = uIntensity * (scan + band * 0.7) + uPulse * 1.5;
     vec3 outCol = col * glow * wipe + uCyan * edge * 1.6; // edge blooms even before fill
     float a = (fres * scan + band * 0.12) * wipe + edge * 0.6;
+    // --- Screen-space ordered dither: kill the facet/rim banding (jc-881) ---
+    // The Fresnel + scanline + sweep terms make a smooth low-frequency gradient
+    // across every large dark face; the half-float scene survives clean, but the
+    // final 8-bit encode (amplified by Bloom's mip blur) quantizes it into hard
+    // horizontal stripe bands — a venetian-blind moire, worst where the crystal
+    // fills the viewport. A 4x4 Bayer stipple, injected BEFORE the framebuffer
+    // write (thus before Bloom reads it), scatters the rounding across the tile so
+    // the gradient crosses each step as noise, not a contour line.
+    //
+    // It rides the ALPHA, not the color. Under AdditiveBlending (SRC_ALPHA, ONE)
+    // the buffer contribution is outCol*a, so an alpha dither da perturbs the
+    // buffer by outCol*da — automatically SCALED BY LOCAL VALUE (the fragment's
+    // own radiance: strong on the bright violet body, vanishing in the true-dark
+    // core) yet hue-locked, because every channel is scaled by the identical da/a
+    // ratio. A coverage dither can never shift chroma or desaturate, so the
+    // violet/cyan two-color palette is left exactly intact — no wash. Amplitude
+    // 0.006 puts ~1.5 LSB of grain into linear scene space; the later sRGB encode
+    // steepens that to ~2.5-4 output LSB right where the dark-face bands live and
+    // flattens it toward the bright rim — the correct perceptual weighting, always
+    // enough to clear one step, never enough to read as noise. Gated by wipe so
+    // the boot reveal front stays clean; time-independent, so reduced motion bakes
+    // the identical static grain with zero travel.
+    a += (bayer(gl_FragCoord.xy) - 0.5) * 0.006 * wipe;
     gl_FragColor = vec4(outCol, a);
   }
 `;
@@ -106,8 +149,13 @@ export default function HoloLattice({
   useEffect(() => {
     if (reduced) return;
     const onMove = (e: PointerEvent) => {
-      pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      pointer.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+      // Normalize against the layout viewport (documentElement.client*), the
+      // same box the fixed <Canvas> is sized to — NOT window.inner*, which
+      // includes the classic scrollbar and would skew the lean off-center on
+      // scrollbar-visible platforms (same root cause as the beam-anchor miss).
+      const el = document.documentElement;
+      pointer.current.x = (e.clientX / el.clientWidth) * 2 - 1;
+      pointer.current.y = (e.clientY / el.clientHeight) * 2 - 1;
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
@@ -193,7 +241,17 @@ export default function HoloLattice({
         Math.max((y - bf.prismHoldScroll) / (vh * 0.7), 0),
         1,
       );
-      duckTarget = 1 - 0.68 * enter * (1 - exit);
+      // One FURTHER step while the head is actually WELDED to the vertex
+      // (prismArriveScroll..prismHoldScroll): the split spectrum should own the
+      // stage, so the lattice drops from ~0.32 to ~0.14 presence across the
+      // park, then eases back with (1 - exit) after the hold. `park` ramps in
+      // over a short 0.2vh once the head lands — distinct from the full-viewport
+      // approach `enter` — so the extra dip is confined to the hold itself.
+      const park = Math.min(
+        Math.max((y - bf.prismArriveScroll) / (vh * 0.2), 0),
+        1,
+      );
+      duckTarget = 1 - (0.68 * enter + 0.18 * park) * (1 - exit);
     }
     duck.current = damp(duck.current, duckTarget, 3, delta);
     if (wireMatRef.current) {

@@ -35,10 +35,46 @@ const RADIUS_PX = 2.4;
 // pointer the ribbon warms toward cyan and bows toward the cursor.
 const HEAT_RADIUS_PX = 110;
 const BOW_PX = 2.5;
+// First-contact bow pulse: the instant the pointer crosses INTO the heat radius
+// the resting bow (BOW_PX) briefly overshoots so the ribbon snaps a noticeable
+// lean toward the cursor, then settles back — making the otherwise-undiscoverable
+// heat field announce itself on first contact. Peak = BOW_PX * (1 + GAIN).
+// Imperative in useFrame off pointerPx; reduced motion is exempt (uBowAmp 0).
+const BOW_PULSE_MS = 520;
+const BOW_PULSE_GAIN = 1.6;
+const BOW_PULSE_ATTACK = 0.18; // fraction of the window spent rising to the peak
+// Curve proximity taps sampled at geometry-build time so the per-frame path can
+// detect the pointer entering the heat radius via an early-out scan (first tap
+// inside the radius wins) — no distance-to-curve solve per frame.
+const BOW_SAMPLES = 256;
 // The answered ask: one cyan shimmer travels tail→head along the ribbon.
 const SHIMMER_MS = 900;
 // Reduced-motion answer: instant brightness step, held briefly, stepped off.
 const RM_FLASH_MS = 450;
+
+// The prism weld — the site's one screenshottable frame. While the head PARKS
+// on the prism vertex (uPrismFrac, during the frame.prismArriveScroll..
+// prismHoldScroll window published by useBeamAnchors) the vertex blooms into a
+// hot VIOLET node with a brief caustic flare — the unmistakable "beam-in" that
+// the split spectrum fans out of. The weld is violet; cyan stays answer-only.
+// Sized in CSS px along the tube, converted to arc fraction at geometry build.
+const WELD_HALF_PX = 6; // node half-extent → a ~12px hot node (10-14px target)
+const WELD_ENGAGE_FRAC = 0.02; // arc-fraction approach window the node blooms over
+const WELD_FLARE_MS = 520; // brief arrival caustic overshoot (a single burst)
+
+// The beacon dock — the ONE place the thread and the DOM touch in plain sight.
+// While the head PARKS on the beacon anchor (arc fraction 1.0, the contact
+// card's center — see Beacon.tsx) the tip blooms a SOFT VIOLET terminal swell,
+// so the head reads as physically DOCKING into the card edge rather than fading
+// out. Violet only — the standing dock never touches cyan; the sanctioned cyan
+// answer pulse on Email-press rides over it via uShimmer/askAt and is untouched
+// here. A brief arrival SETTLE (a one-shot swell overshoot easing to the
+// standing presence) sells the "kiss". Distinct from the prism weld: that is a
+// tight hot violet-white node mid-thread; this is a broader, softer violet
+// swell at the terminus. Sized in CSS px along the tube → arc fraction at build.
+const DOCK_HALF_PX = 10; // soft swell half-extent → a ~20px terminal bloom
+const DOCK_ENGAGE_FRAC = 0.05; // arc-fraction approach window the swell eases in over
+const DOCK_SETTLE_MS = 620; // gentle arrival settle (one soft press → rest)
 
 const vertexShader = /* glsl */ `
   uniform vec2 uPointer;   // pointer in mesh-LOCAL world units (z=0 plane)
@@ -72,6 +108,10 @@ const fragmentShader = /* glsl */ `
   uniform float uViewH;     // framebuffer height (px) for the viewport-edge fade
   uniform float uEdge;      // fade band height (px) at top/bottom viewport edges
   uniform float uPrismFrac; // arc fraction of the prism vertex (1.0 = disabled)
+  uniform float uWeldGain;  // 0..1(+) prism-weld park presence (imperative, useFrame)
+  uniform float uWeldHalf;  // weld node half-extent in arc fraction (~6px along tube)
+  uniform float uDockGain;  // 0..1(+) beacon-dock park presence (imperative, useFrame)
+  uniform float uDockHalf;  // dock swell half-extent in arc fraction (~10px along tube)
   uniform vec3 uViolet;
   uniform vec3 uCyan;
   uniform float uIntensity;
@@ -118,8 +158,45 @@ const fragmentShader = /* glsl */ `
     // so uPrismFrac = 1.0 cleanly disables it before the first measurement.
     float post = clamp((along - uPrismFrac) / max(1.0 - uPrismFrac, 0.001), 0.0, 1.0);
     vec3 base = mix(uViolet, uCyan, post * 0.85);
-    vec3 col = mix(base, uCyan, clamp(head * 0.85 + nearHead * 0.35, 0.0, 1.0));
-    float a = drawn * 0.42 * flow + ember * 0.42 + head * 0.9;
+    // Draw-front heat runs cyan — EXCEPT where the head is PARKED: at the prism
+    // weld (hot violet-white) and at the beacon dock (soft violet). At both, the
+    // dock/weld gain damps out the cyan tint (violet is the standing color;
+    // cyan stays answer-only), so the parked head reads violet, not cyan.
+    float headCyan = clamp(head * 0.85 + nearHead * 0.35, 0.0, 1.0)
+                   * (1.0 - clamp(uWeldGain, 0.0, 1.0) * 0.92)
+                   * (1.0 - clamp(uDockGain, 0.0, 1.0) * 0.92);
+    vec3 col = mix(base, uCyan, headCyan);
+    // --- The prism weld: a hot violet node + caustic flare at the vertex ------
+    // While parked (uWeldGain>0) the vertex arc-fraction (uPrismFrac) blooms
+    // into a ~12px hot node; a wider caustic skirt shimmers around it. uTime is
+    // frozen under reduced motion, so the skirt bakes as static grain (no
+    // travel). uWeldGain can briefly exceed 1 on arrival — the caustic flare.
+    float weldD = abs(along - uPrismFrac);
+    float weldCore = smoothstep(uWeldHalf, 0.0, weldD);
+    float weldSkirt = smoothstep(uWeldHalf * 3.0, uWeldHalf, weldD);
+    float caustic = 0.7 + 0.3 * sin(weldD / max(uWeldHalf, 1e-4) * 6.2831 - uTime * 5.0);
+    vec3 weldCol = mix(uViolet, vec3(1.0), 0.6); // hot violet-white, never cyan
+    col = mix(col, weldCol, clamp(weldCore * uWeldGain, 0.0, 1.0));
+    float weldA = weldCore * uWeldGain * 1.2
+                + weldSkirt * caustic * clamp(uWeldGain, 0.0, 1.0) * 0.5;
+    // --- The beacon dock: a soft VIOLET terminal swell where the head kisses the
+    // contact card edge (arc fraction 1.0). The docked tip pulls to a gently-warm
+    // violet, OVERRIDING the post-prism spectrum ramp right at the terminus — the
+    // thread reads as returning home to violet as it meets the DOM. Smooth (no
+    // caustic term): reduced motion bakes it identically static (uDockGain pinned
+    // to 1, uTime frozen), zero travel. uDockGain briefly exceeds 1 on arrival —
+    // that is the settle press. Gated entirely by uDockGain, which the useFrame
+    // driver holds at 0 until the head nears fraction 1.0, so the undrawn tube
+    // ahead of the story is never painted.
+    float dockD = 1.0 - along;
+    float dockCore = smoothstep(uDockHalf, 0.0, dockD);
+    float dockSkirt = smoothstep(uDockHalf * 3.0, uDockHalf, dockD);
+    vec3 dockCol = mix(uViolet, vec3(1.0), 0.22); // soft violet, faintly warm center
+    col = mix(col, dockCol, clamp(dockCore * uDockGain, 0.0, 1.0));
+    col = mix(col, uViolet, clamp(dockSkirt * uDockGain * 0.5, 0.0, 1.0));
+    float dockA = dockCore * uDockGain * 0.85
+                + dockSkirt * clamp(uDockGain, 0.0, 1.0) * 0.3;
+    float a = drawn * 0.42 * flow + ember * 0.42 + head * 0.9 + weldA + dockA;
     // Lit mask: interaction light only ever amplifies the drawn/burned body —
     // the pointer must never reveal the undrawn tube ahead of the story.
     float lit = clamp(drawn + ember + head, 0.0, 1.0);
@@ -172,10 +249,27 @@ export default function BeamRibbon({
     // canvas is pointer-events-none; same channel as HoloLattice's lean) and
     // converted to mesh-local units per frame (the mapping shifts with scroll).
     const pointerPx = useRef({ x: 0, y: 0, active: false });
+    // First-contact bow pulse bookkeeping (refs only, mutated in useFrame): the
+    // resting bow amplitude to overshoot from, the build-time curve taps, the
+    // inside/outside latch (so the pulse fires only on the outside→inside edge),
+    // and the pulse-start timestamp.
+    const restBowAmp = useRef(0);
+    const curveSamples = useRef<Float32Array | null>(null);
+    const insideHeat = useRef(false);
+    const bowPulseStart = useRef(0);
     // The answered ask — timestamps only; consumed inside useFrame.
     const lastAskAt = useRef(0);
     const shimmerStart = useRef(0);
     const flashUntil = useRef(0);
+    // The prism weld — arrival caustic-flare bookkeeping (refs only; the flare
+    // fires once each time the head welds, re-arming after the head leaves).
+    const weldArmed = useRef(true);
+    const weldFlareUntil = useRef(0);
+    // The beacon dock — arrival-settle bookkeeping (refs only; a soft one-shot
+    // press fires each time the head docks, re-arming after the head leaves so a
+    // scroll-back re-dock settles again).
+    const dockArmed = useRef(true);
+    const dockSettleUntil = useRef(0);
 
     // Stable function selector — same pattern as LoopDriver; selecting
     // invalidate never re-renders the Canvas subtree (React 19 constraint).
@@ -249,6 +343,10 @@ export default function BeamRibbon({
             uViewH: { value: 1 },
             uEdge: { value: 0 },
             uPrismFrac: { value: 1 },
+            uWeldGain: { value: 0 },
+            uWeldHalf: { value: 0.01 },
+            uDockGain: { value: reducedMotion ? 1 : 0 },
+            uDockHalf: { value: 0.01 },
             uViolet: { value: VIOLET },
             uCyan: { value: CYAN },
             uIntensity: { value: lowPower ? 2.4 : 2.1 },
@@ -275,6 +373,21 @@ export default function BeamRibbon({
             unitsPerPx.current = frame.unitsPerPx;
             viewportW.current = frame.viewportW;
             viewportH.current = frame.viewportH;
+            // Safety (dev only): the anchor measure now reads
+            // documentElement.clientWidth, which MUST equal the R3F canvas CSS
+            // width this projection targets. If they diverge the ribbon misses
+            // its anchors. Assert only — never re-derive here (a second
+            // correction on top of the already-correct frame would double it).
+            if (
+                process.env.NODE_ENV !== "production" &&
+                Math.abs(frame.viewportW - state.size.width) > 1
+            ) {
+                console.warn(
+                    "[beam] viewportW %o diverges from canvas width %o — anchors will miss",
+                    frame.viewportW,
+                    state.size.width,
+                );
+            }
             const u = frame.unitsPerPx;
             const vw = frame.viewportW;
             const vh = frame.viewportH;
@@ -307,6 +420,25 @@ export default function BeamRibbon({
             // Reduced motion: heat still answers (brightness step) but the
             // ribbon never travels — no bow displacement.
             m.uniforms.uBowAmp.value = reducedMotion ? 0 : BOW_PX * u;
+            // Resting bow the first-contact pulse overshoots from and settles
+            // back to each frame (non-RM). RM keeps it 0 — no travel, no pulse.
+            restBowAmp.current = reducedMotion ? 0 : BOW_PX * u;
+            // Sample the curve into flat local-space taps for pointer-entry
+            // detection (built here, on resize only; read-only per frame). The
+            // taps live in the same untranslated local space as the vertices,
+            // so the per-frame path compares them against the mesh-local pointer
+            // directly. getPointAt writes into a reused scratch — no per-tap alloc.
+            let sbuf = curveSamples.current;
+            if (!sbuf) {
+                sbuf = new Float32Array(BOW_SAMPLES * 2);
+                curveSamples.current = sbuf;
+            }
+            const sp = new THREE.Vector3();
+            for (let i = 0; i < BOW_SAMPLES; i++) {
+                curve.getPointAt(i / (BOW_SAMPLES - 1), sp);
+                sbuf[i * 2] = sp.x;
+                sbuf[i * 2 + 1] = sp.y;
+            }
 
             // Arc-length fractions of the anchor control points (TubeGeometry
             // samples arc-uniformly, so vUv.x IS arc fraction). Arrays rebuilt
@@ -314,6 +446,15 @@ export default function BeamRibbon({
             const DIV = 512;
             const lengths = curve.getLengths(DIV);
             const total = lengths[DIV];
+            // Weld node half-extent: WELD_HALF_PX along the tube expressed in
+            // arc fraction (TubeGeometry samples arc-uniformly, so vUv.x IS arc
+            // fraction). px→world = px*u; world→arc-frac = /total. So a ~12px
+            // hot node stays px-true across every viewport size.
+            m.uniforms.uWeldHalf.value = (WELD_HALF_PX * u) / total;
+            // Dock swell half-extent: DOCK_HALF_PX along the tube in arc fraction
+            // (same px→world→arc-frac conversion as the weld), so the ~20px soft
+            // terminal bloom stays px-true across every viewport size.
+            m.uniforms.uDockHalf.value = (DOCK_HALF_PX * u) / total;
             const n = frame.points.length;
             const ss: number[] = [];
             const sf: number[] = [];
@@ -363,6 +504,52 @@ export default function BeamRibbon({
         m.uniforms.uHeatGain.value = reducedMotion
             ? gainTarget // instant step — RM still answers, just without travel
             : damp(m.uniforms.uHeatGain.value, gainTarget, 6, delta);
+
+        // First-contact bow pulse (fine pointer, motion on). The instant the
+        // pointer crosses INTO the heat radius, overshoot the resting bow so the
+        // thread snaps a lean toward the cursor, then settle back to BOW_PX.
+        // Entry is detected by scanning the build-time curve taps against the
+        // mesh-local pointer, early-out on the first tap inside the radius; the
+        // insideHeat latch makes the pulse fire only on the outside→inside edge
+        // (re-arming when the pointer leaves the field). All imperative — refs +
+        // one uniform, no React state, no Canvas re-render. RM is skipped
+        // entirely, leaving uBowAmp at its build value (0): no pulse, no travel.
+        if (!reducedMotion) {
+            const sbuf = curveSamples.current;
+            let nowInside = false;
+            if (ptr.active && sbuf) {
+                const px = m.uniforms.uPointer.value.x;
+                const py = m.uniforms.uPointer.value.y;
+                const r = m.uniforms.uHeatR.value;
+                const r2 = r * r;
+                for (let i = 0; i < sbuf.length; i += 2) {
+                    const dx = sbuf[i] - px;
+                    const dy = sbuf[i + 1] - py;
+                    if (dx * dx + dy * dy <= r2) {
+                        nowInside = true;
+                        break;
+                    }
+                }
+            }
+            const now = performance.now();
+            if (nowInside && !insideHeat.current) bowPulseStart.current = now;
+            insideHeat.current = nowInside;
+            let env = 0;
+            if (bowPulseStart.current > 0) {
+                const t = (now - bowPulseStart.current) / BOW_PULSE_MS;
+                if (t >= 1) {
+                    bowPulseStart.current = 0; // settled — no standing overshoot
+                } else if (t < BOW_PULSE_ATTACK) {
+                    env = t / BOW_PULSE_ATTACK; // fast attack to the overshoot
+                } else {
+                    const decay =
+                        1 - (t - BOW_PULSE_ATTACK) / (1 - BOW_PULSE_ATTACK);
+                    env = decay * decay; // ease back down to the resting bow
+                }
+            }
+            m.uniforms.uBowAmp.value =
+                restBowAmp.current * (1 + env * BOW_PULSE_GAIN);
+        }
 
         // The answered ask: latch each new askAt (getState() — never a
         // subscription) into either the travelling shimmer or the RM flash.
@@ -451,6 +638,67 @@ export default function BeamRibbon({
             );
         }
 
+        // --- Prism weld: bloom the vertex while the head is welded to it ------
+        // Presence is driven off the LIVE head↔vertex arc proximity, so it holds
+        // at 1 through the whole park window (uHead is pinned to uPrismFrac by
+        // the duplicated stop) and blooms/fades naturally on approach + exit —
+        // including on scroll-back. A brief caustic flare overshoots once each
+        // time the head lands. All imperative: refs + one uniform, no re-render.
+        if (reducedMotion) {
+            // Fully-bloomed static end state; no flare travel (uTime frozen, so
+            // the caustic skirt is static grain). This is the screenshottable
+            // prism-split frame at rest.
+            m.uniforms.uWeldGain.value = 1;
+        } else {
+            const prismFrac = m.uniforms.uPrismFrac.value;
+            let weld = 0;
+            if (prismFrac < 0.999) {
+                const d = Math.abs(m.uniforms.uHead.value - prismFrac);
+                const p = Math.max(0, 1 - d / WELD_ENGAGE_FRAC);
+                weld = p * p; // ease-in as the head nears the vertex
+            }
+            const now = performance.now();
+            if (weld > 0.85 && weldArmed.current) {
+                weldArmed.current = false;
+                weldFlareUntil.current = now + WELD_FLARE_MS;
+            } else if (weld < 0.4) {
+                weldArmed.current = true; // re-arm for the next (scroll-back) weld
+            }
+            const flare =
+                now < weldFlareUntil.current
+                    ? (weldFlareUntil.current - now) / WELD_FLARE_MS // 1→0 decay
+                    : 0;
+            m.uniforms.uWeldGain.value = Math.min(weld + flare * 0.6, 1.6);
+        }
+
+        // --- Beacon dock: soft violet terminal swell as the head parks flush on
+        // the contact card edge (arc fraction 1.0) ---------------------------
+        // Presence is driven off the LIVE head↔terminus proximity, so the swell
+        // eases in as the head settles onto the beacon and fades on scroll-back —
+        // no subscription, refs + one uniform, no Canvas re-render. A brief
+        // arrival settle (one soft press easing to the standing swell) sells the
+        // "kiss". Violet stays violet: the swell never introduces cyan.
+        if (reducedMotion) {
+            // Static docked end state — a soft violet swell at rest (uTime is
+            // frozen, so the swell is a still glow). No settle travel.
+            m.uniforms.uDockGain.value = 1;
+        } else {
+            const d = 1 - m.uniforms.uHead.value; // >= 0; 0 == fully docked
+            const p = Math.max(0, 1 - d / DOCK_ENGAGE_FRAC);
+            const dock = p * p; // ease-in as the head settles onto the card edge
+            const now = performance.now();
+            if (dock > 0.85 && dockArmed.current) {
+                dockArmed.current = false;
+                dockSettleUntil.current = now + DOCK_SETTLE_MS;
+            } else if (dock < 0.4) {
+                dockArmed.current = true; // re-arm for the next (scroll-back) dock
+            }
+            const settle =
+                now < dockSettleUntil.current
+                    ? (dockSettleUntil.current - now) / DOCK_SETTLE_MS // 1→0 decay
+                    : 0;
+            m.uniforms.uDockGain.value = Math.min(dock + settle * 0.45, 1.5);
+        }
     });
 
     return (
