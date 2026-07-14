@@ -42,7 +42,7 @@ export default function SmoothScroll() {
             lenis.on(
                 "scroll",
                 ({ scroll, progress }: { scroll: number; progress: number }) => {
-                    setScroll(scroll, progress);
+                    setScroll(scroll, progress, lenis?.velocity ?? 0);
                 }
             );
             setLenis(lenis);

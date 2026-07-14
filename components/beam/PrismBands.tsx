@@ -205,10 +205,15 @@ export default function PrismBands({
             });
             // scrub 0.25 (jc-a7l): Lenis already supplies inertia — a heavier
             // scrub double-smoothed into rubber-banding on direction flips.
+            // end 'center 55%' (jc-ahs, tightened from 'bottom 45%'): the fan
+            // is the site's one poster frame — headline centered, fan beside
+            // it, weld hot — and the draw must finish (progress 1, every band
+            // + terminal lit) right as that lockup centers, not ~60% done
+            // while THE STACK still owns the frame.
             const trigger = {
                 trigger: ref.current,
                 start: "top 85%",
-                end: "bottom 45%",
+                end: "center 55%",
                 scrub: 0.25,
             } as const;
             // ONE coordinated timeline (jc-246): each band draws on its own

@@ -98,19 +98,27 @@ export default function StageManager() {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={`${currentAct.stageLabel}-${currentAct.stageTitle}`}
-                        initial={{ opacity: 0, x: -16 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        // Journey axis (jc-ahs): the rail's own progress marker
+                        // fills top-down directly beneath this label, the beam
+                        // threads downward, the dock yields downward — every
+                        // other travel in the system is vertical. The act
+                        // indicator now rides the same axis: the new act rises
+                        // in from below, the old one exits upward, mirroring
+                        // forward-scroll direction instead of a sideways
+                        // pass-through borrowed from a different grammar.
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                         // Exit ~25% quicker than the entrance for a crisper handoff.
-                        // (MotionProvider drops the x transform for reduced-motion users.)
+                        // (MotionProvider drops the y transform for reduced-motion users.)
                         exit={{
                             opacity: 0,
-                            x: 16,
+                            y: -10,
                             transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
                         }}
                         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className="flex flex-col"
                     >
-                        <span className="text-xs font-mono tracking-[0.4em] text-muted-foreground mb-1">
+                        <span className="text-xs label mb-1">
                             {currentAct.stageLabel}
                         </span>
                         <span className="text-lg font-black tracking-tighter text-foreground text-glow">

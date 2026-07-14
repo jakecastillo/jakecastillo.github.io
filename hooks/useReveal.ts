@@ -3,12 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { TargetAndTransition } from "framer-motion";
 
-// Cheap opacity/y reveals re-fire on the return journey: once:false plus a
-// bottom margin so the trigger fires a touch late (no flicker on a normal
-// forward scroll) and performs again on the way back up — mirroring the GSAP
-// scrubbed systems that already reverse.
+// once:true is the single return-journey grammar for a cheap opacity/y reveal
+// (jc-ahs): the beam's signature motif is memory — the ribbon keeps an ember
+// where the head retreated, ProcessSpine nodes ratchet lit and never
+// un-light, EtchHeading is once:true. A reveal that replayed its 0.4s stagger
+// on the way back up read as contradictory physics next to those latched
+// systems. The arrival-snap path below already covers deep links / restored
+// scroll (content already reached snaps to its final state instead of
+// waiting on whileInView), which was the original reason for once:false, so
+// nothing is lost by latching. Bottom margin still fires the trigger a touch
+// late so a normal forward scroll never flickers.
 export const revealViewport = {
-    once: false,
+    once: true,
     amount: 0.2,
     margin: "0px 0px -10% 0px",
 } as const;
@@ -48,7 +54,8 @@ type RevealResult<T> =
  * `.ref`/`.current` member access in render keeps the React Compiler's "no refs
  * during render" rule happy.
  *
- * Fixes two failure modes flagged by jc-sj2:
+ * Fixes the failure mode flagged by jc-sj2, now that once:true (jc-ahs) is
+ * the single return-journey grammar (see revealViewport's comment):
  *
  *  1. Arrival on opacity-0 content — a hash deep-link, restored scroll, or
  *     programmatic warp lands with a reveal already at or above the fold that
@@ -56,9 +63,9 @@ type RevealResult<T> =
  *     fully above the viewport never intersects at all). We measure the rect
  *     after mount — retried across a few frames because the deep-link scroll
  *     lands *after* hydration — and, if the element has already been reached,
- *     snap it to the final state instantly (no fade-pop).
- *  2. Dead return journey — once:true froze every reveal after one pass. We use
- *     once:false so cheap reveals perform again when scrubbed back up.
+ *     snap it to the final state instantly (no fade-pop). This is what makes
+ *     once:true safe as the sole grammar: the latch never leaves a genuinely
+ *     reached reveal stuck at opacity 0.
  *
  * Reduced motion: every instance renders its final state instantly, no opacity
  * animation and no re-fire, honouring the "arrivals show final state instantly"

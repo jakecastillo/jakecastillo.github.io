@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useBeamStore } from "@/hooks/useBeamStore";
+import { useScrollStore } from "@/hooks/useScrollStore";
 import { getBeamAnchorFrame } from "@/hooks/useBeamAnchors";
 import { damp } from "./anim";
 
@@ -76,6 +77,16 @@ const DOCK_HALF_PX = 10; // soft swell half-extent → a ~20px terminal bloom
 const DOCK_ENGAGE_FRAC = 0.05; // arc-fraction approach window the swell eases in over
 const DOCK_SETTLE_MS = 620; // gentle arrival settle (one soft press → rest)
 
+// Scroll velocity → beam energy. Lenis reports scroll velocity (~px/frame);
+// a fast flick peaks well above this reference, a settle sits near 0. The raw
+// magnitude is normalized against VELOCITY_REF to 0..1, then damped into
+// uVelocity (damp factor VELOCITY_DAMP with delta) so fast scrolling reads as
+// signal-under-load — the hot head runs brighter and stretches into a trailing
+// streak — and a slow/idle scroll relaxes it back to a tight resting node.
+// Reduced motion pins it to 0 (Lenis never runs; the store velocity is 0).
+const VELOCITY_REF = 55;
+const VELOCITY_DAMP = 4;
+
 const vertexShader = /* glsl */ `
   uniform vec2 uPointer;   // pointer in mesh-LOCAL world units (z=0 plane)
   uniform float uHeatR;    // cursor-heat radius (world units)
@@ -117,6 +128,7 @@ const fragmentShader = /* glsl */ `
   uniform float uIntensity;
   uniform float uShimmer;  // arc position of the answer shimmer; <0 = inactive
   uniform float uAskFlash; // reduced-motion answer: instant brightness step
+  uniform float uVelocity; // 0..1 damped scroll energy: signal-under-load drive
   varying vec2 vUv;
   varying float vHeat;     // cursor-heat influence from the vertex stage
 
@@ -152,6 +164,13 @@ const fragmentShader = /* glsl */ `
     float flow = 0.75 + 0.25 * sin(along * 42.0 - uTime * 2.4);
     // Cyan warm-up trailing the head, so the draw front reads as heat.
     float nearHead = smoothstep(0.12, 0.0, uHead - along) * drawn;
+    // Signal-under-load streak: fast scroll (uVelocity→1) stretches the hot
+    // head into a trailing comet behind the draw front; at rest (uVelocity→0)
+    // it collapses to nothing, leaving the tight resting node untouched. The
+    // *uVelocity gate keeps every velocity effect inert while idle/parked.
+    float behind = uHead - along; // >0 behind the draw front
+    float streakLen = 0.02 + uVelocity * 0.16;
+    float streak = smoothstep(streakLen, 0.0, behind) * step(0.0, behind) * drawn * uVelocity;
     // Post-prism recolor: the leg below the prism vertex carries the band
     // ramp (violet -> cyan) — the beam that resumes after the fan is the
     // split spectrum, not the raw violet thread. Ratio form (not smoothstep)
@@ -162,7 +181,7 @@ const fragmentShader = /* glsl */ `
     // weld (hot violet-white) and at the beacon dock (soft violet). At both, the
     // dock/weld gain damps out the cyan tint (violet is the standing color;
     // cyan stays answer-only), so the parked head reads violet, not cyan.
-    float headCyan = clamp(head * 0.85 + nearHead * 0.35, 0.0, 1.0)
+    float headCyan = clamp(head * 0.85 + nearHead * 0.35 + streak * 0.5, 0.0, 1.0)
                    * (1.0 - clamp(uWeldGain, 0.0, 1.0) * 0.92)
                    * (1.0 - clamp(uDockGain, 0.0, 1.0) * 0.92);
     vec3 col = mix(base, uCyan, headCyan);
@@ -196,7 +215,8 @@ const fragmentShader = /* glsl */ `
     col = mix(col, uViolet, clamp(dockSkirt * uDockGain * 0.5, 0.0, 1.0));
     float dockA = dockCore * uDockGain * 0.85
                 + dockSkirt * clamp(uDockGain, 0.0, 1.0) * 0.3;
-    float a = drawn * 0.42 * flow + ember * 0.42 + head * 0.9 + weldA + dockA;
+    float a = drawn * 0.42 * flow + ember * 0.42 + head * 0.9 + weldA + dockA
+            + streak * 0.5;
     // Lit mask: interaction light only ever amplifies the drawn/burned body —
     // the pointer must never reveal the undrawn tube ahead of the story.
     float lit = clamp(drawn + ember + head, 0.0, 1.0);
@@ -221,7 +241,11 @@ const fragmentShader = /* glsl */ `
     // Boot-relay flare-in: alpha gated by uReveal; while revealing, the head
     // runs extra hot (the flare) and settles as uReveal reaches 1.
     float flare = 1.0 + (1.0 - uReveal) * head * 2.0;
-    gl_FragColor = vec4(col * uIntensity * (1.0 + head * 2.5) * flare, clamp(a * uReveal * edgeFade, 0.0, 1.0));
+    // Head brightness scales with scroll energy — fast scroll drives the head
+    // (and its streak) hotter; the term is fully gated by uVelocity so idle and
+    // reduced-motion frames render at the exact resting intensity as before.
+    float load = 1.0 + head * 2.5 + (head + streak) * uVelocity * 2.5;
+    gl_FragColor = vec4(col * uIntensity * load * flare, clamp(a * uReveal * edgeFade, 0.0, 1.0));
   }
 `;
 
@@ -356,6 +380,7 @@ export default function BeamRibbon({
             uBowAmp: { value: 0 },
             uShimmer: { value: -1 },
             uAskFlash: { value: 0 },
+            uVelocity: { value: 0 },
         }),
         [lowPower, reducedMotion],
     );
@@ -601,6 +626,9 @@ export default function BeamRibbon({
             m.uniforms.uAskFlash.value =
                 performance.now() < flashUntil.current ? 1 : 0;
             m.uniforms.uShimmer.value = -1;
+            // Reduced motion never runs Lenis (store velocity stays 0) and the
+            // beam must not travel — keep the load drive fully off.
+            m.uniforms.uVelocity.value = 0;
         } else {
             m.uniforms.uTime.value = state.clock.getElapsedTime();
             // The answer shimmer: one cyan band running tail→head (arc 0 up
@@ -635,6 +663,23 @@ export default function BeamRibbon({
             m.uniforms.uBurn.value = Math.max(
                 m.uniforms.uBurn.value,
                 m.uniforms.uHead.value,
+            );
+            // Scroll energy → head drive. Read the live Lenis velocity from the
+            // store (getState() — never a subscription; the Canvas subtree must
+            // never re-render, React 19 constraint), normalize its magnitude to
+            // 0..1 and damp it into uVelocity. Fast scroll pushes it toward 1
+            // (signal-under-load); a settle relaxes it to 0 (the last Lenis
+            // event reports ~0 velocity, and the demand loop keeps ticking while
+            // below the hero, so it fully settles). No per-frame allocations.
+            const vTarget = Math.min(
+                Math.abs(useScrollStore.getState().velocity) / VELOCITY_REF,
+                1,
+            );
+            m.uniforms.uVelocity.value = damp(
+                m.uniforms.uVelocity.value,
+                vTarget,
+                VELOCITY_DAMP,
+                delta,
             );
         }
 
