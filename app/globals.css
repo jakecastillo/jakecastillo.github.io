@@ -57,6 +57,10 @@
 
   --font-mono: var(--font-geist-mono);
   --font-sans: var(--font-geist-sans);
+  /* Display face (Archivo) — aliases the raw next/font var (--font-archivo,
+     set on <html>) to the design token, mirroring the sans/mono indirection.
+     Two distinct names avoid a self-referential :root cycle. */
+  --font-display: var(--font-archivo);
 
   /* ---- System vocabulary (jc-nc1) ------------------------------------- */
   /* ONE easing grammar: the brand expo-out. Every CSS transition, framer
@@ -96,6 +100,12 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Display face token — feeds off the raw --font-archivo var next/font sets
+     on <html>. Named distinctly from --font-archivo so `@theme inline` can emit
+     it to :root without a self-referential cycle (a same-name alias loses the
+     cascade to Tailwind's later :root block and computes invalid). Drives both
+     the `font-display` utility and the .type-display recipe below. */
+  --font-display: var(--font-archivo);
 
   /* One timing grammar for every transition utility: Tailwind's Material
      default (150ms cubic-bezier(0.4,0,0.2,1)) is replaced by the brand
@@ -157,8 +167,19 @@ h1, h2, h3 {
 }
 
 ::selection {
-  background: var(--primary-muted);
+  background: rgba(139, 92, 246, 0.38);
   color: #fff;
+}
+/* Cyan-tinted selection inside the terminal/mono surfaces (jc-lv0) — the
+   signature "signal" tint replaces the site-wide violet highlight only where
+   the mono voice already owns the frame, so selecting terminal text answers
+   in the system's own accent instead of the ambient claim color. Scoped via
+   .terminal-shell (the console's root wrapper in TerminalTyping.tsx) rather
+   than a bare font-mono selector, so ordinary mono labels/eyebrows elsewhere
+   keep the standard violet selection. */
+.terminal-shell ::selection {
+  background: rgba(45, 212, 191, 0.35);
+  color: var(--accent-foreground);
 }
 
 /* Slim, on-brand scrollbar */
@@ -174,32 +195,43 @@ h1, h2, h3 {
 /*                       Accessibility primitives                          */
 /* ----------------------------------------------------------------------- */
 
-/* Global keyboard focus ring (>=3:1, never removed without replacement) */
-:focus-visible {
-  outline: 2px solid var(--primary-hover);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-/* Don't show the ring for mouse users that trigger :focus only */
-:focus:not(:focus-visible) { outline: none; }
+/* Wrapped in @layer base (jc-lv0): these were plain/unlayered rules, which in
+   a cascade-layers world outranks EVERY layered rule (Tailwind's own
+   utilities included) regardless of specificity or class order — so a
+   component reaching for a more specific focus-visible treatment could never
+   actually win against this default. @layer base sits below Tailwind's
+   utilities layer, restoring the normal expectation: a component-level
+   focus-visible utility overrides the site default when it needs to. */
+@layer base {
+  /* Global keyboard focus ring (>=3:1, never removed without replacement).
+     border-radius dropped: a hardcoded 4px fought the radius ladder on every
+     pill/control the ring landed on (rounded-full buttons, chips, the dock) —
+     the ring now traces the focused element's own corner without opinion. */
+  :focus-visible {
+    outline: 2px solid var(--primary-hover);
+    outline-offset: 3px;
+  }
+  /* Don't show the ring for mouse users that trigger :focus only */
+  :focus:not(:focus-visible) { outline: none; }
 
-/* Skip-to-content link */
-.skip-link {
-  position: fixed;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 100;
-  padding: 0.6rem 1rem;
-  background: var(--surface-overlay);
-  color: var(--foreground);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-card);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.875rem;
-  transform: translateY(-150%);
-  transition: transform 0.2s var(--ease-beam);
+  /* Skip-to-content link */
+  .skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    background: var(--surface-overlay);
+    color: var(--foreground);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-card);
+    font-family: var(--font-mono), monospace;
+    font-size: 0.875rem;
+    transform: translateY(-150%);
+    transition: transform 0.2s var(--ease-beam);
+  }
+  .skip-link:focus { transform: translateY(0); }
 }
-.skip-link:focus { transform: translateY(0); }
 
 /* ----------------------------------------------------------------------- */
 /*                              Utilities                                   */
@@ -212,6 +244,50 @@ h1, h2, h3 {
 .measure { max-width: 66ch; }
 .measure-narrow { max-width: 52ch; }
 .measure-wide { max-width: 74ch; }
+
+/* Display tier — the broadcast-grade act-opener lockup face (jc-cbx). Archivo
+   variable at expanded width (wdth ~125) + near-black weight, uppercase, tight
+   tracking and a sub-1 leading so the multi-line lockups stack as one dense
+   block. `font-weight` drives the wght axis; `font-variation-settings` carries
+   only wdth so the two never fight. `text-wrap: balance` evens the lines.
+   Defined here only — components adopt it in later lanes. */
+.type-display {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-variation-settings: "wdth" 125;
+  font-weight: 880;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* Label tier — the mono "system label" voice (jc-lv0): section eyebrows,
+   rail indices, badges, credential tiers. Consolidates 12+ ad-hoc recipes
+   (seven sizes, eight trackings, six colors) into exactly two: this one
+   (muted, secondary) and .label-accent (primary, the claim voice) below.
+   Font-size is deliberately NOT baked in here, mirroring .type-display's own
+   choice to leave font-size to a paired Tailwind class: these are plain,
+   unlayered rules, so anything they DID set as a fixed value could never be
+   overridden by a component's own Tailwind utility (unlayered always outranks
+   Tailwind's layered utilities, regardless of specificity or class order).
+   Pair with `text-xs` (0.75rem, the default) or the type-floor `text-[0.6875rem]`
+   size-down where 0.75rem is genuinely too tight (dock chips, credential
+   dates) — never smaller. Do NOT apply to interactive elements whose color
+   changes on hover/focus (that color tween would silently lose to this
+   class's baked color) or to literal data (emails, URLs, names) where a
+   forced uppercase would misrepresent the value. */
+.label {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted-foreground);
+}
+.label-accent {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--primary);
+}
 
 /* Shared page container + outer gutters (keeps gutters consistent per act) */
 .container-page {

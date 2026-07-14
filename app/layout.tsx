@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Archivo } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -22,6 +22,17 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+});
+
+// Display face — used ONLY for the act-opener display tier (.type-display).
+// Variable weight axis is default; `wdth` exposes the expanded width used at
+// the display lockups. Exposed as --font-display for the @theme font-display
+// utility + the .type-display recipe in globals.css.
+const archivo = Archivo({
+  variable: "--font-archivo",
+  subsets: ["latin"],
+  display: "swap",
+  axes: ["wdth"],
 });
 
 const SITE_URL = "https://jakecastillo.github.io";
@@ -135,9 +146,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} dark`}
+    >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden grain vignette`}
+        className="antialiased min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden grain vignette"
       >
         {/* Pre-hydration boot cover — opaque background from first paint so the
             SSR hero never flashes before BootIgnition mounts on first visits.
