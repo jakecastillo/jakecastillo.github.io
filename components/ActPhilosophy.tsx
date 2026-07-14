@@ -1,9 +1,10 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
+import { ScanSearch, Target, FlaskConical, RefreshCw } from "lucide-react";
 import { resumeData } from "@/data/resume";
 import ProcessSpine, { type ProcessStep } from "@/components/ProcessSpine";
-import ArchitectureSchematic from "@/components/ArchitectureSchematic";
+import SolutionColumn from "@/components/SolutionColumn";
 import EtchHeading from "@/components/beam/EtchHeading";
 import ManifestoReveal from "@/components/beam/ManifestoReveal";
 import { DUR, EASE } from "@/components/motion";
@@ -23,21 +24,25 @@ const processSteps: ProcessStep[] = [
     {
         index: "01",
         title: "Find the Constraints",
+        icon: ScanSearch,
         body: "I separate the real constraints from the assumptions everyone's stopped questioning, and pressure-test the outcome before any code exists. I'd rather kill a weak idea in a week than build the wrong thing fluently.",
     },
     {
         index: "02",
         title: "Bet Where It Counts",
+        icon: Target,
         body: "I pour design into the few decisions that are expensive to reverse and stay deliberately boring everywhere else — proven tools for the plumbing, so the real risk and invention land where they create value.",
     },
     {
         index: "03",
         title: "Prove the Unknown",
+        icon: FlaskConical,
         body: "I build the scariest piece first — the unproven integration, the AI behavior, the assumption it all rests on — and put it in real hands while it's still cheap to be wrong.",
     },
     {
         index: "04",
         title: "Build to Be Changed",
+        icon: RefreshCw,
         body: "Security, observability, and an honest record of why each call was made are part of the design, not a cleanup pass — I build for whoever inherits it a year from now, not for how clever it looks today.",
     },
 ];
@@ -100,7 +105,7 @@ export default function ActPhilosophy() {
                     {...schematic}
                     className="mt-16 sm:mt-20"
                 >
-                    <ArchitectureSchematic />
+                    <SolutionColumn />
                 </motion.div>
             </div>
         </section>

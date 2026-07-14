@@ -8,8 +8,14 @@ import {
     useTransform,
     type MotionValue,
 } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 
-export type ProcessStep = { index: string; title: string; body: string };
+export type ProcessStep = {
+    index: string;
+    title: string;
+    body: string;
+    icon: LucideIcon;
+};
 
 /**
  * One process node. Extracted so the per-node ignition `useTransform` is a
@@ -63,6 +69,13 @@ function SpineNode({
         [i, count],
     );
     const itemOpacity = useTransform(drawn, mapItemOpacity);
+    // The step's semantic glyph settles in on the SAME latched reveal value as
+    // the card + dot (jc-48t): it rides itemOpacity, scaling 0.9 → 1 as the step
+    // lands, so "how I build" reads as a designed instrument. Its fade is the
+    // card's shared opacity (one clock); this adds only the settle. Under reduced
+    // motion it is static at full scale.
+    const iconScale = useTransform(itemOpacity, [0, 1], [0.9, 1]);
+    const Icon = step.icon;
 
     return (
         <motion.li
@@ -86,13 +99,26 @@ function SpineNode({
                 text locally while staying vivid outside the card. Pure CSS, so
                 the reduced-motion static frame is equally protected. */}
             <div className="rounded-xl border border-border-subtle bg-surface/80 p-6 backdrop-blur-sm">
-                <div className="flex items-baseline gap-3">
-                    <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-muted-foreground">
-                        {step.index}
-                    </span>
-                    <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                        {step.title}
-                    </h4>
+                <div className="flex items-center gap-3">
+                    {/* Semantic glyph — same violet as the node dot; settles in
+                        with the step (scale rides the latched reveal). Vertically
+                        centered against the index/title baseline group so their
+                        baseline relationship is preserved. */}
+                    <motion.span
+                        aria-hidden="true"
+                        style={{ scale: reduced ? 1 : iconScale }}
+                        className="inline-flex shrink-0 text-primary"
+                    >
+                        <Icon size={18} strokeWidth={1.75} />
+                    </motion.span>
+                    <div className="flex min-w-0 items-baseline gap-3">
+                        <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-muted-foreground">
+                            {step.index}
+                        </span>
+                        <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                            {step.title}
+                        </h4>
+                    </div>
                 </div>
                 <p className="measure-narrow mt-3 text-base leading-relaxed text-muted-foreground">
                     {step.body}
