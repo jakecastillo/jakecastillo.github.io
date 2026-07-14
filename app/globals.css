@@ -252,16 +252,43 @@ h1, h2, h3 {
 .text-glow { text-shadow: 0 0 24px rgba(139, 92, 246, 0.35); }
 .text-glow-accent { text-shadow: 0 0 24px rgba(45, 212, 191, 0.3); }
 
-/* Film-grain + vignette atmosphere (decorative, pointer-events-none) */
+/* Unified film grain (jc-53t) — ONE static monochrome film over the WHOLE
+   frame so DOM surfaces (cards, panels, dock, contact card) carry the same
+   human-made grain the WebGL layer already has, instead of two worlds in one
+   frame. A single fixed, pointer-events-none ::after at z-70 sits ABOVE all
+   content + chrome (content z-10, BrandMark/StageManager z-40, dock z-50,
+   progress z-60) yet BELOW the boot overlay (z-99/100), so mix-blend-mode
+   overlay blends the tiled noise over BOTH the near-black void AND card
+   interiors — not just the void it used to sit under at z-1.
+   MONOCHROME: the tile is opaque grayscale — feColorMatrix broadcasts one
+   fractalNoise channel to R=G=B (values row0-2 = "1 0 0 0 0", alpha row =
+   "0 0 0 0 1"), so there is no third colour, unlike the old bare feTurbulence
+   whose independent RGB channels speckled colour.
+   NO ANIMATION + background-attachment: fixed pins the film to the viewport
+   plane (like real film grain and the WebGL noise pass): it never moves on
+   scroll → zero shimmer, and the reduced-motion path is the identical static
+   end state (the old `.grain::after { display:none }` reduced-motion rule is
+   dropped so every user sees the same film).
+   SINGLE COMPOSITED LAYER: one fixed GPU layer; the page already recomposites
+   every rAF (WebGL demand loop + Lenis), so the added overlay blend is one
+   marginal GPU pass, not a new main-thread paint → no scroll jank.
+   ASSET: the data-URI SVG below is ~0.33 KB (<< 2 KB cap).
+   CONTRAST-SAFE: fractalNoise is centred on mid-gray (~0.5); overlay with 0.5
+   is the identity, so at opacity 0.03 the worst-case luminance shift on both
+   the #060608 void and #ededf2 body text is < ~0.0004 (normalised) → every
+   text/background pair keeps its AA ratio. */
 .grain::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 70;
   pointer-events: none;
-  opacity: 0.035;
+  opacity: 0.03;
   mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  background-attachment: fixed;
 }
 .vignette::before {
   content: "";
@@ -450,7 +477,9 @@ html.lenis, html.lenis body { height: auto; }
   *::after {
     transition-duration: 150ms !important;
   }
-  .grain::after { display: none; }
+  /* Grain is a STATIC film (no animation, no travel), so reduced-motion keeps
+     the identical end state — hiding it would give reduced-motion users a
+     different, flatter frame (jc-53t). */
   .animate-bounce,
   .animate-pulse { animation: none !important; }
 }
