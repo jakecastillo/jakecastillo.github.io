@@ -17,7 +17,7 @@ import {
     useTransform,
     type Variants,
 } from "framer-motion";
-import { resumeData, type Engagement } from "@/data/resume";
+import { resumeData, type Job } from "@/data/resume";
 import { sections } from "@/data/sections";
 import { DUR, EASE, fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
@@ -81,7 +81,7 @@ function useImmersive() {
 
 export default function ActExperience() {
     const immersive = useImmersive();
-    const total = resumeData.engagements.length;
+    const total = resumeData.experience.length;
 
     // useScroll lives ONLY inside <ImmersiveTimeline/>, so it never runs while
     // its target ref is unmounted — that mismatch is what made framer-motion
@@ -194,9 +194,9 @@ function StaticTimeline({ total }: { total: number }) {
                     transition={{ duration: DUR.slow, ease: EASE }}
                     className="pointer-events-none absolute left-0 top-0 bottom-0 w-px origin-top bg-primary glow-primary"
                 />
-                {resumeData.engagements.map((engagement, index) => (
+                {resumeData.experience.map((job, index) => (
                     <motion.li key={index} data-static-index={index} variants={itemVariants}>
-                        <TimelineNode engagement={engagement} index={index} variant="vertical" />
+                        <TimelineNode job={job} index={index} variant="vertical" />
                     </motion.li>
                 ))}
             </motion.ol>
@@ -228,7 +228,7 @@ const ACT_EYEBROW =
 // role gets an authored dwell beat.
 //
 // Built generically from `total` (the card-content owner may re-shape the
-// engagements array; this must not assume a fixed count). The dwell:travel
+// experience array; this must not assume a fixed count). The dwell:travel
 // ratio r=0.42 is tuned so N=4 reproduces the approved
 // [0,.19,.27,.46,.54,.73,.81,1] → [x0,x1,x1,x2,x2,x3,x3,x3] pattern: each of the
 // N-1 transitions is a `travel` ramp followed by a `dwell` hold, and the final
@@ -464,10 +464,10 @@ function ImmersiveTimeline({ total }: { total: number }) {
                         {/* Intro spacer */}
                         <div className="w-0 shrink-0 md:w-[8vw]" />
 
-                        {resumeData.engagements.map((engagement, index) => (
+                        {resumeData.experience.map((job, index) => (
                             <TimelineNode
                                 key={index}
-                                engagement={engagement}
+                                job={job}
                                 index={index}
                                 variant="horizontal"
                                 isActive={index === active}
@@ -550,7 +550,7 @@ function ImmersiveTimeline({ total }: { total: number }) {
                                 key={index}
                                 type="button"
                                 onClick={() => scrollToProgress(center, false)}
-                                aria-label={`Go to role ${format(index + 1)} of ${format(total)}: ${resumeData.engagements[index].project}`}
+                                aria-label={`Go to role ${format(index + 1)} of ${format(total)}: ${resumeData.experience[index].title}`}
                                 aria-current={index === active ? "true" : undefined}
                                 style={{
                                     left:
@@ -582,12 +582,12 @@ function format(n: number) {
 }
 
 function TimelineNode({
-    engagement,
+    job,
     index,
     variant,
     isActive = false,
 }: {
-    engagement: Engagement;
+    job: Job;
     index: number;
     variant: "horizontal" | "vertical";
     isActive?: boolean;
@@ -628,30 +628,29 @@ function TimelineNode({
                 (jc-wpd): off-stage cards at the pin's viewport edge exit as a
                 dim surface, not raw text bleeding over the previous card. */}
             <div className="rounded-xl border border-border-subtle bg-surface/90 p-8 backdrop-blur-sm">
-                {/* Client / period / project hierarchy — reads as a case-study
-                    header for a named ENGAGEMENT (project, not job). The role
-                    numeral lives on the bottom progress counter (and the
-                    watermark), so the eyebrow carries client · period — no doubled
-                    "NN / TT" label competing with the counter. */}
+                {/* Company / period / position hierarchy — POSITIONS HELD, not
+                    named projects (jc-oer: client systems and application names
+                    stay off the public site; copy speaks stacks + work scope).
+                    The role numeral lives on the bottom progress counter (and
+                    the watermark), so the eyebrow carries company · period — no
+                    doubled "NN / TT" label competing with the counter. */}
                 <header className="mb-6 flex flex-col gap-2">
                     <span className="text-xs label">
-                        {engagement.client} <span className="text-subtle-foreground">· {engagement.period}</span>
+                        {job.company} <span className="text-subtle-foreground">· {job.period}</span>
                     </span>
                     <h3 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground text-glow">
-                        {engagement.project}
+                        {job.title}
                     </h3>
-                    {/* The stake: one true sentence on why the engagement mattered.
-                        The lead clause (before the em-dash, if any) is emphasized,
-                        the rest stays muted — same decision-clause grammar the
-                        supporting lines use. */}
-                    <p className="measure-narrow text-base leading-relaxed text-muted-foreground">
-                        {renderDecisionClause(engagement.stake)}
-                    </p>
+                    {job.context && (
+                        <p className="measure-narrow text-base leading-relaxed text-muted-foreground">
+                            {renderDecisionClause(job.context)}
+                        </p>
+                    )}
                 </header>
 
-                {engagement.support.length > 0 && (
+                {job.description.length > 0 && (
                     <ul className="space-y-4 border-l border-border-subtle pl-6">
-                        {engagement.support.map((line, i) => (
+                        {job.description.map((line, i) => (
                             <li
                                 key={i}
                                 className="measure-narrow text-base leading-relaxed text-muted-foreground"
@@ -662,15 +661,15 @@ function TimelineNode({
                     </ul>
                 )}
 
-                {/* Delivered-through credit lives INSIDE the scrim panel so it can
-                    never float below the card and graze the viewport bottom /
-                    collide with the fixed progress row's "SCROLL TO EXPLORE" label
-                    as cards scrub. Voice: the ONE secondary CTA (mono uppercase
-                    GHOST pill) — the filled violet pill is reserved for the primary
-                    ask (jc-nc1). */}
-                {engagement.deliveredBy && (
+                {/* Company link lives INSIDE the scrim panel so it can never
+                    float below the card and graze the viewport bottom / collide
+                    with the fixed progress row's "SCROLL TO EXPLORE" label as
+                    cards scrub. Voice: the ONE secondary CTA (mono uppercase
+                    GHOST pill) — the filled violet pill is reserved for the
+                    primary ask (jc-nc1). */}
+                {job.companyUrl && (
                     <a
-                        href={engagement.deliveredBy.url}
+                        href={job.companyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
@@ -679,7 +678,7 @@ function TimelineNode({
                             arrow's axis (right) + faint grow, motion-safe-gated. The
                             arrow already inherits the pill's primary, so no separate
                             warm — label + arrow stay one color. */}
-                        VIA {engagement.deliveredBy.name.toUpperCase()} <ArrowRight className="h-3.5 w-3.5 origin-center transition-transform motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]" aria-hidden="true" />
+                        VIEW COMPANY <ArrowRight className="h-3.5 w-3.5 origin-center transition-transform motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]" aria-hidden="true" />
                     </a>
                 )}
             </div>

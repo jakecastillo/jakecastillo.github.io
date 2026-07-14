@@ -37,48 +37,48 @@ type FileSystemNode =
   | { type: "file"; content: string }
   | { type: "dir"; children: Record<string, FileSystemNode> };
 
-// ~/work/ — real engagements, sourced verbatim/near-verbatim from the
-// description bullets already in data/resume.ts (read-only from this file).
-// No invented facts: every line below traces back to a sentence in
-// resumeData.experience[*].description.
+// ~/work/ — one file per FOCUS AREA: stacks and work scope, never client
+// systems or application names (jc-oer, owner decision — that inventory may
+// be proprietary). Every line generalizes a real bullet in
+// resumeData.experience[*].description; nothing invented.
 const workFiles: Record<string, FileSystemNode> = {
   "readme.txt": {
     type: "file",
-    content: "One file per engagement — run `cat <file>` for the stake. See also ~/experience for the full job history.",
+    content: "One file per focus area — scope and stack, not client inventories. See ~/experience for positions held.",
   },
-  "devsecops-pipeline.txt": {
+  "devsecops.txt": {
     type: "file",
     content: resumeData.experience[0].description.join("\n"),
   },
-  "cal-access.txt": {
+  "modernization.txt": {
     type: "file",
     content:
-      "CAL-ACCESS Replacement System — California Secretary of State\n\nFull-stack developer on the public's window into the state's campaign-finance and lobbying disclosures.",
+      "Legacy financial-system modernization\n\nBackend developer and technical architect on a multi-phase migration off a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda — integrating an SAP COTS system, then onshore tech lead and SME for the legacy system's DevOps and M&O.",
   },
-  "rcuh-modernization.txt": {
+  "gov-transparency.txt": {
     type: "file",
     content:
-      "RCUH financial-system modernization — RCUH\n\nBackend developer and technical architect on the multi-phase migration off a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda, integrating an SAP COTS system.",
+      "Public-sector transparency\n\nFull-stack developer on a state government's public transparency platform for campaign-finance and lobbying disclosures.",
   },
-  "healthcare-builds.txt": {
+  "healthcare.txt": {
     type: "file",
     content:
-      "Carespan + Astiva — Healthcare builds\n\nTech lead owning 3rd-party EMR integration for Carespan and delivering the Astiva insurance app in a one-month sprint, guiding onshore developers and managing releases.",
+      "Healthcare builds\n\nTech lead owning third-party EMR integration and delivering a health-insurance app in a one-month sprint — guiding onshore developers and managing releases.",
   },
-  "hawaii-doe.txt": {
+  "public-education.txt": {
     type: "file",
     content:
-      "Hawaiʻi Department of Education applications\n\nBuilt and supported DOE applications (Vue / Express) and led DevOps and M&O for RCUH's legacy financial system as onshore tech lead and SME.",
+      "Public-education applications\n\nBuilt and supported statewide education applications (Vue / Express).",
   },
   "covid-response.txt": {
     type: "file",
     content:
-      "COVID-19 response software — AlohaClear + TalofaPass\n\nShipped AlohaClear testing (React/Angular + PostgreSQL on AWS) and TalofaPass thermal-camera systems in American Samoa.",
+      "COVID-19 response\n\nShipped pandemic-response software — a testing platform (React/Angular + PostgreSQL on AWS) and thermal-camera screening systems in American Samoa; earlier, thermal scanning across State of Hawaiʻi airports with NEC.",
   },
-  "animal-quarantine.txt": {
+  "first-role.txt": {
     type: "file",
     content:
-      "State of Hawaiʻi Animal Quarantine Holding Facility — CIMP\n\nBuilt a queuing and check-in workflow with CIMP mentors and interns, leading front-end development; planned and installed the system's hardware components.",
+      "CIMP — first engineering role\n\nLed front-end development of a queuing and check-in workflow for a State of Hawaiʻi public facility with CIMP mentors and interns; planned and installed the system's hardware components.",
   },
 };
 
@@ -378,8 +378,8 @@ $ `;
         if (arg1 === "log") {
           appendLines([
             "* 9a2b3c (HEAD -> main) feat: joined Pacific ImpactZone as DevSecOps engineer",
-            "* 8d7e6f feat: shipped CAL-ACCESS Replacement System for California SOS",
-            "* 5c4b3a feat: migrated RCUH financials off AS400 to React/NestJS/AWS",
+            "* 8d7e6f feat: shipped a state government's public transparency platform",
+            "* 5c4b3a feat: migrated legacy AS400 financials to React/NestJS/AWS",
             "* 1a2b3c init: B.S. Computer Engineering, University of Hawaii at Manoa",
           ]);
         } else {

@@ -13,26 +13,6 @@ export interface Job {
   description: string[];
 }
 
-// A named engagement — a PROJECT, not a job. The Experience act renders these
-// as the case-study cards (headline = project, eyebrow = client · period, body =
-// one stake sentence + at most two supporting lines). Every field traces back to
-// a sentence already in `experience` below; nothing here is invented. The full
-// job history stays in `experience` (read by the terminal + layout metadata).
-export interface Engagement {
-  /** Named project — the card headline. */
-  project: string;
-  /** Who the work was for — the eyebrow's lead. */
-  client: string;
-  /** The window the work fell within — the eyebrow's tail. */
-  period: string;
-  /** The one true stake sentence: why it mattered. */
-  stake: string;
-  /** At most two supporting lines. */
-  support: string[];
-  /** The firm the work was delivered through (the card's secondary CTA). */
-  deliveredBy?: { name: string; url: string };
-}
-
 export interface Certification {
   name: string;
   issuer: string;
@@ -66,7 +46,6 @@ export interface ResumeData {
   summary: string;
   education: Education;
   experience: Job[];
-  engagements: Engagement[];
   certifications: Certification[];
   skills: Skills;
 }
@@ -106,12 +85,15 @@ export const resumeData: ResumeData = {
       period: "Jan 2021–Oct 2025",
       context:
         "Hawaiʻi software & IT consultancy — I shipped and modernized systems for government, healthcare, and enterprise clients.",
+      // Scope + stack only — client systems and application names stay off
+      // the public site (owner decision, jc-oer). Every line is a
+      // generalization of real delivered work; nothing invented.
       description: [
-        "Backend developer and technical architect on the multi-phase RCUH financial-system modernization — migrating a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda, and integrating an SAP COTS system.",
-        "Full-stack developer on the CAL-ACCESS Replacement System for the California Secretary of State — the public's window into the state's campaign-finance and lobbying disclosures.",
-        "Tech lead across healthcare builds — owning 3rd-party EMR integration for Carespan and delivering the Astiva insurance app in a one-month sprint, guiding onshore developers and managing releases.",
-        "Built and supported Hawaiʻi Department of Education applications (Vue / Express) and led DevOps and M&O for RCUH's legacy financial system as onshore tech lead and SME.",
-        "Shipped COVID-19 response software — AlohaClear testing (React/Angular + PostgreSQL on AWS) and TalofaPass thermal-camera systems in American Samoa.",
+        "Backend developer and technical architect on a multi-phase financial-system modernization — migrating a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda, and integrating an SAP COTS system.",
+        "Full-stack developer on a state government's public transparency platform for campaign-finance and lobbying disclosures.",
+        "Tech lead across healthcare builds — owning third-party EMR integration and delivering a health-insurance app in a one-month sprint, guiding onshore developers and managing releases.",
+        "Built and supported statewide public-education applications (Vue / Express) and served as onshore tech lead and SME for a legacy financial system's DevOps and M&O.",
+        "Shipped COVID-19 response software — a testing platform (React/Angular + PostgreSQL on AWS) and thermal-camera screening systems in American Samoa.",
       ],
     },
     {
@@ -122,7 +104,7 @@ export const resumeData: ResumeData = {
       context: "Pandemic-response engineering between school terms.",
       description: [
         "Partnered with NEC Corporation to install and maintain thermal-scanning systems across State of Hawaiʻi airports for COVID-19 mitigation.",
-        "Ran regression testing for the LumiSight mobile and web apps and supported operations and location-mapping planning.",
+        "Ran regression testing for the program's mobile and web apps and supported operations and location-mapping planning.",
       ],
     },
     {
@@ -133,61 +115,9 @@ export const resumeData: ResumeData = {
       context:
         "Community Innovation & Mentorship Program — my first engineering role.",
       description: [
-        "Built a queuing and check-in workflow for the State of Hawaiʻi Animal Quarantine Holding Facility with CIMP mentors and interns — leading front-end development.",
+        "Built a queuing and check-in workflow for a State of Hawaiʻi public facility with CIMP mentors and interns — leading front-end development.",
         "Planned and installed the system's hardware components.",
       ],
-    },
-  ],
-  // Named engagements — the Experience act's case-study cards. Curated to the
-  // flagship projects; every line is drawn from `experience` above (no new
-  // facts, no metrics). All four were delivered through DataHouse.
-  engagements: [
-    {
-      project: "CAL-ACCESS Replacement System",
-      client: "California Secretary of State",
-      period: "2021–2025",
-      stake:
-        "The public's window into California's campaign-finance and lobbying disclosures.",
-      support: [
-        "Full-stack developer delivering the CAL-ACCESS Replacement System for the California Secretary of State.",
-      ],
-      deliveredBy: { name: "DataHouse", url: "https://www.datahouse.com" },
-    },
-    {
-      project: "RCUH Financial-System Modernization",
-      client: "RCUH",
-      period: "2021–2025",
-      stake:
-        "The financial system RCUH depends on — a multi-phase move off a legacy AS400 + AngularJS platform.",
-      support: [
-        "Backend developer and technical architect — React, NestJS/Prisma, and AWS Lambda, integrating an SAP COTS system.",
-        "Onshore tech lead and SME for the legacy system's DevOps and M&O.",
-      ],
-      deliveredBy: { name: "DataHouse", url: "https://www.datahouse.com" },
-    },
-    {
-      project: "COVID-19 Response: AlohaClear + TalofaPass",
-      client: "Pandemic Response",
-      period: "2021–2025",
-      stake:
-        "Testing and screening software shipped in the middle of the pandemic.",
-      support: [
-        "AlohaClear testing platform — React/Angular + PostgreSQL on AWS.",
-        "TalofaPass thermal-camera screening systems in American Samoa.",
-      ],
-      deliveredBy: { name: "DataHouse", url: "https://www.datahouse.com" },
-    },
-    {
-      project: "Animal Quarantine Check-in (CIMP)",
-      client: "State of Hawaiʻi",
-      period: "2020",
-      stake:
-        "My first engineering role — the queuing and check-in workflow the State of Hawaiʻi Animal Quarantine Holding Facility runs on.",
-      support: [
-        "Led front-end development alongside CIMP mentors and interns.",
-        "Planned and installed the system's hardware components.",
-      ],
-      deliveredBy: { name: "DataHouse", url: "https://www.datahouse.com" },
     },
   ],
   certifications: [
