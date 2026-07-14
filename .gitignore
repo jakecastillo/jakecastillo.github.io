@@ -83,3 +83,9 @@ GEMINI.md
 
 # Audit & asset-generation tooling + generated artifacts (local only)
 /scripts/
+
+# Ad-hoc review screenshots & MCP browser output (scratch, never versioned)
+/.playwright-mcp/
+/*.jpeg
+/*.jpg
+/*.png
