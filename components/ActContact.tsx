@@ -58,7 +58,7 @@ function ContactLink({
                         <span className="link-underline-onhover truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
                             {link.label}
                         </span>
-                        <span className="truncate font-mono text-xs tracking-wide text-subtle-foreground">
+                        <span className="line-clamp-2 break-all font-mono text-xs tracking-wide text-subtle-foreground sm:truncate">
                             {link.displayLabel}
                         </span>
                     </span>
@@ -165,7 +165,7 @@ export default function ActContact() {
                             variants={reveal}
                             custom={0}
                             {...badge}
-                            className="mb-6 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground"
+                            className="mb-6 flex items-center gap-2 text-xs label"
                         >
                             <span
                                 aria-hidden="true"
@@ -179,12 +179,12 @@ export default function ActContact() {
                             untouched. */}
                         <EtchHeading
                             as="h2"
-                            className="text-7xl font-black uppercase text-foreground tracking-tight [overflow-wrap:anywhere]"
+                            className="type-display text-7xl text-foreground sm:text-8xl"
                         >
-                            Let&rsquo;s build
+                            Let&rsquo;s build something
                             <br />
                             <span className="text-primary text-glow">
-                                something good
+                                that lasts
                                 <span className="animate-pulse">.</span>
                             </span>
                         </EtchHeading>
@@ -195,10 +195,9 @@ export default function ActContact() {
                             {...intro}
                             className="measure mt-8 text-base text-muted-foreground"
                         >
-                            I design and ship software solutions &mdash; modernizing
-                            the systems teams rely on, end to end. Open to engineering,
-                            cloud, and platform work, and I read every message. Reach
-                            out below.
+                            I design and ship software solutions &mdash; the systems
+                            people rely on, end to end. Open to engineering, cloud,
+                            and platform work. I read every message.
                         </motion.p>
                     </div>
 
@@ -235,7 +234,7 @@ export default function ActContact() {
                                 // ONE primary-CTA voice (jc-nc1): filled violet PILL,
                                 // sans, sentence case — same shape as the hero's
                                 // "Email me" CTA.
-                                className="group glow-primary cta-sheen flex min-h-11 items-center justify-between gap-4 rounded-full bg-primary-cta px-7 py-4 text-white transition-[transform,box-shadow] hover:bg-primary-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] active:scale-[0.97]"
+                                className="group glow-primary cta-sheen flex min-h-11 items-center justify-between gap-4 rounded-full bg-primary-cta px-7 py-4 text-white transition-[background-color,transform,box-shadow] hover:bg-primary-cta-hover active:scale-[0.97]"
                             >
                                 <span className="flex min-w-0 items-center gap-3">
                                     <primary.icon
@@ -246,7 +245,7 @@ export default function ActContact() {
                                         <span className="truncate text-2xl font-semibold">
                                             {primary.label}
                                         </span>
-                                        <span className="truncate font-mono text-xs tracking-wide text-white/80">
+                                        <span className="line-clamp-2 break-all font-mono text-xs tracking-wide text-white/80 sm:truncate">
                                             {primary.displayLabel}
                                         </span>
                                     </span>
@@ -275,7 +274,7 @@ export default function ActContact() {
 
                         {/* Credibility markers — verifiable, derived from resumeData.
                             One restrained terminal flourish: the ~/ prompt glyph. */}
-                        <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border-subtle pt-6 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                        <ul className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border-subtle pt-6 text-xs label">
                             <li aria-hidden="true" className="text-subtle-foreground">
                                 ~/
                             </li>

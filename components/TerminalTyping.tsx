@@ -6,6 +6,29 @@ import Typewriter from "typewriter-effect";
 
 import { resumeData } from "@/data/resume";
 
+// Scoped scrollbar treatment for the terminal's output pane. Replaces the
+// tailwind-scrollbar plugin classes (scrollbar-thin/scrollbar-thumb-*), which
+// emit nothing since that plugin isn't installed — the scrollbar was silently
+// falling back to the chunky global 10px thumb. Token-driven (--border-strong)
+// rather than an off-palette gray, same local <style> pattern used by
+// components/beam/BootIgnition.tsx (MOBILE_CSS).
+const TERMINAL_SCROLL_CSS = `
+.terminal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.terminal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.terminal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+`;
+
 /* -------------------------------------------------------------------------- */
 /*                                 FILE SYSTEM                                */
 /* -------------------------------------------------------------------------- */
@@ -14,23 +37,65 @@ type FileSystemNode =
   | { type: "file"; content: string }
   | { type: "dir"; children: Record<string, FileSystemNode> };
 
+// ~/work/ — real engagements, sourced verbatim/near-verbatim from the
+// description bullets already in data/resume.ts (read-only from this file).
+// No invented facts: every line below traces back to a sentence in
+// resumeData.experience[*].description.
+const workFiles: Record<string, FileSystemNode> = {
+  "readme.txt": {
+    type: "file",
+    content: "One file per engagement — run `cat <file>` for the stake. See also ~/experience for the full job history.",
+  },
+  "devsecops-pipeline.txt": {
+    type: "file",
+    content: resumeData.experience[0].description.join("\n"),
+  },
+  "cal-access.txt": {
+    type: "file",
+    content:
+      "CAL-ACCESS Replacement System — California Secretary of State\n\nFull-stack developer on the public's window into the state's campaign-finance and lobbying disclosures.",
+  },
+  "rcuh-modernization.txt": {
+    type: "file",
+    content:
+      "RCUH financial-system modernization — RCUH\n\nBackend developer and technical architect on the multi-phase migration off a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda, integrating an SAP COTS system.",
+  },
+  "healthcare-builds.txt": {
+    type: "file",
+    content:
+      "Carespan + Astiva — Healthcare builds\n\nTech lead owning 3rd-party EMR integration for Carespan and delivering the Astiva insurance app in a one-month sprint, guiding onshore developers and managing releases.",
+  },
+  "hawaii-doe.txt": {
+    type: "file",
+    content:
+      "Hawaiʻi Department of Education applications\n\nBuilt and supported DOE applications (Vue / Express) and led DevOps and M&O for RCUH's legacy financial system as onshore tech lead and SME.",
+  },
+  "covid-response.txt": {
+    type: "file",
+    content:
+      "COVID-19 response software — AlohaClear + TalofaPass\n\nShipped AlohaClear testing (React/Angular + PostgreSQL on AWS) and TalofaPass thermal-camera systems in American Samoa.",
+  },
+  "animal-quarantine.txt": {
+    type: "file",
+    content:
+      "State of Hawaiʻi Animal Quarantine Holding Facility — CIMP\n\nBuilt a queuing and check-in workflow with CIMP mentors and interns, leading front-end development; planned and installed the system's hardware components.",
+  },
+};
+
 const fileSystem: Record<string, FileSystemNode> = {
   "~": {
     type: "dir",
     children: {
       "work": {
         type: "dir",
-        children: {
-          "portfolio.txt": { type: "file", content: "Built with Next.js, Framer Motion, and excessive caffeine." },
-          "experience.md": { type: "file", content: "Scroll to the EXPERIENCE act for the real deal — or run 'cd experience && ls' here." },
-        },
+        children: workFiles,
       },
       "skills": {
         type: "dir",
         children: {
-          "frontend.txt": { type: "file", content: resumeData.skills.languages.join("\n") },
-          "backend.txt": { type: "file", content: resumeData.skills.databases.join("\n") },
-          "tools.txt": { type: "file", content: resumeData.skills.frameworks.join("\n") },
+          "languages.txt": { type: "file", content: resumeData.skills.languages.join("\n") },
+          "databases.txt": { type: "file", content: resumeData.skills.databases.join("\n") },
+          "frameworks.txt": { type: "file", content: resumeData.skills.frameworks.join("\n") },
         },
       },
       "experience": {
@@ -46,8 +111,8 @@ const fileSystem: Record<string, FileSystemNode> = {
         }, {} as Record<string, FileSystemNode>),
       },
       "about.md": { type: "file", content: resumeData.summary },
-      "contact.txt": { type: "file", content: `Email: ${resumeData.email}\nDocs: type 'copy email' to put in clipboard.` },
-      ".config": { type: "file", content: "theme=dark\nfont=geek-mono\ncoffee_level=critical" },
+      "contact.txt": { type: "file", content: `Email: ${resumeData.email}\nHint: type 'copy email' to copy it to your clipboard.` },
+      ".config": { type: "file", content: "theme=dark\nshell=beam-console\nstatus=online" },
     },
   },
 };
@@ -74,10 +139,11 @@ export default function TerminalTyping() {
 Jake Castillo
 $ beam --link
   link BEAM ............ ok
-  mount /statement ..... ok
+  mount /whoami ........ ok
   mount /approach ...... ok
-  mount /experience .... ok
-  mount /connection .... ok
+  mount /work .......... ok
+  mount /stack ......... ok
+  mount /contact ....... ok
 $ `;
 
   const bootTranscript = useMemo(
@@ -297,10 +363,8 @@ $ `;
       case "sudo":
         if (arg1 === "rm" && args.includes("-rf") && (args.includes("/") || args.includes(".") || args.includes("*"))) {
           appendLines([
-            "WARNING: SYSTEM CRITICAL OPERATION DETECTED.",
-            "Deleting system32...",
-            "...",
-            "Just kidding. Please don't delete my portfolio.",
+            "WARNING: destructive operation blocked.",
+            "This shell is running in read-only observer mode.",
           ]);
         } else if (arg1 === "hire") {
           // trigger copy email logic
@@ -313,10 +377,10 @@ $ `;
       case "git":
         if (arg1 === "log") {
           appendLines([
-            "* 9a2b3c (HEAD -> main) feat: added interactive terminal",
-            "* 8d7e6f fix: resolved coffee dependency cycle",
-            "* 5g4h3i feat: graduated university",
-            "* 1a2b3c init: hello world",
+            "* 9a2b3c (HEAD -> main) feat: joined Pacific ImpactZone as DevSecOps engineer",
+            "* 8d7e6f feat: shipped CAL-ACCESS Replacement System for California SOS",
+            "* 5c4b3a feat: migrated RCUH financials off AS400 to React/NestJS/AWS",
+            "* 1a2b3c init: B.S. Computer Engineering, University of Hawaii at Manoa",
           ]);
         } else {
           appendLines(["git: command not found. Try 'git log'."]);
@@ -335,8 +399,6 @@ $ `;
             ...resumeData.skills.languages,
             ...resumeData.skills.frameworks,
             ...resumeData.skills.databases,
-            "coffee",
-            "sleep",
           ].map(s => s.toLowerCase());
 
           if (allSkills.some(s => s.includes(pkg.toLowerCase()))) {
@@ -349,7 +411,7 @@ $ `;
             appendLines([
               `npm ERR! 404 Not Found: ${pkg}`,
               `npm ERR! User has not yet installed '${pkg}'.`,
-              `npm ERR! Suggestion: 'npm install coffee'`
+              `npm ERR! Suggestion: 'cat skills/languages.txt' for what's on the shelf.`
             ]);
           }
         } else {
@@ -408,7 +470,7 @@ $ `;
         }
       }}
       onClick={() => inputRef.current?.focus()}
-      className={`relative bg-[color:var(--surface-overlay)] text-[color:var(--foreground)] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
+      className={`terminal-shell relative bg-[color:var(--surface-overlay)] text-[color:var(--foreground)] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
         isFocused
           ? "ring-2 ring-offset-2 ring-offset-background ring-[color:var(--primary-hover)] border border-border-strong"
           : "border border-border"
@@ -490,6 +552,7 @@ $ `;
       {/* Interactive phase */}
       {phase === "complete" && (
         <div className="p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <style>{TERMINAL_SCROLL_CSS}</style>
           {/* Scrollback fills the card's height so the console never reads as a
               half-empty panel; the live prompt + readout are pinned to the
               bottom edge (see the console footer below), so the card earns its
@@ -500,7 +563,7 @@ $ `;
             aria-live="polite"
             aria-label="Terminal output. Use arrow keys to scroll."
             tabIndex={0}
-            className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-sm leading-relaxed scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--primary-hover)] rounded-sm"
+            className="terminal-scroll flex-1 min-w-0 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words [overflow-wrap:anywhere] pr-2 text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--primary-hover)] rounded-sm"
           >
             {outputText}
             <div className="h-1" />
@@ -590,7 +653,11 @@ $ `;
                 autoCapitalize="none"
                 autoComplete="off"
                 placeholder="type 'help'"
-                className="flex-1 min-w-0 bg-transparent text-[color:var(--foreground)] text-sm placeholder:text-gray-500 placeholder:opacity-50 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+                // coarse:text-[16px] — iOS Safari auto-zooms the viewport on
+                // focus of any input under 16px; at mono sizes the visual
+                // delta from text-sm (14px) is negligible, so this only bumps
+                // on touch (coarse = "(hover: none)", see globals.css).
+                className="flex-1 min-w-0 bg-transparent text-[color:var(--foreground)] text-sm coarse:text-[16px] placeholder:text-subtle-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
                 aria-label="Terminal input"
               />
             </form>
@@ -598,14 +665,17 @@ $ `;
             {/* Persistent system readout — a live signal indicator plus a
                 standing hint at the genuinely fun command set, so the discovery
                 surface is always visible without any input. */}
-            <div className="mt-1.5 flex items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-wider text-subtle-foreground select-none">
+            <div className="mt-1.5 flex items-center justify-between gap-3 text-[0.6875rem] label select-none">
               {/* Both readout spans are decorative for AT — the input's
                   placeholder already carries the 'help' hint accessibly. */}
               <span aria-hidden="true" className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(45,212,191,0.6)]" />
                 signal: live
               </span>
-              <span aria-hidden="true" className="truncate">
+              {/* Arrow-key history has no touch equivalent, so the hint is
+                  fine-pointer only (coarse:hidden) — it never advertises an
+                  affordance a phone user can't reach. */}
+              <span aria-hidden="true" className="truncate coarse:hidden">
                 type &lsquo;help&rsquo; &middot; &uarr; history
               </span>
             </div>
