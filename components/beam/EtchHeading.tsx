@@ -32,13 +32,17 @@ CustomEase.create("beam", "0.16, 1, 0.3, 1");
  * non-deterministic, never-moving lines). Returning the timeline lets GSAP
  * revert it — ScrollTrigger included — before each re-split.
  *
- * Played guard (jc-cbm): once the reveal has completed, a later re-split (a
- * resize, or a font swap that lands after the reveal) must NOT rebuild the
- * tween + once:true ScrollTrigger — GSAP would revert the finished timeline
- * (snapping the heading hidden) and the fresh trigger, already past its start,
- * would re-fire: a visible flash/replay. After completion we instead gsap.set
- * the new line elements straight to their final state and return nothing, so
- * there is no timeline to revert and no trigger to re-arm.
+ * Played guard (jc-cbm, jc-2r1): once the reveal has STARTED (its ScrollTrigger
+ * has fired), a later re-split — a resize or font swap landing DURING or after
+ * the reveal — must NOT rebuild the tween + once:true ScrollTrigger. GSAP would
+ * revert the running/finished timeline and the fresh trigger, already past its
+ * start, would re-fire: a visible flash/replay. The `played` latch is therefore
+ * set on the timeline's onStart (trigger-fire), not onComplete — jc-2r1: an
+ * onComplete latch left a MID-reveal re-split (trigger fired, timeline still
+ * running) in the rebuild branch, re-arming a once:true trigger that re-fired.
+ * Once latched we instead gsap.set the new line elements straight to their final
+ * state (landing the remainder of the reveal) and return nothing, so there is no
+ * timeline to revert and no trigger to re-arm.
  *
  * Reduced motion: no split, no tween — the heading (and eyebrow) just are.
  */
@@ -76,8 +80,11 @@ export default function EtchHeading({
             const etch = root.querySelector<HTMLElement>("[data-beam-etch]");
             if (!heading) return;
 
-            // Latched true when the reveal timeline completes; survives across
-            // autoSplit re-splits (closure over this single useGSAP run).
+            // Latched true when the reveal timeline STARTS (its ScrollTrigger
+            // fires), NOT when it completes — jc-2r1: an onComplete latch left a
+            // re-split landing mid-reveal in the rebuild branch, re-arming a
+            // once:true trigger that re-fired. Survives across autoSplit
+            // re-splits (closure over this single useGSAP run).
             let played = false;
 
             const split = SplitText.create(heading, {
@@ -88,8 +95,9 @@ export default function EtchHeading({
                 // the CURRENT line elements. Returning it lets GSAP revert the
                 // previous timeline (+ its ScrollTrigger) before re-splitting.
                 onSplit: (self) => {
-                    // Already revealed: a re-split must land the new lines final
-                    // and NOTHING else — no tween, no ScrollTrigger to re-fire.
+                    // Reveal already in flight or done: a re-split must land the
+                    // new lines final and NOTHING else — no tween, no
+                    // ScrollTrigger to re-fire (jc-2r1).
                     if (played) {
                         gsap.set(self.lines, { yPercent: 0 });
                         if (eyebrowEl)
@@ -105,7 +113,11 @@ export default function EtchHeading({
                     if (etch) gsap.set(etch, { scaleX: 0 });
 
                     const tl = gsap.timeline({
-                        onComplete: () => {
+                        // Latch on trigger-fire (onStart), not onComplete: a
+                        // re-split landing mid-reveal must fall into the played
+                        // branch above and land final — not rebuild a once:true
+                        // trigger that re-fires (jc-2r1).
+                        onStart: () => {
                             played = true;
                         },
                         scrollTrigger: {
