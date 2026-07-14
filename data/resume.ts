@@ -43,7 +43,6 @@ export interface ResumeData {
   role: string;
   tagline: string;
   location: string;
-  phone: string;
   email: string;
   linkedin: string;
   github: string;
@@ -58,8 +57,9 @@ export const resumeData: ResumeData = {
   name: "Jake Castillo",
   role: "Software Engineer",
   tagline: "Computer software/hardware design & innovation specialist.",
+  // No phone number here on purpose: everything in this object ships in the
+  // public client bundle whether or not it renders (jc-396).
   location: "Honolulu, HI",
-  phone: "(808) 216-2163",
   email: "jakecast@hawaii.edu",
   linkedin: "https://www.linkedin.com/in/jake-castillo-00567819b/",
   github: "https://github.com/jakecastillo",
@@ -77,11 +77,13 @@ export const resumeData: ResumeData = {
       title: "DevSecOps Software Engineer",
       period: "Oct 2025–Present",
       context: "My current role — bringing security into cloud-native delivery.",
+      // Current-employer hygiene: no enumeration of the security toolchain —
+      // that describes their live control environment (jc-396).
       proof: [
-        "dependency, secret, and code scanning wired into CI/CD — issues surface before production",
+        "security embedded across the delivery pipeline — issues surface before production",
       ],
       description: [
-        "Lead DevSecOps initiatives, embedding automated dependency, secret, and code scanning into CI/CD so issues surface before they reach production.",
+        "Lead DevSecOps initiatives, embedding automated security checks across CI/CD so issues surface before they reach production.",
         "Bring security and reliability practices into the delivery pipeline while keeping release cadence fast.",
       ],
     },
@@ -91,24 +93,26 @@ export const resumeData: ResumeData = {
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
       context:
-        "Government, healthcare, and education systems — full-stack developer to technical architect and tech lead.",
-      // Named systems restored by owner decision (jc-105, reversing jc-oer).
-      // Scale/impact figures are from the public record (RCUH annual report,
-      // CA budget documents, HI DOH releases, Samoa News procurement
-      // coverage — jc-cny research); role claims stay strictly resume-
-      // sourced. The CAL-ACCESS replacement has NOT launched — never claim
-      // "shipped" for it.
+        "Public-sector, healthcare, and education systems — full-stack developer to technical architect and tech lead.",
+      // PROTECTIVE disclosure posture (jc-396, owner decision after a
+      // security review): no client or system names, and no uniquely
+      // identifying figures — a unique public fact ("only statewide district
+      // in the nation", "$380M/yr") is a unique identifier, and one search
+      // resolves it. Domains + role arc + soft scale only. Stacks are never
+      // bound to any specific system. The full named record stays in the
+      // owner's private resume/LinkedIn — targeted disclosure, not broadcast.
       proof: [
-        "RCUH financial modernization — ~$380M/yr across 4,000+ research projects",
-        "CAL-ACCESS replacement for the California Secretary of State",
-        "TalofaPass — repatriated 1,700+ American Samoa residents",
+        "legacy financial modernization",
+        "statewide pandemic-response platforms",
+        "election-transparency tooling",
       ],
       description: [
-        "Backend developer and technical architect on the multi-phase RCUH financial-system modernization — the platform administering roughly $380M a year across 4,000+ active research projects — moving off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda with an SAP COTS integration.",
-        "Full-stack developer on the CAL-ACCESS Replacement System for the California Secretary of State — the platform journalists, watchdogs, and the public use to follow money in state politics, where single ballot measures have drawn $400M+.",
-        "Tech lead across healthcare builds — third-party EMR integration for CareSpan's cloud clinic platform and the Astiva Health Medicare Advantage member app, delivered in a one-month sprint while guiding onshore developers and managing releases.",
-        "Built and supported Hawaiʻi Department of Education applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools.",
-        "Shipped COVID-19 response software — AlohaClear statewide testing registration (React/Angular + PostgreSQL on AWS) and TalofaPass, the travel-authorization system that repatriated 1,700+ American Samoa residents — plus thermal-camera screening on the ground.",
+        "Backend developer and technical architect on a multi-phase modernization of a nine-figure public-sector financial platform.",
+        "Led legacy platform migrations to React, NestJS/Prisma, and AWS Lambda, integrating a COTS ERP.",
+        "Full-stack developer on a state government's election-transparency tooling.",
+        "Tech lead across healthcare builds — EMR integration and a health-insurance member app delivered in a one-month sprint, guiding onshore developers and managing releases.",
+        "Built and supported statewide public-education applications.",
+        "Shipped pandemic-response software — statewide testing registration and government travel-authorization programs, plus thermal-camera screening deployments.",
       ],
     },
     {
@@ -118,11 +122,11 @@ export const resumeData: ResumeData = {
       period: "Jul 2020–Aug 2020",
       context: "Pandemic-response engineering between school terms.",
       proof: [
-        "NEC thermal-scanning installs across Hawaiʻi's trans-Pacific airports",
+        "thermal-scanning deployments across Hawaiʻi's trans-Pacific airports",
       ],
       description: [
-        "Partnered with NEC Corporation to install and maintain thermal-scanning systems across State of Hawaiʻi airports for COVID-19 mitigation.",
-        "Ran regression testing for the LumiSight health-screening mobile and web apps and supported operations and location-mapping planning.",
+        "Partnered with an enterprise hardware vendor to install and maintain thermal-scanning systems across State of Hawaiʻi airports for COVID-19 mitigation.",
+        "Ran regression testing for the program's health-screening mobile and web apps and supported operations and location-mapping planning.",
       ],
     },
     {
@@ -133,10 +137,10 @@ export const resumeData: ResumeData = {
       context:
         "Community Innovation & Mentorship Program — my first engineering role.",
       proof: [
-        "kiosk check-in for the State's Animal Quarantine facility — front line of the nation's only rabies-free state",
+        "kiosk check-in and live queuing for a state public facility — my first shipped system",
       ],
       description: [
-        "Built a kiosk check-in and live queuing system for the State of Hawaiʻi Animal Quarantine Holding Facility — the front line of the nation's only rabies-free state — leading front-end development with CIMP mentors and interns.",
+        "Built a kiosk check-in and live queuing system for a State of Hawaiʻi public facility — leading front-end development with CIMP mentors and interns.",
         "Planned and installed the system's hardware components.",
       ],
     },

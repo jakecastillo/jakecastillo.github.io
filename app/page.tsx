@@ -128,19 +128,19 @@ export default function Home() {
               animate={heroState}
               className="flex w-full flex-col items-start gap-6"
             >
-              {/* Proof paragraph (jc-78t, jc-105): concrete track record in
-                  place of the paraphrased objective — client names restored by
-                  owner decision. All facts live in data/resume.ts; the span
-                  (Jan 2020 CIMP intern → present) supports "six years". No
-                  invented numbers. */}
+              {/* Proof paragraph (jc-78t, jc-396): concrete track record in
+                  place of the paraphrased objective — PROTECTIVE posture: no
+                  client or system names anywhere on the site (owner decision
+                  after a security review). All facts live in data/resume.ts;
+                  the span (Jan 2020 CIMP intern → present) supports "six
+                  years". No invented numbers. */}
               <motion.p
                 variants={fadeUp}
                 className="measure text-base text-muted-foreground"
               >
-                Six years building for the State of Hawaiʻi, the California
-                Secretary of State, and healthcare teams — from legacy
-                modernization to cloud-native delivery. AWS-certified
-                architect; DevSecOps by default.
+                Six years building for government, education, and healthcare
+                teams — from legacy modernization to cloud-native delivery.
+                AWS-certified architect; DevSecOps by default.
               </motion.p>
 
               <motion.ul variants={fadeUp} className="flex flex-wrap gap-2">

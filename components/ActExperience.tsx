@@ -705,9 +705,9 @@ function TimelineNode({
  * the first em-dash) is emphasized, the rationale after it stays muted. Falls
  * back to plain text when no em-dash is present.
  */
-// Proof segments speak in the terminal's voice: mono text with the load-
-// bearing figures ($380M/yr, 4,000+, 1,700+) lit in signal cyan — the same
-// "cyan = the answer" grammar the rest of the system reserves for payoffs.
+// Proof segments speak in the terminal's voice: mono text with any load-
+// bearing figures lit in signal cyan — the same "cyan = the answer" grammar
+// the rest of the system reserves for payoffs.
 function renderProofSegment(segment: string) {
     const parts = segment.split(/(~?\$?\d[\d,]*(?:\.\d+)?(?:[MKB]|%)?(?:\/yr)?\+?)/g);
     return parts.map((part, i) =>
