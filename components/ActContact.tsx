@@ -47,7 +47,12 @@ function ContactLink({
                 <span className="flex min-w-0 items-center gap-4">
                     <Icon
                         aria-hidden="true"
-                        className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                        // Shared hover micro-language (jc-rdm): the row's leading
+                        // icon lifts + grows a hair and warms toward primary in one
+                        // move. `transition` covers both color and the standalone
+                        // translate/scale props; motion-safe gates only the travel,
+                        // so reduced motion keeps the warm and drops the lift.
+                        className="h-5 w-5 shrink-0 origin-center text-muted-foreground transition group-hover:text-primary motion-safe:group-hover:-translate-y-px motion-safe:group-hover:scale-[1.06]"
                     />
                     <span className="flex min-w-0 flex-col">
                         <span className="link-underline-onhover truncate text-base font-medium text-foreground transition-colors group-hover:text-primary">
@@ -60,7 +65,11 @@ function ContactLink({
                 </span>
                 <ArrowUpRight
                     aria-hidden="true"
-                    className="h-5 w-5 shrink-0 -translate-x-2 translate-y-2 text-primary opacity-0 transition-all group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100"
+                    // Trailing arrow reveals up-right on row hover (its own
+                    // established affordance). The travel is now motion-safe-gated
+                    // so reduced motion reveals via opacity ALONE — no slide (jc-rdm
+                    // parity fix); the arrow is already primary, so it stays warm.
+                    className="h-5 w-5 shrink-0 text-primary opacity-0 transition-all group-hover:opacity-100 motion-safe:-translate-x-2 motion-safe:translate-y-2 motion-safe:group-hover:translate-x-0 motion-safe:group-hover:translate-y-0"
                 />
             </a>
         </motion.li>
@@ -244,7 +253,11 @@ export default function ActContact() {
                                 </span>
                                 <ArrowUpRight
                                     aria-hidden="true"
-                                    className="h-6 w-6 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                    // Same hover micro-language as the dock + link
+                                    // rows (jc-rdm): a 1px up-right nudge + faint
+                                    // grow, motion-safe-gated so reduced motion is
+                                    // fully static. White-on-violet, so no warm.
+                                    className="h-6 w-6 shrink-0 origin-center transition-transform motion-safe:group-hover:-translate-y-px motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]"
                                 />
                             </a>
                         ) : null}

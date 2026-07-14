@@ -266,6 +266,16 @@ export default function Navigation() {
                                 size={20}
                                 strokeWidth={1.5}
                                 aria-hidden="true"
+                                // Shared hover micro-language (jc-rdm): a quiet
+                                // lift + faint grow that warms with the button's
+                                // existing hover:text-primary. Lives on the icon
+                                // (not the magnetic wrapper) so it rides its own
+                                // `translate`/`scale` props while framer keeps the
+                                // parallax on the parent's `transform` — the two
+                                // compose natively in Tailwind v4, never fight.
+                                // motion-safe-gated so reduced motion drops the
+                                // travel entirely and only the color warms.
+                                className="origin-center transition-transform motion-safe:group-hover:-translate-y-px motion-safe:group-hover:scale-[1.06]"
                             />
                         </MagneticButton>
                     </li>

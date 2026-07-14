@@ -286,6 +286,10 @@ function ImmersiveTimeline({ total }: { total: number }) {
                 >
                     <div className="flex items-center justify-between font-mono text-xs tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-2">
+                            {/* Static indicator, not an affordance: the jc-rdm hover
+                                micro-language is reserved for interactive elements
+                                (dock buttons, VIEW COMPANY, contact links), so this
+                                non-interactive progress label keeps a still arrow. */}
                             SCROLL TO EXPLORE <ArrowDown className="h-4 w-4" aria-hidden="true" />
                         </span>
                         {/* aria-label only (no aria-live) — the counter is a static
@@ -444,9 +448,13 @@ function TimelineNode({
                         href={job.companyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+                        className="group mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
                     >
-                        VIEW COMPANY <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        {/* Shared hover micro-language (jc-rdm): nudge along the
+                            arrow's axis (right) + faint grow, motion-safe-gated. The
+                            arrow already inherits the pill's primary, so no separate
+                            warm — label + arrow stay one color. */}
+                        VIEW COMPANY <ArrowRight className="h-3.5 w-3.5 origin-center transition-transform motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]" aria-hidden="true" />
                     </a>
                 )}
             </div>
