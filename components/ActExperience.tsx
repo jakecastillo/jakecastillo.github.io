@@ -1,7 +1,15 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import {
+    AnimatePresence,
     motion,
     useMotionValueEvent,
     useReducedMotion,
@@ -9,7 +17,8 @@ import {
     useTransform,
     type Variants,
 } from "framer-motion";
-import { resumeData, type Job } from "@/data/resume";
+import { resumeData, type Engagement } from "@/data/resume";
+import { sections } from "@/data/sections";
 import { DUR, EASE, fadeRight, staggerContainer } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 import { selectExpPinned, useActStore } from "@/hooks/useActStore";
@@ -42,28 +51,37 @@ const useIsoLayoutEffect =
  * fine-pointer (mouse) device that is NOT requesting reduced motion, so touch /
  * coarse-pointer / reduced-motion users get the calm static vertical timeline.
  *
+ * The `(min-width: 768px)` floor (jc-nwg) is load-bearing: card widths
+ * (`w-[82vw]`) and TRACK_TRAVEL are tuned for desktop travel, so a narrow
+ * fine-pointer window — a resized desktop browser, DevTools emulation, an
+ * iPad + trackpad in Split View — otherwise mounted the pin at ~390px and
+ * sheared cards off both viewport edges. The listener re-evaluates on `change`
+ * so live resizing degrades gracefully into the composed StaticTimeline.
+ *
  * Starts `false` so SSR/first paint matches the safe vertical fallback, then
  * upgrades on mount when appropriate.
  */
 function useImmersive() {
     const prefersReducedMotion = useReducedMotion();
-    const [finePointer, setFinePointer] = useState(false);
+    const [canPin, setCanPin] = useState(false);
 
     useIsoLayoutEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
-        const query = window.matchMedia("(pointer: fine) and (hover: hover)");
-        const update = () => setFinePointer(query.matches);
+        const query = window.matchMedia(
+            "(pointer: fine) and (hover: hover) and (min-width: 768px)",
+        );
+        const update = () => setCanPin(query.matches);
         update();
         query.addEventListener("change", update);
         return () => query.removeEventListener("change", update);
     }, []);
 
-    return finePointer && !prefersReducedMotion;
+    return canPin && !prefersReducedMotion;
 }
 
 export default function ActExperience() {
     const immersive = useImmersive();
-    const total = resumeData.experience.length;
+    const total = resumeData.engagements.length;
 
     // useScroll lives ONLY inside <ImmersiveTimeline/>, so it never runs while
     // its target ref is unmounted — that mismatch is what made framer-motion
@@ -80,13 +98,46 @@ export default function ActExperience() {
 function StaticTimeline({ total }: { total: number }) {
     const list = useReveal<HTMLOListElement>({ orchestrate: true });
     const reduced = useReducedMotion();
+
+    // Drive the NN / TT counter off the timeline itself (jc-2fo): a mid-viewport
+    // IntersectionObserver over the four <li> nodes updates the numeral as each
+    // role crosses center — the same in-view trigger the act's beam-node ignite
+    // already uses. A hard-coded "01" next to a live-looking fraction read as a
+    // broken instrument, so the fraction now moves with the reading position.
+    const sectionRef = useRef<HTMLElement>(null);
+    const [activeStatic, setActiveStatic] = useState(0);
+    useEffect(() => {
+        const root = sectionRef.current;
+        if (!root || typeof IntersectionObserver === "undefined") return;
+        const nodes = Array.from(
+            root.querySelectorAll<HTMLElement>("[data-static-index]"),
+        );
+        if (nodes.length === 0) return;
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    const idx = Number(
+                        (entry.target as HTMLElement).dataset.staticIndex,
+                    );
+                    setActiveStatic((prev) => (prev === idx ? prev : idx));
+                }
+            },
+            // Thin band at mid-viewport: whichever role crosses the center
+            // owns the counter (matches the reading focus, not the fold edge).
+            { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+        );
+        nodes.forEach((node) => io.observe(node));
+        return () => io.disconnect();
+    }, []);
+
     return (
         // Mobile bottom padding compressed (jc-7am): the 8rem+safe reservation
         // (kept for md+ where the pinned/dock lane needs it) left a near-empty
         // band between the last role and THE STACK on a 390px column. Halve it
         // below md so the approach to the next act reads as one composed move,
         // not a scroll through void. md+ keeps the original reservation verbatim.
-        <section className="section-y container-page [padding-bottom:calc(4rem+env(safe-area-inset-bottom))] md:[padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
+        <section ref={sectionRef} className="section-y container-page [padding-bottom:calc(4rem+env(safe-area-inset-bottom))] md:[padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
             <h2 className="sr-only">Experience</h2>
             {/* Act-opener composed lockup (jc-7am). Below md the single left mono
                 line stranded the opening frame — a full viewport of grid + a stray
@@ -106,16 +157,28 @@ function StaticTimeline({ total }: { total: number }) {
                     className="h-2.5 w-2.5 rounded-full bg-primary glow-primary"
                 />
                 <div className="flex items-baseline gap-2 font-mono tabular-nums">
-                    <span className="text-3xl font-bold text-foreground">{format(1)}</span>
+                    <span className="relative inline-block text-3xl font-bold text-foreground">
+                        <AnimatePresence initial={false} mode="popLayout">
+                            <motion.span
+                                key={activeStatic}
+                                initial={reduced ? false : { opacity: 0.4, textShadow: "0 0 12px rgba(139,92,246,0.9)" }}
+                                animate={{ opacity: 1, textShadow: "0 0 0px rgba(139,92,246,0)" }}
+                                transition={{ duration: DUR.base, ease: EASE }}
+                                className="inline-block"
+                            >
+                                {format(activeStatic + 1)}
+                            </motion.span>
+                        </AnimatePresence>
+                    </span>
                     <span className="text-xl font-light text-subtle-foreground">/</span>
                     <span className="text-3xl font-bold text-subtle-foreground">{format(total)}</span>
                 </div>
-                <span className="font-mono text-xs uppercase tracking-[0.4em] text-muted-foreground">
+                <span className="text-xs label">
                     ROLES
                 </span>
             </div>
-            <p className="mb-12 hidden font-mono text-xs tracking-widest text-muted-foreground md:block">
-                {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
+            <p className="mb-12 hidden text-xs label md:block">
+                {format(activeStatic + 1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
             </p>
             <motion.ol
                 variants={listVariants}
@@ -131,9 +194,9 @@ function StaticTimeline({ total }: { total: number }) {
                     transition={{ duration: DUR.slow, ease: EASE }}
                     className="pointer-events-none absolute left-0 top-0 bottom-0 w-px origin-top bg-primary glow-primary"
                 />
-                {resumeData.experience.map((job, index) => (
-                    <motion.li key={index} variants={itemVariants}>
-                        <TimelineNode job={job} index={index} variant="vertical" />
+                {resumeData.engagements.map((engagement, index) => (
+                    <motion.li key={index} data-static-index={index} variants={itemVariants}>
+                        <TimelineNode engagement={engagement} index={index} variant="vertical" />
                     </motion.li>
                 ))}
             </motion.ol>
@@ -148,38 +211,110 @@ function StaticTimeline({ total }: { total: number }) {
 // reuses this exact fraction, so the two can never drift apart.
 const TRACK_TRAVEL = 0.56;
 
+// Act eyebrow, sourced from the SAME canonical namespace the stage rail / dock /
+// boot log read (one namespace everywhere). Hardcoding a literal would fork that
+// namespace and — because the Experience act is stageLabel "03" / stageTitle
+// "work" — visibly contradict the rail's own "03 work" on the same screen.
+const EXP_SECTION = sections.find((s) => s.id === "exp");
+const ACT_EYEBROW =
+    EXP_SECTION?.stageLabel && EXP_SECTION?.stageTitle
+        ? `${EXP_SECTION.stageLabel} — ${EXP_SECTION.stageTitle.toUpperCase()}`
+        : "WORK";
+
+// Piecewise scrub map for the pin (jc-nwg): the flagship act was a
+// constant-velocity conveyor — one linear progress→x with no card ever at rest,
+// producing "sliced-card sandwich" mid-frames. Replace it with a plateau map
+// that eases card-to-card and HOLDS at each card's centered position, so every
+// role gets an authored dwell beat.
+//
+// Built generically from `total` (the card-content owner may re-shape the
+// engagements array; this must not assume a fixed count). The dwell:travel
+// ratio r=0.42 is tuned so N=4 reproduces the approved
+// [0,.19,.27,.46,.54,.73,.81,1] → [x0,x1,x1,x2,x2,x3,x3,x3] pattern: each of the
+// N-1 transitions is a `travel` ramp followed by a `dwell` hold, and the final
+// card holds through progress 1 (so it is still composed when the pin releases —
+// no dead ride-out on an empty stage). `centers[i]` is the progress that centers
+// card i, reused by the tick buttons and the keyboard focus-rescue so wayfinding
+// and tabbing land on the same resolved frames the scrub rests on.
+function buildDwellMap(total: number) {
+    const trackPct = TRACK_TRAVEL * 100;
+    const xAt = (i: number) =>
+        total > 1 ? `-${((trackPct * i) / (total - 1)).toFixed(4)}%` : "0%";
+    if (total <= 1) {
+        return { xInput: [0, 1], xOutput: ["0%", "0%"], centers: [0] };
+    }
+    const r = 0.42;
+    const travel = 1 / (total + r * (total - 1));
+    const dwell = r * travel;
+    const xInput: number[] = [0];
+    const xOutput: string[] = [xAt(0)];
+    const centers: number[] = [0];
+    let p = 0;
+    for (let k = 1; k < total; k++) {
+        p += travel;
+        xInput.push(p);
+        xOutput.push(xAt(k));
+        const dwellStart = p;
+        p += dwell;
+        xInput.push(p);
+        xOutput.push(xAt(k));
+        centers.push((dwellStart + p) / 2);
+    }
+    xInput.push(1);
+    xOutput.push(xAt(total - 1));
+    return { xInput, xOutput, centers };
+}
+
 // Fine-pointer + normal-motion: the pinned horizontal timeline. Always renders
 // its ref'd <section>, so useScroll has a hydrated target.
 function ImmersiveTimeline({ total }: { total: number }) {
     const targetRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({ target: targetRef });
-    const x = useTransform(
-        scrollYProgress,
-        [0, 1],
-        ["0%", `-${TRACK_TRAVEL * 100}%`],
+
+    const { xInput, xOutput, centers } = useMemo(
+        () => buildDwellMap(total),
+        [total],
     );
-    const headLeft = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+    const x = useTransform(scrollYProgress, xInput, xOutput);
+
+    // Authored exit (jc-nwg). The cyan hot-head is NOT a standing element — cyan
+    // is the site's rare "answer" signal, never ambient — so it stays dark
+    // through the whole scrub and IGNITES only in the last ~10% of progress,
+    // where it detaches from the rail tip and accelerates off the right edge:
+    // the beam leaving THIS act for the prism. The sticky div's overflow-hidden
+    // clips its departure. No standing accent = grammar restored; a moving head
+    // = the release is authored, not a dead fade.
+    const headOpacity = useTransform(
+        scrollYProgress,
+        [0.87, 0.92, 1],
+        [0, 1, 1],
+    );
+    const headLeft = useTransform(
+        scrollYProgress,
+        [0.9, 0.94, 0.97, 1],
+        ["100%", "108%", "122%", "158%"],
+    );
 
     // Progress-chrome handoff (jc-7e2). The SCROLL TO EXPLORE / NN·TT rail lives
     // at the bottom of the h-screen sticky div, so once the pin RELEASES it
     // rides the whole viewport upward and strands itself at the top over the
-    // incoming STACK act. Retire it while the pin still owns the frame: fade IN
-    // only after the pin engages (never stranded over the approach act on the
-    // way in — progress clamps at 0 through the approach, so opacity stays 0),
-    // then fade + slide DOWN out over the last ~10% so it is fully gone BEFORE
-    // unpin. Progress clamps past 1, so opacity holds at 0 for the entire
-    // unpin. Reduced motion never mounts this branch, so the static timeline is
-    // untouched. jc-he9's exclusive-lane reservation (pb-24 / bottom-6) is
-    // orthogonal and preserved.
+    // incoming STACK act. Fade IN only after the pin engages (progress clamps at
+    // 0 through the approach, so opacity stays 0), hold composed for essentially
+    // the whole scrub, then fade out only in the final sliver — the hot-head's
+    // off-right departure (above), not a whole-chrome retreat, is now the exit
+    // gesture, and the persistent act lockup + dwelled final card keep the frame
+    // composed to the very end (no more emptiest-frame finale, jc-d5d). Progress
+    // clamps past 1, so opacity holds at 0 for the entire unpin.
     const chromeOpacity = useTransform(
         scrollYProgress,
-        [0, 0.05, 0.9, 0.98],
+        [0, 0.05, 0.96, 1],
         [0, 1, 1, 0],
     );
-    const chromeY = useTransform(
-        scrollYProgress,
-        [0.9, 0.98],
-        ["0rem", "1.25rem"],
+    // Keep the now-interactive rail (tick buttons) out of the tab order and
+    // pointer path while the chrome is faded out (approach + unpin), so a
+    // keyboard user can never land focus on an invisible control.
+    const chromeVisibility = useTransform(chromeOpacity, (o) =>
+        o < 0.02 ? "hidden" : "visible",
     );
 
     // Announce to the chrome-yield choreography (dock / act rail / brand
@@ -198,21 +333,58 @@ function ImmersiveTimeline({ total }: { total: number }) {
     // (jc-g2l).
     const pinned = useActStore(selectExpPinned);
 
-    // Map scroll progress → active node index for the "NN / TT" counter.
+    // Map scroll progress → active node index for the counter, the ghost numeral
+    // and the active tick. The plateau map holds each card centered at
+    // `centers[i]`, so the active card is the one whose dwell center is nearest —
+    // the numeral crossfades mid-travel between plateaus, not at a fixed
+    // round-off that could flip inside a dwell.
     const [active, setActive] = useState(0);
     useMotionValueEvent(scrollYProgress, "change", (latest) => {
-        const next = Math.min(total - 1, Math.max(0, Math.round(latest * (total - 1))));
-        setActive((prev) => (prev === next ? prev : next));
+        let best = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < centers.length; i++) {
+            const d = Math.abs(latest - centers[i]);
+            if (d < bestDist) {
+                bestDist = d;
+                best = i;
+            }
+        }
+        setActive((prev) => (prev === best ? prev : best));
     });
+
+    // Jump the pin to the scroll position that centers a given progress. Shared
+    // by the rail tick buttons (smooth) and the keyboard focus-rescue
+    // (immediate) so the two wayfinding paths can never drift from the scrub's
+    // own dwell math.
+    const lenis = useScrollStore((state) => state.lenis);
+    const scrollToProgress = useCallback(
+        (progress: number, immediate: boolean) => {
+            const section = targetRef.current;
+            if (!section) return;
+            const current = lenis ? lenis.scroll : window.scrollY;
+            const absTop = section.getBoundingClientRect().top + current;
+            const scrollable = Math.max(
+                1,
+                section.offsetHeight - window.innerHeight,
+            );
+            const clamped = Math.min(1, Math.max(0, progress));
+            const y = absTop + clamped * scrollable;
+            if (lenis) {
+                lenis.scrollTo(y, immediate ? { immediate: true } : undefined);
+            } else {
+                window.scrollTo(0, y);
+            }
+        },
+        [lenis],
+    );
 
     // Keyboard focus rescue. In the pin a card's on-screen X is driven by
     // vertical scroll, so tabbing to an off-viewport VIEW COMPANY would either
     // fly the page 1000s of px with the focus ring invisible the whole flight,
     // or strand the ring off-screen entirely. On focusin outside the viewport we
-    // jump the pin *immediately* to the progress that centers the focused node,
-    // so the ring is on-screen at once and tabbing lands as discrete stops
-    // (no scrub-through). Immediate == parity with the reduced-motion path.
-    const lenis = useScrollStore((state) => state.lenis);
+    // jump the pin *immediately* to the dwell center of the focused node's card,
+    // so the ring is on-screen at once and tabbing lands as discrete stops (no
+    // scrub-through). Immediate == parity with the reduced-motion path.
     useEffect(() => {
         const section = targetRef.current;
         if (!section) return;
@@ -230,61 +402,104 @@ function ImmersiveTimeline({ total }: { total: number }) {
             if (onScreen) return;
 
             const node = el.closest<HTMLElement>("[data-node-index]");
-            const strip = node?.parentElement ?? null; // the x-translated flex row
-
-            const current = lenis ? lenis.scroll : window.scrollY;
-            const absTop = section.getBoundingClientRect().top + current;
-            const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
-            const p0 = Math.min(1, Math.max(0, (current - absTop) / scrollable));
-
-            // The row translates 0% → -(TRACK_TRAVEL×100)% of its own width
-            // across the pin, so a node's on-screen X is linear in progress:
-            // solve for the progress that centers THIS element horizontally.
-            // TRACK_TRAVEL is sized so the last node lands dead-center exactly at
-            // progress 1, so a flat index/(N-1) map still under-centers it — the
-            // measured path is preferred. Fall back to the index map if the row
-            // can't be measured.
-            let progress: number;
-            if (strip && strip.offsetWidth > 0) {
-                const elCenter = rect.left + rect.width / 2;
-                progress =
-                    p0 +
-                    (elCenter - window.innerWidth / 2) /
-                        (TRACK_TRAVEL * strip.offsetWidth);
-            } else {
-                const index = node ? Number(node.dataset.nodeIndex) : 0;
-                progress = total > 1 ? index / (total - 1) : 0;
-            }
-            progress = Math.min(1, Math.max(0, progress));
-            const y = absTop + progress * scrollable;
-
-            if (lenis) {
-                lenis.scrollTo(y, { immediate: true });
-            } else {
-                window.scrollTo(0, y);
-            }
+            const index = node ? Number(node.dataset.nodeIndex) : 0;
+            const target =
+                centers[index] ?? (total > 1 ? index / (total - 1) : 0);
+            scrollToProgress(target, true);
         };
 
         section.addEventListener("focusin", handleFocusIn);
         return () => section.removeEventListener("focusin", handleFocusIn);
-    }, [lenis, total]);
+    }, [centers, scrollToProgress, total]);
 
     return (
         <section ref={targetRef} className="relative h-[300vh]">
             <h2 className="sr-only">Experience</h2>
-            {/* pb reserves the bottom lane for the progress row so vertically
-                centered cards never scrub into it (chrome gets an exclusive lane). */}
-            <div className="sticky top-0 flex h-screen items-center overflow-hidden pb-24 lg:pb-28">
+            <div className="sticky top-0 h-screen overflow-hidden">
+                {/* Persistent act lockup (jc-d5d). The dock + brand wordmark yield
+                    the top-left lane during the pin, so the 300vh act was
+                    anonymous floating cards. A fixed mono eyebrow reclaims that
+                    lane as the act's identity — outside the card mask so it never
+                    dissolves at the frame edge. */}
+                <div className="container-page pointer-events-none absolute inset-x-0 top-6 z-20 md:top-8">
+                    <span className="text-xs label-accent">{ACT_EYEBROW}</span>
+                </div>
+
+                {/* Oversized ghost numeral of the ACTIVE card, reusing the per-card
+                    watermark grammar (text-input · opacity 0.08) promoted to a
+                    stage element on the right field the chrome vacated. Crossfades
+                    on card change and fills the finale's empty right half. */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 hidden select-none md:block"
+                >
+                    <AnimatePresence initial={false}>
+                        <motion.span
+                            key={active}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.08 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: DUR.slow, ease: EASE }}
+                            className="absolute right-[4vw] top-1/2 -translate-y-1/2 font-bold leading-none tabular-nums text-input text-[16rem] lg:text-[22rem]"
+                        >
+                            {format(active + 1)}
+                        </motion.span>
+                    </AnimatePresence>
+                </div>
+
+                {/* Card track viewport. Its OWN overflow-hidden + mask fade the
+                    cards at the frame edges (jc-nwg) so they dissolve like the
+                    WebGL ribbon instead of shearing off raw; the mask lives here,
+                    not on the sticky div, so the act lockup + progress chrome
+                    (siblings) stay crisp. pb reserves the bottom lane so vertically
+                    centered cards never scrub into the progress row. */}
+                <div className="absolute inset-0 flex items-center overflow-hidden pb-24 lg:pb-28 [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]">
+                    <motion.div
+                        style={{ x, willChange: pinned ? "transform" : undefined }}
+                        className="relative flex gap-12 px-6 sm:px-12 md:gap-24 md:px-24"
+                    >
+                        {/* Continuous timeline line */}
+                        <div className="absolute left-0 top-0 hidden h-[1px] w-full -translate-y-12 bg-border md:block" aria-hidden="true" />
+
+                        {/* Intro spacer */}
+                        <div className="w-0 shrink-0 md:w-[8vw]" />
+
+                        {resumeData.engagements.map((engagement, index) => (
+                            <TimelineNode
+                                key={index}
+                                engagement={engagement}
+                                index={index}
+                                variant="horizontal"
+                                isActive={index === active}
+                            />
+                        ))}
+
+                        {/* Outro spacer — right-side runway so the last node can reach
+                            dead-center (TRACK_TRAVEL) with no hard container edge behind it */}
+                        <div className="w-[24vw] shrink-0 md:w-[28vw]" />
+                    </motion.div>
+                </div>
+
+                {/* Bottom exclusion scrim (jc-nwg): background→transparent behind
+                    the progress row so any tall card scrubbing under it fades out
+                    instead of colliding text-on-text with SCROLL TO EXPLORE. Rides
+                    the chrome's own opacity so it retires with the rail. */}
+                <motion.div
+                    style={{ opacity: chromeOpacity }}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-background to-transparent"
+                />
+
                 {/* Progress + node counter: shows how many entries exist and where you are.
                     Hugs the bottom edge (bottom-6, no lg lift) so the tallest case-study
                     card — which can exceed a short viewport — keeps its in-card VIEW
                     COMPANY clear of the "SCROLL TO EXPLORE" label. The dock yields this
                     lane during the pin, so nothing competes for the bottom band. */}
                 <motion.div
-                    style={{ opacity: chromeOpacity, y: chromeY }}
+                    style={{ opacity: chromeOpacity, visibility: chromeVisibility }}
                     className="container-page absolute inset-x-0 bottom-6 z-20 flex flex-col gap-3"
                 >
-                    <div className="flex items-center justify-between font-mono text-xs tracking-widest text-muted-foreground">
+                    <div className="flex items-center justify-between text-xs label">
                         <span className="flex items-center gap-2">
                             {/* Static indicator, not an affordance: the jc-rdm hover
                                 micro-language is reserved for interactive elements
@@ -311,42 +526,51 @@ function ImmersiveTimeline({ total }: { total: number }) {
                             <span className="text-subtle-foreground"> / {format(total)}</span>
                         </span>
                     </div>
-                    <div className="relative h-[2px] w-full rounded-full bg-border-subtle" aria-hidden="true">
+                    {/* The rail is the act's wayfinding instrument (jc-5ur): a violet
+                        fill under N tick-dot buttons at each role's node position,
+                        each jumping the pin to that card's dwell center via the same
+                        scrollToProgress the focus-rescue uses. Active tick violet.
+                        The cyan hot-head is NOT here in the standing state — it only
+                        ignites off-right on the exit beat. */}
+                    <div className="relative h-[2px] w-full rounded-full bg-border-subtle">
                         <motion.div
+                            aria-hidden="true"
                             style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
                             className="h-full w-full rounded-full bg-primary glow-primary"
                         />
-                        {/* Beam hot head riding the bar tip */}
+                        {/* Hot-head: dark through the whole scrub, ignites cyan and
+                            accelerates off the right edge only on the exit beat. */}
                         <motion.span
-                            style={{ left: headLeft }}
+                            aria-hidden="true"
+                            style={{ left: headLeft, opacity: headOpacity }}
                             className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_14px_3px_rgba(45,212,191,0.55)]"
                         />
+                        {centers.map((center, index) => (
+                            <button
+                                key={index}
+                                type="button"
+                                onClick={() => scrollToProgress(center, false)}
+                                aria-label={`Go to role ${format(index + 1)} of ${format(total)}: ${resumeData.engagements[index].project}`}
+                                aria-current={index === active ? "true" : undefined}
+                                style={{
+                                    left:
+                                        total > 1
+                                            ? `${(index / (total - 1)) * 100}%`
+                                            : "0%",
+                                }}
+                                className="absolute top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                                        index === active
+                                            ? "bg-primary glow-primary"
+                                            : "bg-border-strong"
+                                    }`}
+                                />
+                            </button>
+                        ))}
                     </div>
-                </motion.div>
-
-                <motion.div
-                    style={{ x, willChange: pinned ? "transform" : undefined }}
-                    className="relative flex gap-12 px-6 sm:px-12 md:gap-24 md:px-24"
-                >
-                    {/* Continuous timeline line */}
-                    <div className="absolute left-0 top-0 hidden h-[1px] w-full -translate-y-12 bg-border md:block" aria-hidden="true" />
-
-                    {/* Intro spacer */}
-                    <div className="w-0 shrink-0 md:w-[8vw]" />
-
-                    {resumeData.experience.map((job, index) => (
-                        <TimelineNode
-                            key={index}
-                            job={job}
-                            index={index}
-                            variant="horizontal"
-                            isActive={index === active}
-                        />
-                    ))}
-
-                    {/* Outro spacer — right-side runway so the last node can reach
-                        dead-center (TRACK_TRAVEL) with no hard container edge behind it */}
-                    <div className="w-[24vw] shrink-0 md:w-[28vw]" />
                 </motion.div>
             </div>
         </section>
@@ -358,12 +582,12 @@ function format(n: number) {
 }
 
 function TimelineNode({
-    job,
+    engagement,
     index,
     variant,
     isActive = false,
 }: {
-    job: Job;
+    engagement: Engagement;
     index: number;
     variant: "horizontal" | "vertical";
     isActive?: boolean;
@@ -404,48 +628,49 @@ function TimelineNode({
                 (jc-wpd): off-stage cards at the pin's viewport edge exit as a
                 dim surface, not raw text bleeding over the previous card. */}
             <div className="rounded-xl border border-border-subtle bg-surface/90 p-8 backdrop-blur-sm">
-                {/* Role / period / company hierarchy — reads as a STAR case-study header.
-                    The role numeral lives on the bottom progress counter (and the
-                    watermark), so the eyebrow carries the period alone — no doubled
+                {/* Client / period / project hierarchy — reads as a case-study
+                    header for a named ENGAGEMENT (project, not job). The role
+                    numeral lives on the bottom progress counter (and the
+                    watermark), so the eyebrow carries client · period — no doubled
                     "NN / TT" label competing with the counter. */}
                 <header className="mb-6 flex flex-col gap-2">
-                    <span className="font-mono text-xs uppercase tracking-[0.2em] text-subtle-foreground">
-                        {job.period}
+                    <span className="text-xs label">
+                        {engagement.client} <span className="text-subtle-foreground">· {engagement.period}</span>
                     </span>
                     <h3 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground text-glow">
-                        {job.title}
+                        {engagement.project}
                     </h3>
-                    <p className="font-mono text-base text-muted-foreground">
-                        <span className="text-subtle-foreground">@ </span>
-                        {job.company}
+                    {/* The stake: one true sentence on why the engagement mattered.
+                        The lead clause (before the em-dash, if any) is emphasized,
+                        the rest stays muted — same decision-clause grammar the
+                        supporting lines use. */}
+                    <p className="measure-narrow text-base leading-relaxed text-muted-foreground">
+                        {renderDecisionClause(engagement.stake)}
                     </p>
-                    {/* STAR "situation": one-line context that frames the role. */}
-                    {job.context && (
-                        <p className="measure-narrow text-sm italic leading-relaxed text-muted-foreground">
-                            {job.context}
-                        </p>
-                    )}
                 </header>
 
-                <ul className="space-y-4 border-l border-border-subtle pl-6">
-                    {job.description.map((desc, i) => (
-                        <li
-                            key={i}
-                            className="measure-narrow text-base leading-relaxed text-muted-foreground"
-                        >
-                            {renderDecisionClause(desc)}
-                        </li>
-                    ))}
-                </ul>
+                {engagement.support.length > 0 && (
+                    <ul className="space-y-4 border-l border-border-subtle pl-6">
+                        {engagement.support.map((line, i) => (
+                            <li
+                                key={i}
+                                className="measure-narrow text-base leading-relaxed text-muted-foreground"
+                            >
+                                {renderDecisionClause(line)}
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
-                {/* VIEW COMPANY lives INSIDE the scrim panel so it can never float
-                    below the card and graze the viewport bottom / collide with the
-                    fixed progress row's "SCROLL TO EXPLORE" label as cards scrub.
-                    Voice: the ONE secondary CTA (mono uppercase GHOST pill) — the
-                    filled violet pill is reserved for the primary ask (jc-nc1). */}
-                {job.companyUrl && (
+                {/* Delivered-through credit lives INSIDE the scrim panel so it can
+                    never float below the card and graze the viewport bottom /
+                    collide with the fixed progress row's "SCROLL TO EXPLORE" label
+                    as cards scrub. Voice: the ONE secondary CTA (mono uppercase
+                    GHOST pill) — the filled violet pill is reserved for the primary
+                    ask (jc-nc1). */}
+                {engagement.deliveredBy && (
                     <a
-                        href={job.companyUrl}
+                        href={engagement.deliveredBy.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
@@ -454,7 +679,7 @@ function TimelineNode({
                             arrow's axis (right) + faint grow, motion-safe-gated. The
                             arrow already inherits the pill's primary, so no separate
                             warm — label + arrow stay one color. */}
-                        VIEW COMPANY <ArrowRight className="h-3.5 w-3.5 origin-center transition-transform motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]" aria-hidden="true" />
+                        VIA {engagement.deliveredBy.name.toUpperCase()} <ArrowRight className="h-3.5 w-3.5 origin-center transition-transform motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]" aria-hidden="true" />
                     </a>
                 )}
             </div>

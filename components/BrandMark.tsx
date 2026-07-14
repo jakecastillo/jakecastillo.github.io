@@ -57,6 +57,15 @@ export default function BrandMark() {
         ? { duration: 0 }
         : { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const };
 
+    // Wordmark yield (jc-2fo): while the Experience act is pinned the wordmark
+    // COLLAPSES its width (not just its opacity) so the frosted pill hugs the
+    // glyph as a clean roundel instead of leaving a ~190px empty husk on-screen
+    // for the entire 300vh pin. Same 0.35s beam ease as the fade; reduced motion
+    // snaps to the collapsed end state.
+    const wordmarkTransition = prefersReducedMotion
+        ? { duration: 0 }
+        : { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const };
+
     return (
         <>
             <div
@@ -67,7 +76,7 @@ export default function BrandMark() {
                 <a
                     href="#home"
                     aria-label="Jake Castillo — home"
-                    className="relative -m-2.5 flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full p-2.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+                    className="relative -m-2.5 flex min-h-[44px] min-w-[44px] items-center rounded-full p-2.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
                 >
                     {/* Backdrop pill — the global chrome-exclusion surface. Absolute
                         so the glyph + wordmark never shift when it appears (CLS 0);
@@ -107,10 +116,21 @@ export default function BrandMark() {
                         />
                         <circle cx="73" cy="73" r="7.5" fill="#2dd4bf" />
                     </svg>
+                    {/* overflow-hidden + animated maxWidth is what actually
+                        collapses the pill: opacity alone kept the laid-out width
+                        and left a husk. marginLeft carries the glyph↔wordmark gap
+                        so the collapsed pill is a snug circle, not glyph + dead
+                        gap. whitespace-nowrap keeps the wordmark from wrapping mid
+                        collapse. */}
                     <motion.span
-                        animate={{ opacity: pinned ? 0 : 1 }}
-                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                        className="relative hidden font-mono text-xs uppercase tracking-[0.3em] text-foreground/80 sm:inline"
+                        initial={false}
+                        animate={{
+                            maxWidth: pinned ? 0 : "12rem",
+                            marginLeft: pinned ? 0 : "0.5rem",
+                            opacity: pinned ? 0 : 1,
+                        }}
+                        transition={wordmarkTransition}
+                        className="relative hidden overflow-hidden whitespace-nowrap font-mono text-xs uppercase tracking-[0.3em] text-foreground/80 sm:inline-block"
                     >
                         Jake Castillo
                     </motion.span>
