@@ -39,8 +39,10 @@ type FileSystemNode =
 
 // ~/work/ — one file per FOCUS AREA: stacks and work scope, never client
 // systems or application names (jc-oer, owner decision — that inventory may
-// be proprietary). Every line generalizes a real bullet in
-// resumeData.experience[*].description; nothing invented.
+// be proprietary). Scale figures are from the public record (agency annual
+// reports, state budget/DOH releases, territory procurement coverage —
+// jc-cny); role claims generalize real bullets in
+// resumeData.experience[*].description. Nothing invented.
 const workFiles: Record<string, FileSystemNode> = {
   "readme.txt": {
     type: "file",
@@ -53,32 +55,32 @@ const workFiles: Record<string, FileSystemNode> = {
   "modernization.txt": {
     type: "file",
     content:
-      "Legacy financial-system modernization\n\nBackend developer and technical architect on a multi-phase migration off a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda — integrating an SAP COTS system, then onshore tech lead and SME for the legacy system's DevOps and M&O.",
+      "Legacy financial-system modernization\n\nThe platform behind a state research-administration agency — roughly $380M a year in business volume across 4,000+ active projects and payroll for nearly 3,000 employees.\n\nBackend developer and technical architect on the multi-phase migration off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda — integrating an SAP COTS system, then onshore tech lead and SME for the legacy system's DevOps and M&O.",
   },
   "gov-transparency.txt": {
     type: "file",
     content:
-      "Public-sector transparency\n\nFull-stack developer on a state government's public transparency platform for campaign-finance and lobbying disclosures.",
+      "Campaign-finance transparency\n\nA state's legislatively mandated rebuild of its campaign-finance and lobbying disclosure platform — the system journalists, watchdogs, and the public rely on to follow money in state politics, where single ballot measures have drawn over $400M in disclosed contributions.\n\nFull-stack developer on the replacement system.",
   },
   "healthcare.txt": {
     type: "file",
     content:
-      "Healthcare builds\n\nTech lead owning third-party EMR integration and delivering a health-insurance app in a one-month sprint — guiding onshore developers and managing releases.",
+      "Healthcare builds\n\nTech lead owning third-party EMR integration for a cloud telehealth platform, and delivery of a Medicare Advantage member app in a one-month sprint — guiding onshore developers and managing releases.",
   },
   "public-education.txt": {
     type: "file",
     content:
-      "Public-education applications\n\nBuilt and supported statewide education applications (Vue / Express).",
+      "Public education\n\nBuilt and supported applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools on seven islands.",
   },
   "covid-response.txt": {
     type: "file",
     content:
-      "COVID-19 response\n\nShipped pandemic-response software — a testing platform (React/Angular + PostgreSQL on AWS) and thermal-camera screening systems in American Samoa; earlier, thermal scanning across State of Hawaiʻi airports with NEC.",
+      "COVID-19 response\n\nA statewide testing-registration platform (React/Angular + PostgreSQL on AWS) behind free public testing sites across the islands, and the mandatory port-of-entry travel-authorization system a U.S. Pacific territory used to repatriate 1,700+ residents stranded by its border closure — plus thermal-camera screening on the ground, and earlier thermal-scanning installs across State of Hawaiʻi airports with NEC.",
   },
   "first-role.txt": {
     type: "file",
     content:
-      "CIMP — first engineering role\n\nLed front-end development of a queuing and check-in workflow for a State of Hawaiʻi public facility with CIMP mentors and interns; planned and installed the system's hardware components.",
+      "CIMP — first engineering role\n\nA kiosk check-in and live queuing system for the state facility that screens every pet entering Hawaiʻi — the front line of the nation's only rabies-free state.\n\nLed front-end development with CIMP mentors and interns; planned and installed the system's hardware components.",
   },
 };
 

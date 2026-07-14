@@ -84,16 +84,18 @@ export const resumeData: ResumeData = {
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
       context:
-        "Hawaiʻi software & IT consultancy — I shipped and modernized systems for government, healthcare, and enterprise clients.",
+        "Hawaiʻi consultancy — government, healthcare, and enterprise clients.",
       // Scope + stack only — client systems and application names stay off
-      // the public site (owner decision, jc-oer). Every line is a
-      // generalization of real delivered work; nothing invented.
+      // the public site (owner decision, jc-oer). Scale figures are from the
+      // public record (agency annual reports, state budget/DOH releases,
+      // territory procurement coverage — jc-cny); role claims stay strictly
+      // from the owner's resume. Nothing invented.
       description: [
-        "Backend developer and technical architect on a multi-phase financial-system modernization — migrating a legacy AS400 + AngularJS platform to React, NestJS/Prisma, and AWS Lambda, and integrating an SAP COTS system.",
-        "Full-stack developer on a state government's public transparency platform for campaign-finance and lobbying disclosures.",
-        "Tech lead across healthcare builds — owning third-party EMR integration and delivering a health-insurance app in a one-month sprint, guiding onshore developers and managing releases.",
-        "Built and supported statewide public-education applications (Vue / Express) and served as onshore tech lead and SME for a legacy financial system's DevOps and M&O.",
-        "Shipped COVID-19 response software — a testing platform (React/Angular + PostgreSQL on AWS) and thermal-camera screening systems in American Samoa.",
+        "Backend developer and technical architect on a multi-phase financial-system modernization — moving the platform that administers roughly $380M a year across 4,000+ active research projects off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda, integrated with an SAP COTS system.",
+        "Full-stack developer on a state's legislatively mandated rebuild of its campaign-finance disclosure platform — the system journalists, watchdogs, and the public use to follow money in state politics, where single ballot measures have drawn $400M+.",
+        "Tech lead across healthcare builds — owning third-party EMR integration for a cloud telehealth platform and delivering a Medicare Advantage member app in a one-month sprint, guiding onshore developers and managing releases.",
+        "Built and supported applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools.",
+        "Shipped COVID-19 response software — a statewide testing-registration platform (React/Angular + PostgreSQL on AWS) and the travel-authorization system that repatriated 1,700+ residents of a U.S. Pacific territory, plus thermal-camera screening on the ground.",
       ],
     },
     {
@@ -104,7 +106,7 @@ export const resumeData: ResumeData = {
       context: "Pandemic-response engineering between school terms.",
       description: [
         "Partnered with NEC Corporation to install and maintain thermal-scanning systems across State of Hawaiʻi airports for COVID-19 mitigation.",
-        "Ran regression testing for the program's mobile and web apps and supported operations and location-mapping planning.",
+        "Ran regression testing for the program's health-screening mobile and web apps and supported operations and location-mapping planning.",
       ],
     },
     {
@@ -115,7 +117,7 @@ export const resumeData: ResumeData = {
       context:
         "Community Innovation & Mentorship Program — my first engineering role.",
       description: [
-        "Built a queuing and check-in workflow for a State of Hawaiʻi public facility with CIMP mentors and interns — leading front-end development.",
+        "Built a kiosk check-in and live queuing system for the state facility that screens every pet entering Hawaiʻi — the front line of the nation's only rabies-free state — leading front-end development with CIMP mentors and interns.",
         "Planned and installed the system's hardware components.",
       ],
     },

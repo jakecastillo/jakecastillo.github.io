@@ -68,7 +68,7 @@ function useImmersive() {
     useIsoLayoutEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
         const query = window.matchMedia(
-            "(pointer: fine) and (hover: hover) and (min-width: 768px)",
+            "(pointer: fine) and (hover: hover) and (min-width: 768px) and (min-height: 820px)",
         );
         const update = () => setCanPin(query.matches);
         update();
@@ -420,9 +420,13 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     the top-left lane during the pin, so the 300vh act was
                     anonymous floating cards. A fixed mono eyebrow reclaims that
                     lane as the act's identity — outside the card mask so it never
-                    dissolves at the frame edge. */}
+                    dissolves at the frame edge. The frost pill (chrome-exclusion
+                    grammar, jc-pbf) keeps tall cards scrubbing beneath it from
+                    colliding text-on-text with the lockup. */}
                 <div className="container-page pointer-events-none absolute inset-x-0 top-6 z-20 md:top-8">
-                    <span className="text-xs label-accent">{ACT_EYEBROW}</span>
+                    <span className="inline-flex rounded-full border border-border-subtle bg-surface-overlay/80 px-3 py-1.5 text-xs backdrop-blur-xl label-accent">
+                        {ACT_EYEBROW}
+                    </span>
                 </div>
 
                 {/* Oversized ghost numeral of the ACTIVE card, reusing the per-card
@@ -453,7 +457,7 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     not on the sticky div, so the act lockup + progress chrome
                     (siblings) stay crisp. pb reserves the bottom lane so vertically
                     centered cards never scrub into the progress row. */}
-                <div className="absolute inset-0 flex items-center overflow-hidden pb-24 lg:pb-28 [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]">
+                <div className="absolute inset-0 flex items-center overflow-hidden pb-16 lg:pb-20 [mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_3%,black_97%,transparent)]">
                     <motion.div
                         style={{ x, willChange: pinned ? "transform" : undefined }}
                         className="relative flex gap-12 px-6 sm:px-12 md:gap-24 md:px-24"
@@ -627,14 +631,14 @@ function TimelineNode({
                 keeps muted text ≥4.5:1 even over the bright orb core. surface/90
                 (jc-wpd): off-stage cards at the pin's viewport edge exit as a
                 dim surface, not raw text bleeding over the previous card. */}
-            <div className="rounded-xl border border-border-subtle bg-surface/90 p-8 backdrop-blur-sm">
+            <div className="rounded-xl border border-border-subtle bg-surface/90 p-6 backdrop-blur-sm lg:p-7">
                 {/* Company / period / position hierarchy — POSITIONS HELD, not
                     named projects (jc-oer: client systems and application names
                     stay off the public site; copy speaks stacks + work scope).
                     The role numeral lives on the bottom progress counter (and
                     the watermark), so the eyebrow carries company · period — no
                     doubled "NN / TT" label competing with the counter. */}
-                <header className="mb-6 flex flex-col gap-2">
+                <header className="mb-5 flex flex-col gap-2">
                     <span className="text-xs label">
                         {job.company} <span className="text-subtle-foreground">· {job.period}</span>
                     </span>
@@ -642,18 +646,24 @@ function TimelineNode({
                         {job.title}
                     </h3>
                     {job.context && (
-                        <p className="measure-narrow text-base leading-relaxed text-muted-foreground">
+                        <p className={`${isHorizontal ? "text-[clamp(0.8125rem,1.75vh,1rem)]" : "measure-narrow text-base"} leading-relaxed text-muted-foreground`}>
                             {renderDecisionClause(job.context)}
                         </p>
                     )}
                 </header>
 
                 {job.description.length > 0 && (
-                    <ul className="space-y-4 border-l border-border-subtle pl-6">
+                    <ul className="space-y-3 border-l border-border-subtle pl-6">
+                        {/* Horizontal pin cards scale body text with viewport
+                            HEIGHT (1.75vh, floor 13px, cap 16px) so the tallest
+                            enriched card fits shorter laptop viewports instead
+                            of clipping at the pin's top edge (jc-cny). The
+                            vertical/mobile variant keeps the static base size
+                            and narrow measure; its column scrolls naturally. */}
                         {job.description.map((line, i) => (
                             <li
                                 key={i}
-                                className="measure-narrow text-base leading-relaxed text-muted-foreground"
+                                className={`${isHorizontal ? "text-[clamp(0.8125rem,1.75vh,1rem)]" : "measure-narrow text-base"} leading-relaxed text-muted-foreground`}
                             >
                                 {renderDecisionClause(line)}
                             </li>
@@ -672,7 +682,7 @@ function TimelineNode({
                         href={job.companyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group mt-8 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
+                        className="group mt-6 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full border border-primary/40 bg-transparent px-6 py-3 font-mono text-sm tracking-wider text-primary-hover transition-[color,border-color,background-color,transform] hover:border-primary hover:bg-primary-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.97]"
                     >
                         {/* Shared hover micro-language (jc-rdm): nudge along the
                             arrow's axis (right) + faint grow, motion-safe-gated. The
