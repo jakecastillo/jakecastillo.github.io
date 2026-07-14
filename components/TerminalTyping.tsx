@@ -63,13 +63,21 @@ export default function TerminalTyping() {
   // Keep track of where we are. Root is "~"
   const [currentPath, setCurrentPath] = useState<string[]>(["~"]);
 
+  // Authored boot log (jc-iuq): after `whoami`, the console keeps working —
+  // a short DECORATIVE system-speak boot sequence that mirrors the four acts
+  // the visitor is about to scroll (statement → approach → experience →
+  // connection). No resume copy, no claims; "link BEAM" nods to the violet
+  // thread. The Typewriter replays it line-by-line as a timed reveal (no
+  // Canvas re-render); reduced motion lands the whole log statically. The
+  // richer log + the right-sized card keep the panel <=30% empty at rest.
   const terminalContent = `$ whoami
 Jake Castillo
-$ cat fun-fact.txt
-Uma Musume is one of my favorite games
-$ ls skills/
-TypeScript  React  Node.js  AWS  Next.js
-PostgreSQL  NestJS  Vue  Prisma
+$ beam --link
+  link BEAM ............ ok
+  mount /statement ..... ok
+  mount /approach ...... ok
+  mount /experience .... ok
+  mount /connection .... ok
 $ `;
 
   const bootTranscript = useMemo(
@@ -400,13 +408,13 @@ $ `;
         }
       }}
       onClick={() => inputRef.current?.focus()}
-      className={`bg-[color:var(--surface-overlay)] text-[color:var(--foreground)] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
+      className={`relative bg-[color:var(--surface-overlay)] text-[color:var(--foreground)] font-mono text-sm rounded-xl mx-auto w-full max-w-xl min-w-0 overflow-hidden flex flex-col cursor-text text-left transition-shadow duration-200 ${
         isFocused
           ? "ring-2 ring-offset-2 ring-offset-background ring-[color:var(--primary-hover)] border border-border-strong"
           : "border border-border"
       }`}
       style={{
-        height: "360px", // Increased height slightly for better scroll space
+        height: "340px", // Right-sized to the boot log (jc-iuq): 8 content lines fill the resting console to <=30% empty
         // Luminance/border-based elevation: faint inner highlight + a soft ambient
         // glow (primary-tinted) instead of a heavy black drop shadow. On focus the
         // ambient glow intensifies, reinforcing the keyboard focus ring.
@@ -604,6 +612,22 @@ $ `;
           </div>
         </div>
       )}
+
+      {/* Ribbon-grain scanlines (jc-iuq) — a decorative CRT dither that ties
+          the console to the beam ribbon's texture. Pure luminance (no hue) so
+          the two-color system is untouched; fully static (no animation) so
+          reduced motion needs no separate path. pointer-events-none keeps the
+          interactive shell fully clickable/scrollable underneath. Average
+          darkening ~5% (1 of every 3 rows at 16%), so the high-contrast
+          terminal text (#ededf2 on #1c1c24, ~13:1) stays comfortably legible. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-xl"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(to bottom, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px)",
+        }}
+      />
     </motion.div>
   );
 }

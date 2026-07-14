@@ -50,6 +50,12 @@ export default function Home() {
               holo mesh at 1440/1920, so the full-bleed lg column keeps a quiet
               bg-surface veil + light blur (borderless, shadowless — reads as
               local darkening, not a card) instead of going fully transparent.
+              Contrast verified analytically (jc-x1n): the mesh wires render at
+              0.1–0.3 opacity over #060608, so the brightest realistic pixel is
+              a violet-wire crossing (L~0.083). Compositing surface #0c0c10 @55%
+              over it (sRGB source-over) yields L~0.024; muted-foreground
+              #a7a7b4 text then measures 5.9:1 (tagline #ededf2 far higher) —
+              clears WCAG 4.5:1 with margin. Bumped /50 → /55 for headroom.
               When the boot overlay actually plays (bootPlayed), the identity
               children snap to `hidden` under the opaque veil, then cascade
               name → title → tagline as the veil clears. On skip/reduced/repeat
@@ -58,7 +64,7 @@ export default function Home() {
             variants={heroCascade}
             initial={false}
             animate={bootPlayed ? heroState : undefined}
-            className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:border-0 lg:bg-surface/50 lg:shadow-none lg:backdrop-blur-[3px]"
+            className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:border-0 lg:bg-surface/55 lg:shadow-none lg:backdrop-blur-[3px]"
           >
             <motion.div variants={heroChild} initial={false} className="flex items-center gap-3">
               <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-primary p-[2px]">
