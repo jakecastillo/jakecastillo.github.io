@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, type Variants } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Container from "@/components/Container";
 import Beacon from "@/components/beam/Beacon";
@@ -81,9 +81,31 @@ export default function ActContact() {
     const [ctaHot, setCtaHot] = useState(false);
     const [askCount, setAskCount] = useState(0);
     const fireAsk = () => {
+        // ONE ask, three synchronized answers: this bump drives the beacon
+        // (askKey), the card-border glow below (askCount), and — via the SAME
+        // handler — useBeamStore.ask(), which the ribbon shader reads for its
+        // cyan shimmer. DOM twin and shader shimmer therefore fire together.
         setAskCount((c) => c + 1);
         useBeamStore.getState().ask();
     };
+
+    // Reduced-motion card answer: the cyan border steps ON at the press and
+    // steps OFF after a beat — a state change, never a travel. JS state (not a
+    // keyframe) because the global reduced-motion cap zeroes keyframe
+    // durations, which would swallow a border flash. Timing mirrors the
+    // ribbon's RM answer (~450ms). The "on" write defers a tick (never
+    // synchronous inside the effect — React Compiler cascading-render rule).
+    const reduced = useReducedMotion();
+    const [rmAnswer, setRmAnswer] = useState(false);
+    useEffect(() => {
+        if (!reduced || askCount === 0) return;
+        const on = setTimeout(() => setRmAnswer(true), 0);
+        const off = setTimeout(() => setRmAnswer(false), 450);
+        return () => {
+            clearTimeout(on);
+            clearTimeout(off);
+        };
+    }, [askCount, reduced]);
 
     // Verifiable, non-numeric markers — real credentials + role + location only.
     const credibility = [
@@ -248,6 +270,53 @@ export default function ActContact() {
                                 <li key={marker}>{marker}</li>
                             ))}
                         </ul>
+
+                        {/* The card's cyan ANSWER — the DOM twin of the ribbon's
+                            shader shimmer. Keyed off askCount (bumped in the same
+                            handler as useBeamStore.ask()), so this border-glow
+                            ripples the instant the ribbon shimmers. Cyan exists
+                            ONLY for this ~0.9s ripple — answer-only, never
+                            standing/ambient. inset-0 rides the card's padding box,
+                            so the ring hugs the real border; the box-shadow blooms
+                            the edge outward then fades. */}
+                        {askCount > 0 && !reduced && (
+                            <motion.div
+                                key={askCount}
+                                aria-hidden="true"
+                                data-answer-border=""
+                                className="pointer-events-none absolute inset-0 rounded-[inherit] border border-accent"
+                                initial={{ opacity: 0.9 }}
+                                animate={{
+                                    opacity: [0.9, 0.6, 0],
+                                    // Every length carries an explicit px so
+                                    // all three keyframes share one template
+                                    // (unitless "0" vs "28px" would break the
+                                    // framer-motion box-shadow interpolation).
+                                    boxShadow: [
+                                        "0px 0px 0px 0px rgba(45,212,191,0), inset 0px 0px 10px 0px rgba(45,212,191,0.3)",
+                                        "0px 0px 28px 3px rgba(45,212,191,0.45), inset 0px 0px 20px 0px rgba(45,212,191,0.25)",
+                                        "0px 0px 48px 10px rgba(45,212,191,0), inset 0px 0px 26px 0px rgba(45,212,191,0)",
+                                    ],
+                                }}
+                                transition={{
+                                    duration: 0.9,
+                                    times: [0, 0.4, 1],
+                                    ease: "easeOut",
+                                }}
+                            />
+                        )}
+                        {askCount > 0 && reduced && rmAnswer && (
+                            <div
+                                aria-hidden="true"
+                                data-answer-border-flash=""
+                                className="pointer-events-none absolute inset-0 rounded-[inherit] border border-accent"
+                                style={{
+                                    opacity: 0.7,
+                                    boxShadow:
+                                        "0 0 24px 2px rgba(45,212,191,0.4), inset 0 0 18px 0 rgba(45,212,191,0.25)",
+                                }}
+                            />
+                        )}
                     </motion.div>
                 </div>
             </Container>

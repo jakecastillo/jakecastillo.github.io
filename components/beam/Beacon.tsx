@@ -59,13 +59,18 @@ export default function Beacon({
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2"
+                // Taller-than-wide: the bloom reads as a violet COLUMN rising
+                // through the card — soft behind the CTA at top, densest across
+                // the middle where the card would otherwise be empty. Sized to
+                // fade out inside the card edges (no stray outer halo). The beam
+                // anchor is the parent's center, so this shape never moves it.
+                className="absolute left-1/2 top-1/2 h-[480px] w-[380px] -translate-x-1/2 -translate-y-1/2"
             >
                 <motion.div
                     className="h-full w-full rounded-full"
                     style={{
                         background:
-                            "radial-gradient(closest-side, rgba(139,92,246,0.28), rgba(139,92,246,0.08) 55%, transparent 75%)",
+                            "radial-gradient(ellipse closest-side, rgba(139,92,246,0.28), rgba(139,92,246,0.08) 55%, transparent 75%)",
                     }}
                     animate={
                         reduced
