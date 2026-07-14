@@ -10,6 +10,10 @@ export interface Job {
   title: string;
   period: string;
   context?: string;
+  /** The card's mono proof line: 1-3 short receipt segments (named systems +
+      public-record impact). Cards render ONLY context + proof (poster tier);
+      `description` is the receipts tier, rendered by the terminal. */
+  proof?: string[];
   description: string[];
 }
 
@@ -73,6 +77,9 @@ export const resumeData: ResumeData = {
       title: "DevSecOps Software Engineer",
       period: "Oct 2025–Present",
       context: "My current role — bringing security into cloud-native delivery.",
+      proof: [
+        "dependency, secret, and code scanning wired into CI/CD — issues surface before production",
+      ],
       description: [
         "Lead DevSecOps initiatives, embedding automated dependency, secret, and code scanning into CI/CD so issues surface before they reach production.",
         "Bring security and reliability practices into the delivery pipeline while keeping release cadence fast.",
@@ -84,18 +91,24 @@ export const resumeData: ResumeData = {
       title: "Software Engineer",
       period: "Jan 2021–Oct 2025",
       context:
-        "Hawaiʻi consultancy — government, healthcare, and enterprise clients.",
-      // Scope + stack only — client systems and application names stay off
-      // the public site (owner decision, jc-oer). Scale figures are from the
-      // public record (agency annual reports, state budget/DOH releases,
-      // territory procurement coverage — jc-cny); role claims stay strictly
-      // from the owner's resume. Nothing invented.
+        "Government, healthcare, and education systems — full-stack developer to technical architect and tech lead.",
+      // Named systems restored by owner decision (jc-105, reversing jc-oer).
+      // Scale/impact figures are from the public record (RCUH annual report,
+      // CA budget documents, HI DOH releases, Samoa News procurement
+      // coverage — jc-cny research); role claims stay strictly resume-
+      // sourced. The CAL-ACCESS replacement has NOT launched — never claim
+      // "shipped" for it.
+      proof: [
+        "RCUH financial modernization — ~$380M/yr across 4,000+ research projects",
+        "CAL-ACCESS replacement for the California Secretary of State",
+        "TalofaPass — repatriated 1,700+ American Samoa residents",
+      ],
       description: [
-        "Backend developer and technical architect on a multi-phase financial-system modernization — moving the platform that administers roughly $380M a year across 4,000+ active research projects off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda, integrated with an SAP COTS system.",
-        "Full-stack developer on a state's legislatively mandated rebuild of its campaign-finance disclosure platform — the system journalists, watchdogs, and the public use to follow money in state politics, where single ballot measures have drawn $400M+.",
-        "Tech lead across healthcare builds — owning third-party EMR integration for a cloud telehealth platform and delivering a Medicare Advantage member app in a one-month sprint, guiding onshore developers and managing releases.",
-        "Built and supported applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools.",
-        "Shipped COVID-19 response software — a statewide testing-registration platform (React/Angular + PostgreSQL on AWS) and the travel-authorization system that repatriated 1,700+ residents of a U.S. Pacific territory, plus thermal-camera screening on the ground.",
+        "Backend developer and technical architect on the multi-phase RCUH financial-system modernization — the platform administering roughly $380M a year across 4,000+ active research projects — moving off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda with an SAP COTS integration.",
+        "Full-stack developer on the CAL-ACCESS Replacement System for the California Secretary of State — the platform journalists, watchdogs, and the public use to follow money in state politics, where single ballot measures have drawn $400M+.",
+        "Tech lead across healthcare builds — third-party EMR integration for CareSpan's cloud clinic platform and the Astiva Health Medicare Advantage member app, delivered in a one-month sprint while guiding onshore developers and managing releases.",
+        "Built and supported Hawaiʻi Department of Education applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools.",
+        "Shipped COVID-19 response software — AlohaClear statewide testing registration (React/Angular + PostgreSQL on AWS) and TalofaPass, the travel-authorization system that repatriated 1,700+ American Samoa residents — plus thermal-camera screening on the ground.",
       ],
     },
     {
@@ -104,9 +117,12 @@ export const resumeData: ResumeData = {
       title: "Summer Intern",
       period: "Jul 2020–Aug 2020",
       context: "Pandemic-response engineering between school terms.",
+      proof: [
+        "NEC thermal-scanning installs across Hawaiʻi's trans-Pacific airports",
+      ],
       description: [
         "Partnered with NEC Corporation to install and maintain thermal-scanning systems across State of Hawaiʻi airports for COVID-19 mitigation.",
-        "Ran regression testing for the program's health-screening mobile and web apps and supported operations and location-mapping planning.",
+        "Ran regression testing for the LumiSight health-screening mobile and web apps and supported operations and location-mapping planning.",
       ],
     },
     {
@@ -116,8 +132,11 @@ export const resumeData: ResumeData = {
       period: "Jan 2020–May 2020",
       context:
         "Community Innovation & Mentorship Program — my first engineering role.",
+      proof: [
+        "kiosk check-in for the State's Animal Quarantine facility — front line of the nation's only rabies-free state",
+      ],
       description: [
-        "Built a kiosk check-in and live queuing system for the state facility that screens every pet entering Hawaiʻi — the front line of the nation's only rabies-free state — leading front-end development with CIMP mentors and interns.",
+        "Built a kiosk check-in and live queuing system for the State of Hawaiʻi Animal Quarantine Holding Facility — the front line of the nation's only rabies-free state — leading front-end development with CIMP mentors and interns.",
         "Planned and installed the system's hardware components.",
       ],
     },

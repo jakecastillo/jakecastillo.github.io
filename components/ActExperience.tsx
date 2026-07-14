@@ -68,7 +68,7 @@ function useImmersive() {
     useIsoLayoutEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
         const query = window.matchMedia(
-            "(pointer: fine) and (hover: hover) and (min-width: 768px) and (min-height: 820px)",
+            "(pointer: fine) and (hover: hover) and (min-width: 768px)",
         );
         const update = () => setCanPin(query.matches);
         update();
@@ -631,44 +631,40 @@ function TimelineNode({
                 keeps muted text ≥4.5:1 even over the bright orb core. surface/90
                 (jc-wpd): off-stage cards at the pin's viewport edge exit as a
                 dim surface, not raw text bleeding over the previous card. */}
-            <div className="rounded-xl border border-border-subtle bg-surface/90 p-6 backdrop-blur-sm lg:p-7">
-                {/* Company / period / position hierarchy — POSITIONS HELD, not
-                    named projects (jc-oer: client systems and application names
-                    stay off the public site; copy speaks stacks + work scope).
-                    The role numeral lives on the bottom progress counter (and
-                    the watermark), so the eyebrow carries company · period — no
-                    doubled "NN / TT" label competing with the counter. */}
-                <header className="mb-5 flex flex-col gap-2">
+            <div className="rounded-xl border border-border-subtle bg-surface/90 p-8 backdrop-blur-sm">
+                {/* POSTER tier (jc-105): the card is an impression, not a
+                    briefing. One canonical title per position set big; the
+                    sub-roles compress into the context arc line; ONE mono
+                    proof line carries the strongest named receipts. The full
+                    `description` bullets are the receipts tier — rendered by
+                    the terminal (~/experience, ~/work), never here. The role
+                    numeral lives on the bottom progress counter (and the
+                    watermark), so the eyebrow carries company · period. */}
+                <header className="mb-6 flex flex-col gap-3">
                     <span className="text-xs label">
                         {job.company} <span className="text-subtle-foreground">· {job.period}</span>
                     </span>
-                    <h3 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground text-glow">
+                    <h3 className="text-4xl font-black uppercase leading-[0.98] tracking-tight text-foreground text-glow [text-wrap:balance] sm:text-5xl">
                         {job.title}
                     </h3>
                     {job.context && (
-                        <p className={`${isHorizontal ? "text-[clamp(0.8125rem,1.75vh,1rem)]" : "measure-narrow text-base"} leading-relaxed text-muted-foreground`}>
+                        <p className="max-w-[46ch] text-base leading-relaxed text-muted-foreground">
                             {renderDecisionClause(job.context)}
                         </p>
                     )}
                 </header>
 
-                {job.description.length > 0 && (
-                    <ul className="space-y-3 border-l border-border-subtle pl-6">
-                        {/* Horizontal pin cards scale body text with viewport
-                            HEIGHT (1.75vh, floor 13px, cap 16px) so the tallest
-                            enriched card fits shorter laptop viewports instead
-                            of clipping at the pin's top edge (jc-cny). The
-                            vertical/mobile variant keeps the static base size
-                            and narrow measure; its column scrolls naturally. */}
-                        {job.description.map((line, i) => (
-                            <li
-                                key={i}
-                                className={`${isHorizontal ? "text-[clamp(0.8125rem,1.75vh,1rem)]" : "measure-narrow text-base"} leading-relaxed text-muted-foreground`}
-                            >
-                                {renderDecisionClause(line)}
-                            </li>
+                {job.proof && job.proof.length > 0 && (
+                    <p className="mb-2 border-l-2 border-primary pl-4 font-mono text-xs leading-relaxed text-muted-foreground">
+                        {job.proof.map((segment, i) => (
+                            <span key={i}>
+                                {i > 0 && (
+                                    <span className="text-subtle-foreground"> · </span>
+                                )}
+                                {renderProofSegment(segment)}
+                            </span>
                         ))}
-                    </ul>
+                    </p>
                 )}
 
                 {/* Company link lives INSIDE the scrim panel so it can never
@@ -709,6 +705,22 @@ function TimelineNode({
  * the first em-dash) is emphasized, the rationale after it stays muted. Falls
  * back to plain text when no em-dash is present.
  */
+// Proof segments speak in the terminal's voice: mono text with the load-
+// bearing figures ($380M/yr, 4,000+, 1,700+) lit in signal cyan — the same
+// "cyan = the answer" grammar the rest of the system reserves for payoffs.
+function renderProofSegment(segment: string) {
+    const parts = segment.split(/(~?\$?\d[\d,]*(?:\.\d+)?(?:[MKB]|%)?(?:\/yr)?\+?)/g);
+    return parts.map((part, i) =>
+        /^~?\$?\d/.test(part) ? (
+            <span key={i} className="font-semibold text-accent">
+                {part}
+            </span>
+        ) : (
+            <span key={i}>{part}</span>
+        )
+    );
+}
+
 function renderDecisionClause(text: string) {
     const splitAt = text.indexOf("—");
     if (splitAt === -1) return text;

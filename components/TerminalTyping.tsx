@@ -37,16 +37,16 @@ type FileSystemNode =
   | { type: "file"; content: string }
   | { type: "dir"; children: Record<string, FileSystemNode> };
 
-// ~/work/ — one file per FOCUS AREA: stacks and work scope, never client
-// systems or application names (jc-oer, owner decision — that inventory may
-// be proprietary). Scale figures are from the public record (agency annual
-// reports, state budget/DOH releases, territory procurement coverage —
-// jc-cny); role claims generalize real bullets in
-// resumeData.experience[*].description. Nothing invented.
+// ~/work/ — the receipts tier (jc-105): one file per focus area, with named
+// systems restored by owner decision. Scale/impact figures come from the
+// public record (RCUH annual report, CA budget documents, HI DOH releases,
+// Samoa News procurement coverage); role claims stay resume-sourced. The
+// CAL-ACCESS replacement has NOT launched — describe the role, never
+// "shipped". Nothing invented.
 const workFiles: Record<string, FileSystemNode> = {
   "readme.txt": {
     type: "file",
-    content: "One file per focus area — scope and stack, not client inventories. See ~/experience for positions held.",
+    content: "One file per focus area — run `cat <file>` for the receipts. See ~/experience for positions held.",
   },
   "devsecops.txt": {
     type: "file",
@@ -55,32 +55,32 @@ const workFiles: Record<string, FileSystemNode> = {
   "modernization.txt": {
     type: "file",
     content:
-      "Legacy financial-system modernization\n\nThe platform behind a state research-administration agency — roughly $380M a year in business volume across 4,000+ active projects and payroll for nearly 3,000 employees.\n\nBackend developer and technical architect on the multi-phase migration off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda — integrating an SAP COTS system, then onshore tech lead and SME for the legacy system's DevOps and M&O.",
+      "RCUH financial-system modernization\n\nThe platform behind the Research Corporation of the University of Hawaiʻi — roughly $380M a year in business volume across 4,000+ active projects and payroll for nearly 3,000 employees.\n\nBackend developer and technical architect on the multi-phase migration off a legacy AS400 + AngularJS stack to React, NestJS/Prisma, and AWS Lambda — integrating an SAP COTS system, then onshore tech lead and SME for the legacy system's DevOps and M&O.",
   },
-  "gov-transparency.txt": {
+  "cal-access.txt": {
     type: "file",
     content:
-      "Campaign-finance transparency\n\nA state's legislatively mandated rebuild of its campaign-finance and lobbying disclosure platform — the system journalists, watchdogs, and the public rely on to follow money in state politics, where single ballot measures have drawn over $400M in disclosed contributions.\n\nFull-stack developer on the replacement system.",
+      "CAL-ACCESS Replacement System — California Secretary of State\n\nThe legislatively mandated rebuild of the platform journalists, watchdogs, and the public use to follow money in California politics — where single ballot measures have drawn over $400M in disclosed contributions.\n\nFull-stack developer on the replacement system.",
   },
   "healthcare.txt": {
     type: "file",
     content:
-      "Healthcare builds\n\nTech lead owning third-party EMR integration for a cloud telehealth platform, and delivery of a Medicare Advantage member app in a one-month sprint — guiding onshore developers and managing releases.",
+      "Healthcare builds — CareSpan + Astiva Health\n\nTech lead owning third-party EMR integration for CareSpan's cloud clinic platform, and delivery of the Astiva Health Medicare Advantage member app in a one-month sprint — guiding onshore developers and managing releases.",
   },
   "public-education.txt": {
     type: "file",
     content:
-      "Public education\n\nBuilt and supported applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools on seven islands.",
+      "Hawaiʻi Department of Education\n\nBuilt and supported DOE applications (Vue / Express) for the only statewide public school district in the nation — roughly 165,000 students across nearly 300 schools on seven islands.",
   },
   "covid-response.txt": {
     type: "file",
     content:
-      "COVID-19 response\n\nA statewide testing-registration platform (React/Angular + PostgreSQL on AWS) behind free public testing sites across the islands, and the mandatory port-of-entry travel-authorization system a U.S. Pacific territory used to repatriate 1,700+ residents stranded by its border closure — plus thermal-camera screening on the ground, and earlier thermal-scanning installs across State of Hawaiʻi airports with NEC.",
+      "COVID-19 response — AlohaClear + TalofaPass\n\nAlohaClear: the statewide testing-registration platform (React/Angular + PostgreSQL on AWS) behind free public testing sites across the islands.\n\nTalofaPass: American Samoa's mandatory port-of-entry travel-authorization system, which repatriated 1,700+ residents stranded by the border closure — plus thermal-camera screening on the ground, and earlier thermal-scanning installs across State of Hawaiʻi airports with NEC.",
   },
   "first-role.txt": {
     type: "file",
     content:
-      "CIMP — first engineering role\n\nA kiosk check-in and live queuing system for the state facility that screens every pet entering Hawaiʻi — the front line of the nation's only rabies-free state.\n\nLed front-end development with CIMP mentors and interns; planned and installed the system's hardware components.",
+      "CIMP — first engineering role\n\nA kiosk check-in and live queuing system for the State of Hawaiʻi Animal Quarantine Holding Facility — the front line of the nation's only rabies-free state.\n\nLed front-end development with CIMP mentors and interns; planned and installed the system's hardware components.",
   },
 };
 
@@ -380,8 +380,8 @@ $ `;
         if (arg1 === "log") {
           appendLines([
             "* 9a2b3c (HEAD -> main) feat: joined Pacific ImpactZone as DevSecOps engineer",
-            "* 8d7e6f feat: shipped a state government's public transparency platform",
-            "* 5c4b3a feat: migrated legacy AS400 financials to React/NestJS/AWS",
+            "* 8d7e6f feat: building the CAL-ACCESS replacement for California SOS",
+            "* 5c4b3a feat: migrated RCUH financials off AS400 to React/NestJS/AWS",
             "* 1a2b3c init: B.S. Computer Engineering, University of Hawaii at Manoa",
           ]);
         } else {
