@@ -65,6 +65,10 @@ function MagneticButton({
 }) {
     const ref = useRef<HTMLAnchorElement>(null);
     const rect = useRef<DOMRect | null>(null);
+    // Latest pointer position + the pending rAF id, so many mousemove events
+    // between two frames coalesce into ONE transform write per frame.
+    const pointer = useRef({ x: 0, y: 0 });
+    const frame = useRef<number | null>(null);
 
     // Motion values update the transform OFF the React render path (no re-render
     // of this fixed dock per mousemove). Springs add the heavy/premium glide.
@@ -72,9 +76,26 @@ function MagneticButton({
     const mvY = useMotionValue(0);
     const x = useSpring(mvX, { stiffness: 150, damping: 20, mass: 0.1 });
     const y = useSpring(mvY, { stiffness: 150, damping: 20, mass: 0.1 });
-    // Icon lags the chip slightly → tactile sense of mass.
+    // Icon leads the chip slightly (parallax) → tactile sense of mass. Total
+    // icon travel = chip + 0.4·chip = 1.4·chip, which the MAX cap keeps in the
+    // 4–6px band.
     const iconX = useTransform(x, (v) => v * 0.4);
     const iconY = useTransform(y, (v) => v * 0.4);
+
+    // rAF-throttled magnetic pull. PULL is the follow ratio; MAX hard-caps the
+    // chip lean so the effect stays a subtle few px toward the cursor
+    // REGARDLESS of chip width — the active chip is far wider than the 44px icon
+    // buttons, so an uncapped 0.18 ratio would overshoot toward ~10px on it.
+    const applyPull = () => {
+        frame.current = null;
+        const r = rect.current;
+        if (!r) return;
+        const PULL = 0.18;
+        const MAX = 4;
+        const clamp = (v: number) => (v < -MAX ? -MAX : v > MAX ? MAX : v);
+        mvX.set(clamp((pointer.current.x - (r.left + r.width / 2)) * PULL));
+        mvY.set(clamp((pointer.current.y - (r.top + r.height / 2)) * PULL));
+    };
 
     // Read the bounding rect ONCE on enter (not per move) to avoid layout thrash.
     const handleEnter = () => {
@@ -82,14 +103,35 @@ function MagneticButton({
     };
     const handleMove = (e: React.MouseEvent) => {
         if (!enableMotion || !rect.current) return;
-        const r = rect.current;
-        mvX.set((e.clientX - (r.left + r.width / 2)) * 0.18);
-        mvY.set((e.clientY - (r.top + r.height / 2)) * 0.18);
+        pointer.current.x = e.clientX;
+        pointer.current.y = e.clientY;
+        if (frame.current === null) frame.current = requestAnimationFrame(applyPull);
     };
     const reset = () => {
+        if (frame.current !== null) {
+            cancelAnimationFrame(frame.current);
+            frame.current = null;
+        }
         mvX.set(0);
         mvY.set(0);
     };
+
+    // Cancel any pending frame on unmount; and if motion becomes disabled
+    // (pointer went coarse / reduced-motion toggled on) settle the chip back to
+    // the static 0,0 end state so nothing is left leaning.
+    useEffect(() => {
+        if (!enableMotion) {
+            if (frame.current !== null) {
+                cancelAnimationFrame(frame.current);
+                frame.current = null;
+            }
+            mvX.set(0);
+            mvY.set(0);
+        }
+        return () => {
+            if (frame.current !== null) cancelAnimationFrame(frame.current);
+        };
+    }, [enableMotion, mvX, mvY]);
 
     return (
         <motion.div style={{ x, y }} className="group relative">
