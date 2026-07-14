@@ -114,7 +114,15 @@ export default function ActSkills() {
     // prism band while the others yield (PrismBands renders the response).
     const [hotBand, setHotBand] = useState<number | null>(null);
     return (
-        <section className="section-y relative border-t border-border overflow-hidden">
+        /* max-md:-mt-8 (jc-7am): below md the gap between Experience's last role
+           and THE STACK spent the top half of a 390px frame on bare beam over
+           grid. Pull the whole act (border + heading) up 2rem into Experience's
+           compressed bottom band so THE STACK heading enters the frame sooner —
+           a clean act weld, not a scroll through void. The negative margin lands
+           inside the prior act's empty padding (no card collision) and the prism
+           vertex anchor is DOM-measured, so the beam re-welds automatically.
+           Zero effect at md+ (original spacing). */
+        <section className="section-y relative border-t border-border overflow-hidden max-md:-mt-8">
             {/* Background wash + single restrained violet glow blob (decorative). */}
             <div
                 aria-hidden="true"
@@ -136,26 +144,33 @@ export default function ActSkills() {
             />
 
             <Container className="relative z-10">
-                {/* Offset oversized heading — overhangs the grid for asymmetric tension. */}
-                {/* Act-opener grammar (jc-nc1): caps black display, violet on the
+                {/* Composed lockup (jc-246): THE STACK anchors the left and the
+                    prism fan radiates to its right as ONE frame with focal
+                    structure — no more parallel strips with dead void beside the
+                    headline. Below xl it stacks (headline above a full-width fan,
+                    labels at full size); at xl+ the fan takes the wide right lane
+                    the beam already sweeps toward before the prism weld, so the
+                    label terminals still render ~12.6px at 1440.
+                    Act-opener grammar (jc-nc1): caps black display, violet on the
                     claim line; ONE eyebrow spec; the act number lives on the
                     stage rail alone — no doubled "04". */}
-                <EtchHeading
-                    as="h2"
-                    className="text-7xl font-black uppercase tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
-                    eyebrow="stack"
-                    eyebrowClassName="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4"
-                    wrapperClassName="mb-16 max-w-3xl"
-                >
-                    THE
-                    <br />
-                    <span className="text-primary">STACK</span>
-                </EtchHeading>
+                <div className="mb-16 grid grid-cols-1 items-center gap-8 xl:grid-cols-[18rem_minmax(0,1fr)] xl:gap-12">
+                    <EtchHeading
+                        as="h2"
+                        className="text-7xl font-black uppercase tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
+                        eyebrow="stack"
+                        eyebrowClassName="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4"
+                    >
+                        THE
+                        <br />
+                        <span className="text-primary">STACK</span>
+                    </EtchHeading>
 
-                <PrismBands
-                    labels={groups.map((g) => g.title)}
-                    hotBand={hotBand}
-                />
+                    <PrismBands
+                        labels={groups.map((g) => g.title)}
+                        hotBand={hotBand}
+                    />
+                </div>
 
                 {/* The landed spectrum — one cell per band, each tinted by its
                     band's ramp position. Seated on a readable panel; each cell

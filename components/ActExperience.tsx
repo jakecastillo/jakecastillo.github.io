@@ -79,10 +79,42 @@ export default function ActExperience() {
 // no pin, no horizontal transform, no useScroll, opacity-only reveals.
 function StaticTimeline({ total }: { total: number }) {
     const list = useReveal<HTMLOListElement>({ orchestrate: true });
+    const reduced = useReducedMotion();
     return (
-        <section className="section-y container-page [padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
+        // Mobile bottom padding compressed (jc-7am): the 8rem+safe reservation
+        // (kept for md+ where the pinned/dock lane needs it) left a near-empty
+        // band between the last role and THE STACK on a 390px column. Halve it
+        // below md so the approach to the next act reads as one composed move,
+        // not a scroll through void. md+ keeps the original reservation verbatim.
+        <section className="section-y container-page [padding-bottom:calc(4rem+env(safe-area-inset-bottom))] md:[padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
             <h2 className="sr-only">Experience</h2>
-            <p className="mb-12 font-mono text-xs tracking-widest text-muted-foreground">
+            {/* Act-opener composed lockup (jc-7am). Below md the single left mono
+                line stranded the opening frame — a full viewport of grid + a stray
+                label. Recompose the SAME tokens (01 / 04 ROLES) into a centered
+                lockup that the vertical beam center-snake (cx ≈ vw/2) threads, led
+                by a beam node that ignites as the act enters so the long
+                spine→prism travel is authored, not blank. Reduced motion renders
+                the node already lit (no travel). md+ keeps the original left mono
+                line verbatim, so nothing shifts at md and up. */}
+            <div className="mb-12 flex flex-col items-center gap-3 text-center md:hidden">
+                <motion.span
+                    aria-hidden="true"
+                    initial={reduced ? false : { opacity: 0.25, scale: 0.5 }}
+                    whileInView={reduced ? undefined : { opacity: 1, scale: 1 }}
+                    viewport={{ once: false, amount: 0.8 }}
+                    transition={{ duration: DUR.base, ease: EASE }}
+                    className="h-2.5 w-2.5 rounded-full bg-primary glow-primary"
+                />
+                <div className="flex items-baseline gap-2 font-mono tabular-nums">
+                    <span className="text-3xl font-bold text-foreground">{format(1)}</span>
+                    <span className="text-xl font-light text-subtle-foreground">/</span>
+                    <span className="text-3xl font-bold text-subtle-foreground">{format(total)}</span>
+                </div>
+                <span className="font-mono text-xs uppercase tracking-[0.4em] text-muted-foreground">
+                    ROLES
+                </span>
+            </div>
+            <p className="mb-12 hidden font-mono text-xs tracking-widest text-muted-foreground md:block">
                 {format(1)} <span className="text-subtle-foreground">/ {format(total)} ROLES</span>
             </p>
             <motion.ol
@@ -109,13 +141,46 @@ function StaticTimeline({ total }: { total: number }) {
     );
 }
 
+// Fraction of the strip's own width translated across the pinned scrub. Sized
+// so the LAST case-study card settles dead-center at progress 1 — the old 0.70
+// over-scrolled the final card off-screen-left and left a near-empty stage as
+// the "final scrub frame" (jc-7e2). The keyboard focus-rescue inverse below
+// reuses this exact fraction, so the two can never drift apart.
+const TRACK_TRAVEL = 0.56;
+
 // Fine-pointer + normal-motion: the pinned horizontal timeline. Always renders
 // its ref'd <section>, so useScroll has a hydrated target.
 function ImmersiveTimeline({ total }: { total: number }) {
     const targetRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({ target: targetRef });
-    const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
+    const x = useTransform(
+        scrollYProgress,
+        [0, 1],
+        ["0%", `-${TRACK_TRAVEL * 100}%`],
+    );
     const headLeft = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+    // Progress-chrome handoff (jc-7e2). The SCROLL TO EXPLORE / NN·TT rail lives
+    // at the bottom of the h-screen sticky div, so once the pin RELEASES it
+    // rides the whole viewport upward and strands itself at the top over the
+    // incoming STACK act. Retire it while the pin still owns the frame: fade IN
+    // only after the pin engages (never stranded over the approach act on the
+    // way in — progress clamps at 0 through the approach, so opacity stays 0),
+    // then fade + slide DOWN out over the last ~10% so it is fully gone BEFORE
+    // unpin. Progress clamps past 1, so opacity holds at 0 for the entire
+    // unpin. Reduced motion never mounts this branch, so the static timeline is
+    // untouched. jc-he9's exclusive-lane reservation (pb-24 / bottom-6) is
+    // orthogonal and preserved.
+    const chromeOpacity = useTransform(
+        scrollYProgress,
+        [0, 0.05, 0.9, 0.98],
+        [0, 1, 1, 0],
+    );
+    const chromeY = useTransform(
+        scrollYProgress,
+        [0.9, 0.98],
+        ["0rem", "1.25rem"],
+    );
 
     // Announce to the chrome-yield choreography (dock / act rail / brand
     // wordmark) that the PINNED experience is live, so fixed chrome can slide
@@ -172,18 +237,20 @@ function ImmersiveTimeline({ total }: { total: number }) {
             const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
             const p0 = Math.min(1, Math.max(0, (current - absTop) / scrollable));
 
-            // The row translates 0% → -70% of its own width across the pin, so a
-            // node's on-screen X is linear in progress: solve for the progress
-            // that centers THIS element horizontally (the outro spacer means the
-            // last node centers before progress 1, so a flat index/(N-1) map
-            // over-scrolls it off-screen). Fall back to the index map if the row
+            // The row translates 0% → -(TRACK_TRAVEL×100)% of its own width
+            // across the pin, so a node's on-screen X is linear in progress:
+            // solve for the progress that centers THIS element horizontally.
+            // TRACK_TRAVEL is sized so the last node lands dead-center exactly at
+            // progress 1, so a flat index/(N-1) map still under-centers it — the
+            // measured path is preferred. Fall back to the index map if the row
             // can't be measured.
             let progress: number;
             if (strip && strip.offsetWidth > 0) {
                 const elCenter = rect.left + rect.width / 2;
                 progress =
                     p0 +
-                    (elCenter - window.innerWidth / 2) / (0.7 * strip.offsetWidth);
+                    (elCenter - window.innerWidth / 2) /
+                        (TRACK_TRAVEL * strip.offsetWidth);
             } else {
                 const index = node ? Number(node.dataset.nodeIndex) : 0;
                 progress = total > 1 ? index / (total - 1) : 0;
@@ -213,7 +280,10 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     card — which can exceed a short viewport — keeps its in-card VIEW
                     COMPANY clear of the "SCROLL TO EXPLORE" label. The dock yields this
                     lane during the pin, so nothing competes for the bottom band. */}
-                <div className="container-page absolute inset-x-0 bottom-6 z-20 flex flex-col gap-3">
+                <motion.div
+                    style={{ opacity: chromeOpacity, y: chromeY }}
+                    className="container-page absolute inset-x-0 bottom-6 z-20 flex flex-col gap-3"
+                >
                     <div className="flex items-center justify-between font-mono text-xs tracking-widest text-muted-foreground">
                         <span className="flex items-center gap-2">
                             SCROLL TO EXPLORE <ArrowDown className="h-4 w-4" aria-hidden="true" />
@@ -248,7 +318,7 @@ function ImmersiveTimeline({ total }: { total: number }) {
                             className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_14px_3px_rgba(45,212,191,0.55)]"
                         />
                     </div>
-                </div>
+                </motion.div>
 
                 <motion.div
                     style={{ x, willChange: pinned ? "transform" : undefined }}
@@ -270,7 +340,8 @@ function ImmersiveTimeline({ total }: { total: number }) {
                         />
                     ))}
 
-                    {/* Outro spacer — wide enough to fully reveal the last node at -70% */}
+                    {/* Outro spacer — right-side runway so the last node can reach
+                        dead-center (TRACK_TRAVEL) with no hard container edge behind it */}
                     <div className="w-[24vw] shrink-0 md:w-[28vw]" />
                 </motion.div>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -22,23 +22,110 @@ export function bandColorA(t: number, alpha: number) {
     return `rgba(${mix(VIOLET.r, CYAN.r)}, ${mix(VIOLET.g, CYAN.g)}, ${mix(VIOLET.b, CYAN.b)}, ${alpha})`;
 }
 
-// Fan geometry (viewBox units). The vertex sits dead-center so the fan is
-// symmetric (kills the old right bias); band terminals spread edge-to-edge so
-// the spectrum spans the full container — the composed stage for the climax.
-const VB_W = 800;
-const VB_H = 210;
-const APEX_X = 400;
-const BASE_Y = 66; // prism base — bands leave here
-const TERM_Y = 172; // band terminals
-const LABEL_Y = 192;
+// How far each terminal label's fill is lifted toward white for glance
+// legibility. 0.3 == the label keeps >=70% of ITS band's own violet→cyan color
+// (only a 30% luminance lift), so it still reads as its band — a tint of the
+// same two-color ramp, never a third accent.
+const LABEL_LIFT = 0.3;
+
+/**
+ * Terminal-label fill: the band's sanctioned violet→cyan color (bandColor's
+ * exact ramp) lifted toward white so the small mono label clears legibility at
+ * a glance against the void. The raw band color — especially the mid/violet
+ * end — sits near the 4.5:1 floor at label size; lifting to >=70% band color
+ * pushes every label well clear (the violet end lands ~8:1 on black) while
+ * keeping its band identity.
+ */
+function labelColor(t: number) {
+    const mix = (a: number, b: number) => a + (b - a) * t; // violet→cyan ramp
+    const up = (c: number) => Math.round(c + (255 - c) * LABEL_LIFT);
+    return `rgb(${up(mix(VIOLET.r, CYAN.r))}, ${up(mix(VIOLET.g, CYAN.g))}, ${up(mix(VIOLET.b, CYAN.b))})`;
+}
+
+// Fan geometry (viewBox units). Two art-directed layouts share one render path
+// and one always-visible prism vertex (the single `data-beam-anchor="prism"`
+// element useBeamAnchors queries — see the mount-time breakpoint switch below;
+// two CSS-toggled anchors would hand it a display:none zero-rect and break the
+// whole ribbon).
+//
+//   • DESKTOP (>=sm): the poster fan (jc-246). Vertex dead-center of its own
+//     box so the split is symmetric; band terminals spread edge-to-edge and
+//     carry mono labels. One half of a composed lockup: headline left, fan
+//     right — the beam sweeps toward this lane before the prism weld.
+//   • MOBILE (<sm, jc-uke): a portrait-native landing. The beam still enters
+//     the prism, but the bands fall as short vertical drop-lines (vertical
+//     tangent at BOTH ends of the ogee) that touch down on a spectrum row of
+//     landing nodes spanning the card column's width below — the fan becomes a
+//     LANDING onto the group cards, not a wide label spread. Labels are omitted
+//     because the tinted cards immediately below ARE the labels: each card's
+//     band-colored top border ignites in ramp order (ActSkills) as the row
+//     lands.
+//
+// Both keep vector-effect: non-scaling-stroke and stay inside the viewBox
+// (inset terminals + no drop past the box edge) so there is zero horizontal
+// overflow at any width. `k1`/`k2` are the ogee control offsets that hold the
+// vertical tangent leaving the prism (k1) and arriving at the terminal (k2).
+type FanLayout = {
+    W: number;
+    H: number;
+    apexX: number;
+    prismTop: number;
+    prismHalf: number;
+    baseY: number; // prism base — bands leave here
+    vertexR: number;
+    termY: number; // band terminals / landing row
+    labelY: number;
+    inset: number; // terminal inset from the box edges
+    k1: number;
+    k2: number;
+};
+
+const DESKTOP_FAN: FanLayout = {
+    W: 800,
+    H: 210,
+    apexX: 400,
+    prismTop: 22,
+    prismHalf: 26,
+    baseY: 66,
+    vertexR: 4,
+    termY: 172,
+    labelY: 192,
+    inset: 28,
+    k1: 48,
+    k2: 66,
+};
+
+const MOBILE_FAN: FanLayout = {
+    W: 360,
+    H: 210,
+    apexX: 180,
+    prismTop: 16,
+    prismHalf: 22,
+    baseY: 62,
+    vertexR: 4,
+    termY: 190,
+    labelY: 0,
+    inset: 30,
+    k1: 40,
+    k2: 54,
+};
+
+// The vertex (beam weld / anchor) sits 16 units above the prism base in both
+// layouts, matching the desktop composition the anchor math was tuned against.
+const VERTEX_LIFT = 16;
 
 /**
  * The prism moment — the climax stage. The ribbon's head (BeamRibbon) parks on
- * the vertex dot below; this SVG is the split: one beam in, one labeled band
- * out per skill group, each terminal naming the group it lands on. Strokes use
- * vector-effect: non-scaling-stroke so bands hold 2.5px at every viewport.
- * Drawn via stroke-dash scrub as the section scrolls through; decorative
- * (aria-hidden); reduced motion renders the fan fully drawn and labeled.
+ * the vertex dot below; this SVG is the split: one beam in, one band out per
+ * skill group. Strokes use vector-effect: non-scaling-stroke so bands hold
+ * 2.5px at every viewport. Drawn via stroke-dash scrub as the section scrolls
+ * through; decorative (aria-hidden); reduced motion renders the landed end
+ * state with zero travel.
+ *
+ * Responsive (see DESKTOP_FAN / MOBILE_FAN): >=sm renders the wide poster fan
+ * with mono terminal labels; <sm renders a portrait landing where the bands
+ * drop onto a spectrum row of nodes over the card column — the tinted cards
+ * immediately below ARE the labels, so the mono terminals are omitted there.
  *
  * `hotBand`: the visitor's hand on the spectrum — hovering a skill group
  * header (ActSkills) thickens/brightens its band while the others dim.
@@ -55,19 +142,46 @@ export default function PrismBands({
     const ref = useRef<SVGSVGElement>(null);
     const count = labels.length;
 
+    // Which fan to render. SSR + first paint start on the desktop poster fan
+    // (the safe, label-bearing layout), then upgrade to the portrait landing
+    // once we can read the viewport — same SSR-safe pattern as useImmersive.
+    // This is a rare breakpoint-crossing re-render, NEVER per-scroll/pointer,
+    // and PrismBands lives OUTSIDE the R3F Canvas, so it does not touch the
+    // Canvas no-re-render rule. Exactly one <svg> (and therefore exactly one
+    // `data-beam-anchor="prism"`) is ever in the DOM, so useBeamAnchors always
+    // measures a real, visible vertex.
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.matchMedia) return;
+        // Below Tailwind `sm` (640px) is where the desktop labels were hidden.
+        const query = window.matchMedia("(max-width: 639px)");
+        const update = () => setIsMobile(query.matches);
+        update();
+        query.addEventListener("change", update);
+        return () => query.removeEventListener("change", update);
+    }, []);
+
+    const L = isMobile ? MOBILE_FAN : DESKTOP_FAN;
+    const vertexCy = L.baseY - VERTEX_LIFT;
+
     const bands = useMemo(
         () =>
             Array.from({ length: count }, (_, i) => {
                 const t = count === 1 ? 0 : i / (count - 1);
-                const x2 = 28 + t * (VB_W - 56);
+                const x2 = L.inset + t * (L.W - 2 * L.inset);
                 return {
-                    d: `M ${APEX_X} ${BASE_Y} C ${APEX_X} ${BASE_Y + 48}, ${x2} ${TERM_Y - 66}, ${x2} ${TERM_Y}`,
+                    // Ogee with a vertical tangent leaving the prism (control 1
+                    // shares the apex x) and a vertical tangent arriving at the
+                    // terminal (control 2 shares x2) — desktop it spreads wide,
+                    // mobile it reads as a short vertical drop-line touching down.
+                    d: `M ${L.apexX} ${L.baseY} C ${L.apexX} ${L.baseY + L.k1}, ${x2} ${L.termY - L.k2}, ${x2} ${L.termY}`,
                     x2,
                     color: bandColor(t),
+                    labelFill: labelColor(t),
                     label: labels[i],
                 };
             }),
-        [count, labels],
+        [count, labels, L],
     );
 
     useGSAP(
@@ -77,7 +191,12 @@ export default function PrismBands({
             )
                 return;
             const paths = ref.current?.querySelectorAll("path[data-band]");
-            const texts = ref.current?.querySelectorAll("text");
+            // Terminals that ignite with their band's arrival: desktop mono
+            // labels, or the mobile landing nodes. Only one kind exists per
+            // layout, so this yields exactly `count` elements in band order.
+            const terms = ref.current?.querySelectorAll(
+                "text, [data-band-land]",
+            );
             if (!paths?.length) return;
             paths.forEach((p) => {
                 const len = (p as SVGPathElement).getTotalLength();
@@ -92,34 +211,47 @@ export default function PrismBands({
                 end: "bottom 45%",
                 scrub: 0.25,
             } as const;
-            gsap.to(paths, {
-                strokeDashoffset: 0,
-                stagger: 0.04,
-                ease: "none",
-                scrollTrigger: trigger,
+            // ONE coordinated timeline (jc-246): each band draws on its own
+            // staggered slot and ITS terminal (label / landing node) ramps
+            // opacity with that band's draw COMPLETION — not one shared tween
+            // that lit every terminal off the first band's front. Terminal i
+            // starts at ~65% of band i's draw and lands full just as the band
+            // touches down, so all seven arrive in violet→cyan cascade and are
+            // fully opaque by the time the fan parks (progress 1). Reduced
+            // motion returns above, leaving the fully-drawn, fully-landed
+            // static end state (paths never get a dash offset; terminals keep
+            // their default opacity: 1).
+            const DRAW = 1; // draw duration per band (timeline units)
+            const SLOT = 0.5; // per-band stagger between draw starts
+            const tl = gsap.timeline({ scrollTrigger: trigger });
+            paths.forEach((p, i) => {
+                const at = i * SLOT;
+                tl.to(p, { strokeDashoffset: 0, duration: DRAW, ease: "none" }, at);
+                const term = terms?.[i];
+                if (term) {
+                    tl.fromTo(
+                        term,
+                        { opacity: 0 },
+                        { opacity: 1, duration: DRAW * 0.5, ease: "none" },
+                        at + DRAW * 0.65,
+                    );
+                }
             });
-            // Labels arrive just behind their band's draw front.
-            if (texts?.length) {
-                gsap.fromTo(
-                    texts,
-                    { opacity: 0 },
-                    {
-                        opacity: 1,
-                        stagger: 0.04,
-                        ease: "none",
-                        scrollTrigger: trigger,
-                    },
-                );
-            }
         },
-        { scope: ref },
+        // Re-run on a layout swap (incl. the one-time desktop→portrait upgrade
+        // on every phone load, since SSR starts on the desktop fan). revertOnUpdate
+        // is REQUIRED: without it @gsap/react defers cleanup to unmount and would
+        // stack a second ScrollTrigger + timeline onto the same React-reused path
+        // nodes. With it, the old context is reverted (old ScrollTrigger killed,
+        // its inline styles restored) BEFORE the new geometry is measured and wired.
+        { scope: ref, dependencies: [isMobile], revertOnUpdate: true },
     );
 
     return (
         <svg
             ref={ref}
             aria-hidden="true"
-            viewBox={`0 0 ${VB_W} ${VB_H}`}
+            viewBox={`0 0 ${L.W} ${L.H}`}
             className="pointer-events-none mx-auto -mb-2 block h-auto w-full opacity-90"
             fill="none"
         >
@@ -127,7 +259,7 @@ export default function PrismBands({
                 The incoming beam is the REAL ribbon (BeamRibbon), whose head
                 parks on the vertex circle below — no private hairline. */}
             <path
-                d={`M ${APEX_X} 22 L ${APEX_X - 26} ${BASE_Y} L ${APEX_X + 26} ${BASE_Y} Z`}
+                d={`M ${L.apexX} ${L.prismTop} L ${L.apexX - L.prismHalf} ${L.baseY} L ${L.apexX + L.prismHalf} ${L.baseY} Z`}
                 stroke="#8b5cf6"
                 strokeWidth="1.25"
                 vectorEffect="non-scaling-stroke"
@@ -136,9 +268,9 @@ export default function PrismBands({
             />
             {/* Prism vertex — CSS pulse (not SMIL) so reduced-motion can kill it */}
             <circle
-                cx={APEX_X}
-                cy={BASE_Y - 16}
-                r="4"
+                cx={L.apexX}
+                cy={vertexCy}
+                r={L.vertexR}
                 fill="#a78bfa"
                 className="prism-vertex"
                 // Beam anchor: the ribbon's head lands on the prism vertex as
@@ -146,10 +278,10 @@ export default function PrismBands({
                 // completes (measured by useBeamAnchors).
                 data-beam-anchor="prism"
             />
-            {/* Fanned bands — one per skill group, terminal labeled. Hovering
-                a group header makes its band hot (thicker, brighter) while
-                the rest of the spectrum yields. GSAP owns strokeDash* on the
-                paths; React only ever touches opacity/width/filter here. */}
+            {/* Fanned bands — one per skill group. Hovering a group header
+                makes its band hot (thicker, brighter) while the rest of the
+                spectrum yields. GSAP owns strokeDash* on the paths; React only
+                ever touches opacity/width/filter here. */}
             {bands.map((b, i) => (
                 <g
                     key={b.label}
@@ -172,30 +304,64 @@ export default function PrismBands({
                                 "stroke-width 0.25s ease, filter 0.25s ease",
                         }}
                     />
-                    <circle cx={b.x2} cy={TERM_Y} r="2.5" fill={b.color} />
-                    <text
-                        x={
-                            i === 0
-                                ? b.x2 - 6
-                                : i === count - 1
-                                  ? b.x2 + 6
-                                  : b.x2
-                        }
-                        y={LABEL_Y}
-                        textAnchor={
-                            i === 0
-                                ? "start"
-                                : i === count - 1
-                                  ? "end"
-                                  : "middle"
-                        }
-                        fill={b.color}
-                        fontSize="10"
-                        letterSpacing="0.12em"
-                        className="hidden font-mono sm:block"
-                    >
-                        {b.label}
-                    </text>
+                    {isMobile ? (
+                        // Landing node: the band touches down on the spectrum
+                        // row that spans the card column below — the fan is a
+                        // landing, and each node ignites in ramp order as its
+                        // drop-line lands (GSAP fades it with the band draw;
+                        // reduced motion leaves it at its default opacity: 1).
+                        // The tinted cards immediately below are the labels, so
+                        // no mono terminal text is needed here.
+                        <circle
+                            data-band-land=""
+                            cx={b.x2}
+                            cy={L.termY}
+                            r="3.5"
+                            fill={b.color}
+                            style={{
+                                filter: `drop-shadow(0 0 6px ${b.color})`,
+                            }}
+                        />
+                    ) : (
+                        <>
+                            <circle
+                                cx={b.x2}
+                                cy={L.termY}
+                                r="2.5"
+                                fill={b.color}
+                            />
+                            <text
+                                x={
+                                    i === 0
+                                        ? b.x2 - 6
+                                        : i === count - 1
+                                          ? b.x2 + 6
+                                          : b.x2
+                                }
+                                y={L.labelY}
+                                textAnchor={
+                                    i === 0
+                                        ? "start"
+                                        : i === count - 1
+                                          ? "end"
+                                          : "middle"
+                                }
+                                // Lifted band fill (>=70% band color) + a hair
+                                // of dark shadow so each terminal reads at a
+                                // glance over the void/glow rather than dropping
+                                // out near the void floor.
+                                fill={b.labelFill}
+                                fontSize="12"
+                                letterSpacing="0.12em"
+                                style={{
+                                    filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.75))",
+                                }}
+                                className="hidden font-mono font-medium sm:block"
+                            >
+                                {b.label}
+                            </text>
+                        </>
+                    )}
                 </g>
             ))}
         </svg>
