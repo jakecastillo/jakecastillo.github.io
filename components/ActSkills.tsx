@@ -202,9 +202,23 @@ export default function ActSkills() {
     );
 }
 
+/** Credential CLASS chip, derived from the AWS cert name — a decorative,
+    factual label (no invented claim, no metric). Foundational/Associate cover
+    the two certs today; Professional/Specialty are wired for future rungs so
+    the two cards always read as matched, tiered credentials. */
+function certTier(name: string): string {
+    const n = name.toLowerCase();
+    if (n.includes("practitioner")) return "FOUNDATIONAL";
+    if (n.includes("professional")) return "PROFESSIONAL";
+    if (n.includes("specialty")) return "SPECIALTY";
+    if (n.includes("associate")) return "ASSOCIATE";
+    return "CERTIFIED";
+}
+
 /** Certifications as beam terminals: the recolored ribbon's rail runs the full
-    row and threads through two etched seals — mono AWS mark in a hairline
-    ring, real issue dates, violet hairline etch per the EtchHeading language. */
+    row and threads through two etched seals — a violet credential MEDALLION
+    holding the AWS mark, a tiered class chip, real issue + validity dates, and
+    the violet hairline etch per the EtchHeading language. */
 function CertTerminals() {
     const row = useReveal<HTMLDivElement>({ orchestrate: true });
     return (
@@ -247,39 +261,112 @@ function CertTerminals() {
                 />
 
                 <div className="relative mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
-                    {resumeData.certifications.map((cert) => (
-                        <motion.article
-                            key={cert.name}
-                            variants={certSeal}
-                            className="surface-2 relative overflow-hidden rounded-xl p-8 transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)]"
-                        >
-                            {/* Violet hairline etch (EtchHeading language). */}
-                            <span
-                                aria-hidden="true"
-                                className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-primary/70 via-primary/25 to-transparent"
-                            />
-                            <div className="flex items-start gap-5">
-                                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/5 shadow-[0_0_14px_-4px_rgba(139,92,246,0.6)]">
-                                    <TechIcon
-                                        name="AWS"
-                                        className="h-7 w-7 text-primary"
-                                    />
-                                </span>
-                                <div className="min-w-0">
-                                    <h4 className="mb-2 text-lg font-bold leading-snug tracking-tight">
-                                        {cert.name}
-                                    </h4>
-                                    <p className="mb-3 text-sm text-muted-foreground">
-                                        {cert.issuer}
-                                    </p>
-                                    <p className="font-mono text-xs tracking-[0.18em] text-primary">
-                                        ISSUED{" "}
-                                        {cert.issued.toUpperCase()}
-                                    </p>
+                    {resumeData.certifications.map((cert) => {
+                        const tier = certTier(cert.name);
+                        return (
+                            <motion.article
+                                key={cert.name}
+                                variants={certSeal}
+                                className="group surface-2 relative overflow-hidden rounded-xl p-8 transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)]"
+                            >
+                                {/* Violet hairline etch (EtchHeading language). */}
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-primary/70 via-primary/25 to-transparent"
+                                />
+                                <div className="relative flex items-start gap-5">
+                                    {/* Credential MEDALLION: a layered violet ring — a
+                                        1px minted outer edge with faint concentric
+                                        guilloché lines and a soft glow, an inset disc the
+                                        AWS mark is seated on. Static (no pulse) → its
+                                        resting composition is identical under reduced
+                                        motion. */}
+                                    <span
+                                        className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full"
+                                        style={{
+                                            // Minted double-edge on the system's own violet
+                                            // glow (--glow-primary) — no bespoke bloom or
+                                            // banknote guilloche; austere like the rest of the act.
+                                            backgroundImage:
+                                                "radial-gradient(circle at 50% 38%, rgba(139,92,246,0.22), rgba(139,92,246,0.05) 58%, transparent 72%)",
+                                            boxShadow:
+                                                "0 0 0 1px rgba(139,92,246,0.5), var(--glow-primary), inset 0 1px 0 rgba(255,255,255,0.05)",
+                                        }}
+                                    >
+                                        {/* Inset disc — the seated field; its inner
+                                            hairline ring gives the medallion its minted
+                                            double edge. */}
+                                        <span
+                                            aria-hidden="true"
+                                            className="absolute inset-[3px] rounded-full bg-surface"
+                                            style={{
+                                                boxShadow:
+                                                    "inset 0 0 0 1px rgba(139,92,246,0.22), inset 0 2px 6px -3px rgba(0,0,0,0.7)",
+                                            }}
+                                        />
+                                        <TechIcon
+                                            name="AWS"
+                                            className="relative h-7 w-7 text-primary"
+                                        />
+                                    </span>
+                                    <div className="min-w-0">
+                                        {/* Tier chip — decorative credential class,
+                                            derived from the cert name. */}
+                                        <div className="mb-3">
+                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-mono text-[11px] font-medium uppercase leading-none tracking-[0.2em] text-primary">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="h-1 w-1 shrink-0 rotate-45 bg-primary"
+                                                />
+                                                {/* [copy — owner approval pending] */}
+                                                {tier}
+                                            </span>
+                                        </div>
+                                        <h4 className="mb-1.5 text-balance text-lg font-bold leading-snug tracking-tight">
+                                            {cert.name}
+                                        </h4>
+                                        <p className="mb-4 text-sm text-muted-foreground">
+                                            {cert.issuer}
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] tracking-[0.2em]">
+                                            <span className="text-primary">
+                                                ISSUED {cert.issued.toUpperCase()}
+                                            </span>
+                                            <span
+                                                aria-hidden="true"
+                                                className="h-1 w-1 shrink-0 rotate-45 bg-primary/40"
+                                            />
+                                            {/* [copy — owner approval pending] */}
+                                            <span className="text-muted-foreground">
+                                                VALID THROUGH{" "}
+                                                {cert.expires.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.article>
-                    ))}
+                                {/* Credential hover SHEEN (jc-ddj): one slow violet light
+                                    pass glancing across the face on hover. Fine-pointer +
+                                    motion ONLY — coarse (touch) and reduced-motion render
+                                    nothing (display:none → element removed, zero travel).
+                                    The transition lives only in the hover state, so the
+                                    band snaps back on leave (the .cta-sheen grammar); the
+                                    card's overflow-hidden clips it. Transform only; timing
+                                    from the shared DUR/EASE tokens. */}
+                                <span
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute inset-y-0 -inset-x-4 -translate-x-[130%] transition-none group-hover:translate-x-[130%] group-hover:transition-transform motion-reduce:hidden coarse:hidden"
+                                    style={{
+                                        background:
+                                            "linear-gradient(105deg, transparent 42%, rgba(139,92,246,0.20) 50%, transparent 58%)",
+                                        // Matches the .cta-sheen instrument exactly (0.55s
+                                        // var(--ease-beam)) so both sheens read as one gesture.
+                                        transitionDuration: "0.55s",
+                                        transitionTimingFunction: `cubic-bezier(${EASE.join(", ")})`,
+                                    }}
+                                />
+                            </motion.article>
+                        );
+                    })}
                 </div>
             </motion.div>
         </div>
