@@ -24,7 +24,9 @@ function useEnableMotion() {
 
     useEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
-        const query = window.matchMedia("(pointer: fine) and (hover: hover)");
+        const query = window.matchMedia(
+            "(pointer: fine) and (hover: hover) and (min-width: 768px)"
+        );
         const update = () => setFinePointer(query.matches);
         update();
         query.addEventListener("change", update);
@@ -252,7 +254,7 @@ export default function Navigation() {
             {/* The current section is surfaced as the ACTIVE dock item's inline
                 label (visible on touch + desktop), so no separate chip floats
                 over page content — taps above the dock reach the content behind. */}
-            <ul className="flex items-center gap-1.5 rounded-full border border-border bg-surface-overlay/70 px-3 py-2 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55),0_0_60px_-30px_rgba(139,92,246,0.25)] backdrop-blur-xl sm:gap-2 sm:px-4">
+            <ul className="flex items-center gap-1.5 rounded-full border border-border bg-surface-overlay/80 px-3 py-2 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55),0_0_60px_-30px_rgba(139,92,246,0.25)] backdrop-blur-xl sm:gap-2 sm:px-4">
                 {navSections.map((section) => (
                     <li key={section.id}>
                         <MagneticButton
