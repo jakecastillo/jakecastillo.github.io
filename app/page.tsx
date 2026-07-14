@@ -42,7 +42,7 @@ export default function Home() {
       <section
         id="home"
         aria-label="Introduction"
-        className="relative flex min-h-screen items-center py-24"
+        className="relative flex min-h-screen items-center pt-24 pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:pb-24"
       >
         <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-10">
           {/* Identity + CTAs — a readable card on mobile, and a whisper of the
@@ -66,7 +66,7 @@ export default function Home() {
             animate={bootPlayed ? heroState : undefined}
             className="flex flex-col items-start gap-6 rounded-3xl border border-border-subtle bg-surface/80 px-5 py-7 text-left shadow-[var(--shadow-elev-1)] backdrop-blur sm:p-9 lg:col-span-7 lg:border-0 lg:bg-surface/55 lg:shadow-none lg:backdrop-blur-[3px]"
           >
-            <motion.div variants={heroChild} initial={false} className="flex items-center gap-3">
+            <motion.div variants={heroChild} initial={false} className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="relative inline-block h-11 w-11 shrink-0 rounded-full bg-primary p-[2px]">
                 <span className="block h-full w-full overflow-hidden rounded-full border-2 border-background">
                   <picture>
@@ -88,10 +88,19 @@ export default function Home() {
                   land exactly on HeroUnderline's rect before the crossfade. */}
               <span
                 data-boot-anchor
-                className="relative inline-block font-mono text-sm uppercase tracking-[0.35em] text-muted-foreground"
+                className="relative inline-block text-xs label"
               >
                 {resumeData.name}
                 <HeroUnderline />
+              </span>
+              {/* Job title demoted here (jc-if4): the H1 now carries the
+                  manifesto, so the résumé role rides the eyebrow as a quiet
+                  qualifier next to the name. */}
+              <span aria-hidden="true" className="text-xs label text-subtle-foreground">
+                ·
+              </span>
+              <span className="text-xs label text-subtle-foreground">
+                {resumeData.role}
               </span>
             </motion.div>
 
@@ -99,12 +108,17 @@ export default function Home() {
               <HeaderTypewriter />
             </motion.div>
 
+            {/* Hero tagline — human voice, deduped (jc-78t): the recycled
+                résumé-objective sentence (resumeData.tagline / summary) is
+                retired from the first viewport; this one line does the
+                positioning job. Facts only: cloud/AWS work, Honolulu base. */}
             <motion.p
               variants={heroChild}
               initial={false}
               className="measure text-balance text-xl font-medium text-foreground sm:text-2xl"
             >
-              {resumeData.tagline}
+              I architect and ship cloud solutions, end to end &mdash; from
+              Honolulu.
             </motion.p>
 
             <motion.div
@@ -114,13 +128,19 @@ export default function Home() {
               animate={heroState}
               className="flex w-full flex-col items-start gap-6"
             >
+              {/* Proof paragraph (jc-78t): concrete track record in place of
+                  the paraphrased objective. All facts live in data/resume.ts —
+                  State of Hawaiʻi + California Secretary of State (CAL-ACCESS) +
+                  healthcare builds, two AWS certs, DevSecOps current role. The
+                  span (Jan 2020 CIMP intern → present) supports "six years". No
+                  invented numbers. */}
               <motion.p
                 variants={fadeUp}
                 className="measure text-base text-muted-foreground"
               >
-                A strong foundation in engineering principles across platforms and
-                technologies, with a focus on back-end and cloud development/architecture
-                (AWS) &mdash; and a drive to give back to the community.
+                Six years building for the State of Hawaiʻi, the California
+                Secretary of State, and healthcare teams. AWS-certified
+                architect; DevSecOps by default.
               </motion.p>
 
               <motion.ul variants={fadeUp} className="flex flex-wrap gap-2">
@@ -138,7 +158,7 @@ export default function Home() {
               <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3 pt-1">
                 <a
                   href={`mailto:${resumeData.email}`}
-                  className="cta-sheen group inline-flex items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-colors hover:bg-primary-cta-hover"
+                  className="cta-sheen group inline-flex items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-[background-color,transform,box-shadow] hover:bg-primary-cta-hover active:scale-[0.97]"
                 >
                   <Mail size={18} strokeWidth={2} aria-hidden="true" />
                   Email me
@@ -161,12 +181,19 @@ export default function Home() {
           {/* Signature: interactive terminal — answers 0.5s after the identity
               column leads (delay baked into the heroTerminal variant; a
               `transition` prop here would be dead code against it). */}
+          {/* Bottom-align the terminal to the identity card's CTA baseline
+              (jc-if4): the grid is items-center, so a shorter terminal used to
+              float mid-cell and leave a dead zone beneath it at 1440x900.
+              self-end drops the cell to the row's bottom (the tall identity
+              card defines it); the lg:pb-9 offset lifts the terminal's status
+              bar back up by the card's own bottom padding (p-9) so it lands on
+              the CTA row, not the card's outer edge. */}
           <motion.div
             variants={heroTerminal}
             custom={bootPlayed ? 0.65 : 0}
             initial="hidden"
             animate={heroState}
-            className="w-full lg:col-span-5"
+            className="w-full lg:col-span-5 lg:self-end lg:pb-9"
           >
             <TerminalTyping />
           </motion.div>
@@ -179,7 +206,7 @@ export default function Home() {
           aria-hidden="true"
           className="absolute bottom-8 left-6 flex flex-col items-center gap-2 text-muted-foreground sm:left-10 lg:left-12"
         >
-          <span className="font-mono text-xs uppercase tracking-widest">Scroll</span>
+          <span className="text-xs label">Scroll</span>
           <ArrowDown className="h-4 w-4 animate-bounce motion-reduce:animate-none" aria-hidden="true" />
         </motion.div>
 
