@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollStore } from "@/hooks/useScrollStore";
 import { useTiltStore } from "@/hooks/useTiltStore";
+import { useActStore } from "@/hooks/useActStore";
 import { getBeamAnchorFrame } from "@/hooks/useBeamAnchors";
 import { damp } from "./anim";
 
@@ -21,6 +22,35 @@ const CYAN = new THREE.Color("#2dd4bf");
 // Single source for the icosahedron radius: used by BOTH the geometry and the
 // uRadius uniform so the world-Y scanline wipe maps correctly (spec §2.2).
 const GEO_RADIUS = 1.3;
+
+// --- Act-aware X drift (jc-ol1) ---------------------------------------------
+// The orb slides into a side lane per active act so it composes AROUND the
+// reading content instead of sitting dead-center under it. The returned value
+// is a FRACTION of the visible viewport width (multiplied by state.viewport.width
+// in useFrame), so 1920px and 1024px both land the orb in the same proportional
+// lane rather than a fixed world offset that reads huge on one and cramped on
+// the other. Read via useActStore.getState() inside useFrame — never a hook
+// subscription, so the Canvas subtree never re-renders (React 19 constraint,
+// same discipline as the beam segments). A plain switch, so it allocates nothing.
+function actLaneFractionX(actId: string): number {
+  switch (actId) {
+    // Approach / philosophy: copy is left-weighted, so the orb owns the RIGHT lane.
+    case "about":
+      return 0.14;
+    // Work: cards enter from the right, so the orb parks in the LEFT lane.
+    case "exp":
+      return -0.14;
+    // Contact: a subtle right bias — present but yielding to the form.
+    case "contact":
+      return 0.05;
+    // Hero ("home") and the stack climax ("skills") stay centered (0):
+    // the climax duck already darkens the orb, and the hero text sits over it.
+    case "home":
+    case "skills":
+    default:
+      return 0;
+  }
+}
 
 const vertexShader = /* glsl */ `
   varying vec3 vNormalV;
@@ -131,6 +161,9 @@ export default function HoloLattice({
   // stage (scroll window published by useBeamAnchors — module read inside
   // useFrame, never a subscription; React 19 Canvas constraint).
   const duck = useRef(1);
+  // Act-aware X lane the orb eases toward (world units; jc-ol1). Damped in
+  // useFrame toward `actLaneFractionX(activeAct) * viewport.width`.
+  const actDriftX = useRef(0);
   const scrollOffset = useScrollStore((s) => s.offset);
   const tiltEnabled = useTiltStore((s) => s.enabled);
 
@@ -218,9 +251,17 @@ export default function HoloLattice({
     if (m && !reduced) m.uniforms.uTime.value = t;
 
     if (reduced) {
-      // Static LIT frame (rendered on demand only for this path).
+      // Static LIT frame (rendered on demand only for this path). Snap — not
+      // damp — the act lane: reduced-motion frames render sparsely on scroll, so
+      // an eased follow would read as jerky steps. The composed per-act
+      // placement still lands; it just arrives without in-between animation.
       g.rotation.set(0.5, 0.6, 0);
       g.scale.setScalar(1);
+      const rmDrift =
+        actLaneFractionX(useActStore.getState().activeActId) *
+        state.viewport.width;
+      actDriftX.current = rmDrift;
+      g.position.x = rmDrift;
       return;
     }
 
@@ -286,10 +327,20 @@ export default function HoloLattice({
     lerped.current.x += (pointer.current.x - lerped.current.x) * 0.045;
     lerped.current.y += (pointer.current.y - lerped.current.y) * 0.045;
 
+    // Act-aware lane: ease toward the active act's target, scaled by the
+    // visible viewport width so the lane reads proportionally the same at 1920
+    // and 1024. Lower lambda than the parallax/duck so the slide feels like a
+    // deliberate stage re-block, not a snap. Composes additively with the
+    // cursor/tilt parallax below.
+    const laneTarget =
+      actLaneFractionX(useActStore.getState().activeActId) *
+      state.viewport.width;
+    actDriftX.current = damp(actDriftX.current, laneTarget, 2, delta);
+
     const s = scrollOffset * 0.0006;
     g.rotation.y = t * 0.07 + s + lerped.current.x * 0.28;
     g.rotation.x = Math.sin(t * 0.14) * 0.18 + s * 0.4 + lerped.current.y * 0.22;
-    g.position.x = lerped.current.x * 0.18;
+    g.position.x = lerped.current.x * 0.18 + actDriftX.current;
     g.position.y = Math.sin(t * 0.4) * 0.08 - lerped.current.y * 0.14;
     g.scale.setScalar(pulseScale);
   });

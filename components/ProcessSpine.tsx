@@ -112,7 +112,7 @@ function SpineNode({
                         <Icon size={18} strokeWidth={1.75} />
                     </motion.span>
                     <div className="flex min-w-0 items-baseline gap-3">
-                        <span className="font-mono text-xs tabular-nums tracking-[0.3em] text-muted-foreground">
+                        <span className="text-xs tabular-nums label">
                             {step.index}
                         </span>
                         <h4 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">

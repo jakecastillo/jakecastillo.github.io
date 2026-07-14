@@ -105,6 +105,19 @@ const groups: {
 // demote to a compact mono list.
 const CORE_COUNT = 3;
 
+// ROLES reframed as a trajectory, not a heap (jc-ahr — copy approved in the
+// beam-r4 spec: "a visible arc says 'grew into architecture'; a comma list
+// says 'keyword stuffing'"). Same true titles as resumeData.skills.roles,
+// condensed to the growth arc and de-duplicated of the two redundant
+// entries (Solutions Engineer, DevOps Engineer).
+const ROLE_TRAJECTORY = [
+    "Backend Developer",
+    "Full-stack",
+    "Tech Lead",
+    "Technical Architect",
+    "DevSecOps",
+];
+
 /** Band-ramp position for group i — shared by the fan and the landed tints. */
 const bandT = (i: number) =>
     groups.length === 1 ? 0 : i / (groups.length - 1);
@@ -157,9 +170,9 @@ export default function ActSkills() {
                 <div className="mb-16 grid grid-cols-1 items-center gap-8 xl:grid-cols-[18rem_minmax(0,1fr)] xl:gap-12">
                     <EtchHeading
                         as="h2"
-                        className="text-7xl font-black uppercase tracking-tight leading-[0.95] [overflow-wrap:anywhere]"
+                        className="type-display text-7xl sm:text-8xl"
                         eyebrow="stack"
-                        eyebrowClassName="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4"
+                        eyebrowClassName="text-xs label-accent mb-4"
                     >
                         THE
                         <br />
@@ -174,8 +187,14 @@ export default function ActSkills() {
 
                 {/* The landed spectrum — one cell per band, each tinted by its
                     band's ramp position. Seated on a readable panel; each cell
-                    owns its own reveal (no panel-level gate). */}
-                <div className="panel grid grid-cols-1 items-start gap-x-8 gap-y-12 p-8 sm:grid-cols-2 sm:p-10 lg:grid-cols-4 lg:p-12">
+                    owns its own reveal (no panel-level gate).
+                    4+3 composition (jc-es0): at lg+ the panel runs a 12-col
+                    grid — row 1 is the first four groups at col-span-3 each
+                    (=12), row 2 is the remaining three at col-span-4 each
+                    (=12), so it wraps with no leftover hole and no orphan
+                    column (previously lg:grid-cols-4 left a bare cell beside
+                    PRACTICES). */}
+                <div className="panel grid grid-cols-1 items-start gap-x-8 gap-y-12 p-8 sm:grid-cols-2 sm:p-10 lg:grid-cols-12 lg:p-12">
                     {groups.map((group, i) => (
                         <SkillGroup
                             key={group.title}
@@ -185,16 +204,40 @@ export default function ActSkills() {
                             iconChips={group.iconChips}
                             t={bandT(i)}
                             onHotChange={(on) => setHotBand(on ? i : null)}
+                            className={i < 4 ? "lg:col-span-3" : "lg:col-span-4"}
                         />
                     ))}
-                </div>
 
-                {/* Roles are copy, not stack — one mono line instead of a pill
-                    group. [copy — owner approval] pending; see bead jc-ahr. */}
-                <p className="mt-6 font-mono text-xs leading-relaxed tracking-wide text-muted-foreground">
-                    <span className="text-primary">ROLES&nbsp;—&nbsp;</span>
-                    {resumeData.skills.roles.join(" · ")}
-                </p>
+                    {/* ROLES trajectory — seated inside the panel as its
+                        footer strip (full span) instead of floating in open
+                        space between the panel edge and the CERTIFICATIONS
+                        rule, so it reads as the spectrum's ground wire, not
+                        stray copy (jc-es0/jc-ahr, copy approved in the
+                        beam-r4 spec). */}
+                    <div className="col-span-1 border-t border-border-subtle pt-6 sm:col-span-2 lg:col-span-12">
+                        <p className="font-mono text-xs leading-relaxed tracking-wide text-muted-foreground">
+                            <span className="text-primary">ROLES&nbsp;—&nbsp;</span>
+                            {ROLE_TRAJECTORY.map((role, i) => (
+                                <span
+                                    key={role}
+                                    className={
+                                        i === ROLE_TRAJECTORY.length - 1
+                                            ? "font-semibold text-foreground"
+                                            : undefined
+                                    }
+                                >
+                                    {role}
+                                    {i < ROLE_TRAJECTORY.length - 1 && (
+                                        <span className="text-primary/50">
+                                            {" "}
+                                            →{" "}
+                                        </span>
+                                    )}
+                                </span>
+                            ))}
+                        </p>
+                    </div>
+                </div>
 
                 <CertTerminals />
             </Container>
@@ -223,7 +266,7 @@ function CertTerminals() {
     const row = useReveal<HTMLDivElement>({ orchestrate: true });
     return (
         <div className="mt-24 pt-12 border-t border-border">
-            <h3 className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-10">
+            <h3 className="text-xs label-accent mb-10">
                 CERTIFICATIONS
             </h3>
             <motion.div variants={certRow} {...row} className="relative">
@@ -313,7 +356,7 @@ function CertTerminals() {
                                         {/* Tier chip — decorative credential class,
                                             derived from the cert name. */}
                                         <div className="mb-3">
-                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-mono text-[11px] font-medium uppercase leading-none tracking-[0.2em] text-primary">
+                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[0.6875rem] font-medium leading-none label-accent">
                                                 <span
                                                     aria-hidden="true"
                                                     className="h-1 w-1 shrink-0 rotate-45 bg-primary"
@@ -328,7 +371,7 @@ function CertTerminals() {
                                         <p className="mb-4 text-sm text-muted-foreground">
                                             {cert.issuer}
                                         </p>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] tracking-[0.2em]">
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] label">
                                             <span className="text-primary">
                                                 ISSUED {cert.issued.toUpperCase()}
                                             </span>
@@ -380,6 +423,7 @@ function SkillGroup({
     iconChips,
     t,
     onHotChange,
+    className,
 }: {
     title: string;
     skills: string[];
@@ -388,40 +432,59 @@ function SkillGroup({
     t: number;
     /** Hover intent on the group header — lights this group's prism band. */
     onHotChange?: (hot: boolean) => void;
+    /** Grid placement (col-span) supplied by the parent's 4+3 layout. */
+    className?: string;
 }) {
     const group = useReveal<HTMLDivElement>({ orchestrate: true });
+    // Local warmth (jc-es0): the group header's hover was the act's one
+    // micro-interaction, but its only reward (lighting the PrismBands fan
+    // above the fold) is often scrolled out of frame. Bring the response
+    // local — the icon glows, the top border brightens, and the core chips'
+    // borders step up — so hovering a group is never a dead gesture.
+    const [isHot, setIsHot] = useState(false);
     const color = bandColor(t);
     const core = skills.slice(0, CORE_COUNT);
     const rest = skills.slice(CORE_COUNT);
+    const handleHot = (hot: boolean) => {
+        onHotChange?.(hot);
+        setIsHot(hot);
+    };
     return (
-        <motion.div variants={landGroup} {...group}>
+        <motion.div variants={landGroup} {...group} className={className}>
             {/* The band lands here: a 1px top border in this group's band
-                color, drawn left-to-right as the block reveals. */}
+                color, drawn left-to-right as the block reveals. Its glow
+                steps up (0.45 → 0.8 alpha) while the group is hot. */}
             <motion.span
                 aria-hidden="true"
                 variants={landLine}
-                className="mb-5 block h-px w-full origin-left"
+                className="mb-5 block h-px w-full origin-left transition-[box-shadow] motion-reduce:transition-none"
                 style={{
                     background: `linear-gradient(90deg, ${color}, ${bandColorA(t, 0)})`,
-                    boxShadow: `0 0 8px ${bandColorA(t, 0.45)}`,
+                    boxShadow: `0 0 ${isHot ? 14 : 8}px ${bandColorA(t, isHot ? 0.8 : 0.45)}`,
                 }}
             />
             <motion.h3
                 variants={landChild}
-                onPointerEnter={() => onHotChange?.(true)}
-                onPointerLeave={() => onHotChange?.(false)}
+                onPointerEnter={() => handleHot(true)}
+                onPointerLeave={() => handleHot(false)}
                 className="mb-5 flex items-center gap-2.5 font-mono text-base font-bold tracking-tight text-foreground"
             >
                 <Icon
                     aria-hidden="true"
                     size={18}
                     strokeWidth={1.75}
-                    className="shrink-0"
-                    style={{ color }}
+                    className="shrink-0 transition-[filter] motion-reduce:transition-none"
+                    style={{
+                        color,
+                        filter: `drop-shadow(0 0 ${isHot ? 7 : 0}px ${bandColorA(t, isHot ? 0.75 : 0)})`,
+                    }}
                 />
                 <span>{title}</span>
             </motion.h3>
-            {/* Core skills — display weight, uniform leading mark. */}
+            {/* Core skills — display weight, uniform leading mark. Border
+                warms with the group (0.35 → 0.75 alpha) so the densest
+                interactive-looking surface on the page stops reading as
+                inert on hover, while staying cursor-default (not links). */}
             <motion.div
                 variants={landChild}
                 className="flex flex-wrap gap-2"
@@ -429,8 +492,8 @@ function SkillGroup({
                 {core.map((skill) => (
                     <span
                         key={skill}
-                        className="inline-flex items-center gap-2 rounded-full border bg-surface/70 px-3 py-1.5 text-sm font-semibold text-foreground cursor-default"
-                        style={{ borderColor: bandColorA(t, 0.35) }}
+                        className="inline-flex items-center gap-2 rounded-full border bg-surface/70 px-3 py-1.5 text-sm font-semibold text-foreground cursor-default transition-[border-color] motion-reduce:transition-none"
+                        style={{ borderColor: bandColorA(t, isHot ? 0.75 : 0.35) }}
                     >
                         {iconChips ? (
                             <TechIcon

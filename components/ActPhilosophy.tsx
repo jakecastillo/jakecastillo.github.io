@@ -69,14 +69,14 @@ export default function ActPhilosophy() {
                 />
                 {/* ONE eyebrow spec (jc-nc1); the act number lives on the stage
                     rail alone — no doubled "02". */}
-                <p className="mb-5 font-mono text-xs uppercase tracking-[0.3em] text-primary">
+                <p className="mb-5 text-xs label-accent">
                     approach
                 </p>
-                <ManifestoReveal className="text-6xl font-black leading-[1.05] tracking-tight text-foreground [overflow-wrap:anywhere] sm:text-7xl lg:text-8xl">
-                    ENGINEER THE
+                <ManifestoReveal className="type-display text-7xl text-foreground sm:text-8xl">
+                    BORING WHERE IT SHOULD BE.
                     <br />
                     <span className="text-primary text-glow">
-                        SYSTEMS WE RELY ON.
+                        BOLD WHERE IT COUNTS.
                     </span>
                 </ManifestoReveal>
                 <div className="mt-8 mb-7 h-px w-12 bg-border-strong" />
@@ -85,20 +85,30 @@ export default function ActPhilosophy() {
                 </p>
             </motion.div>
 
-            {/* How I Build */}
+            {/* How I Build — two-lane recomposition (jc-5gg). The heading and
+                process spine claim the LEFT lane, capped at ~40rem so the cards
+                read as a composed column instead of full-container rows with
+                50-60% dead interior. The right lane is deliberately held open:
+                the act's WebGL orb drifts into it through Philosophy, and the
+                beam/spine language threads that space — composed, not empty. */}
             <div className="mt-20 sm:mt-28">
-                <EtchHeading
-                    as="p"
-                    className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-                    eyebrow="How I Build"
-                    eyebrowClassName="font-mono text-xs uppercase tracking-[0.3em] text-primary"
-                    wrapperClassName="mb-10 sm:mb-14"
-                >
-                    Build Where the Risk Lives
-                    <span className="text-primary">.</span>
-                </EtchHeading>
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,40rem)_1fr] lg:gap-x-16">
+                    <div className="min-w-0">
+                        <EtchHeading
+                            as="p"
+                            className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+                            eyebrow="How I Build"
+                            eyebrowClassName="text-xs label-accent"
+                            wrapperClassName="mb-10 sm:mb-14"
+                        >
+                            Build Where the Risk Lives
+                            <span className="text-primary">.</span>
+                        </EtchHeading>
 
-                <ProcessSpine steps={processSteps} />
+                        <ProcessSpine steps={processSteps} />
+                    </div>
+                    {/* right lane: held open for the drifting orb (owned elsewhere) */}
+                </div>
 
                 <motion.div
                     variants={reveal}

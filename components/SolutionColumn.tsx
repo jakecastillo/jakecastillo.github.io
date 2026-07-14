@@ -98,7 +98,13 @@ export default function SolutionColumn() {
         <figure
             role="img"
             aria-label="Solution column: a single violet beam runs down the left edge and lights five stacked layers of a software solution from the frontier at the top to the foundation at the bottom — Intelligence (applied AI and agents, marked as the bet, where invention lives), Product (the interface people use), Systems (services, data and APIs), Security (compliant by design), and Infrastructure (cloud, automated). The beam enters at the top and grounds into the foundation at the bottom. One thread, every layer: from infrastructure to intelligence, the whole solution is built in one hand — betting where the risk lives."
-            className="relative"
+            // Two-lane composition (jc-5gg): the beam diagram no longer stretches
+            // the full container into a card list on a background. It caps in a
+            // left lane while the framing caption sits centered beside it in a
+            // second lane; the pair is left-anchored (justify-start) so the far
+            // right stays open for the act's drifting orb. Stacks (diagram then
+            // caption) below lg — the established mobile reading order.
+            className="relative grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,20rem)] lg:items-center lg:justify-start lg:gap-12"
         >
             {/* Decorative to AT — the aria-label above carries the full reading. */}
             <div aria-hidden="true" className="relative pl-8 sm:pl-10">
@@ -173,7 +179,7 @@ export default function SolutionColumn() {
                                     </p>
                                     {/* [copy — owner approval pending] */}
                                     {isBet && (
-                                        <p className="mt-2 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-primary [overflow-wrap:anywhere]">
+                                        <p className="mt-2 text-[0.6875rem] label-accent [overflow-wrap:anywhere]">
                                             the bet — where invention lives
                                         </p>
                                     )}
@@ -184,9 +190,10 @@ export default function SolutionColumn() {
                 </div>
             </div>
 
-            {/* [copy — owner approval pending] */}
-            <figcaption className="mt-8 sm:mt-10">
-                <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-primary/80">
+            {/* [copy — owner approval pending] — the framing lane; grid gap owns
+                the spacing from the diagram (stacked below lg, beside it above). */}
+            <figcaption className="min-w-0">
+                <p className="text-[0.7rem] label-accent">
                     the whole column
                 </p>
                 <p className="measure-narrow mt-3 text-balance text-base leading-relaxed text-muted-foreground">
