@@ -17,6 +17,24 @@ export type ProcessStep = {
     icon: LucideIcon;
 };
 
+// Ghost-numeral poster rhythm (jc-9t6): reuses ActExperience's watermark
+// grammar (text-input, opacity ~0.08, font-black, oversized, -z-10) but gives
+// each of the four cards its OWN corner + scale so the row doesn't read as
+// four identical stamps — a diagonal TR / TL / BR / BL cadence down the
+// spine. Cycles every 4 steps, so it stays sane if more steps are ever added.
+const GHOST_POSITION = [
+    "-top-6 -right-6",
+    "-top-8 -left-6",
+    "-bottom-8 -right-6",
+    "-bottom-10 -left-6",
+];
+const GHOST_SIZE = [
+    "text-7xl sm:text-8xl",
+    "text-8xl sm:text-9xl",
+    "text-7xl sm:text-8xl",
+    "text-8xl sm:text-9xl",
+];
+
 /**
  * One process node. Extracted so the per-node ignition `useTransform` is a
  * single hook per component — no rules-of-hooks violation in a `.map` loop.
@@ -75,6 +93,10 @@ function SpineNode({
     // card's shared opacity (one clock); this adds only the settle. Under reduced
     // motion it is static at full scale.
     const iconScale = useTransform(itemOpacity, [0, 1], [0.9, 1]);
+    // Ghost numeral rides the SAME latched reveal as the card (one clock) but
+    // caps out at the watermark's 0.08 ceiling instead of full opacity.
+    const ghostOpacity = useTransform(itemOpacity, [0, 1], [0, 0.08]);
+    const ghostSlot = i % GHOST_POSITION.length;
     const Icon = step.icon;
 
     return (
@@ -98,7 +120,18 @@ function SpineNode({
                 backdrop-blur panel the timeline cards use — the holo yields to
                 text locally while staying vivid outside the card. Pure CSS, so
                 the reduced-motion static frame is equally protected. */}
-            <div className="rounded-xl border border-border-subtle bg-surface/80 p-6 backdrop-blur-sm">
+            <div className="relative isolate overflow-hidden rounded-xl border border-border-subtle bg-surface/80 p-6 backdrop-blur-sm">
+                {/* Giant ghost step-numeral (jc-9t6) — poster rhythm behind the
+                    card copy. Clipped to the card's own rounded box (never the
+                    section) so it can never cause horizontal scroll on narrow
+                    viewports; -z-10 keeps it under the header/body text. */}
+                <motion.span
+                    aria-hidden="true"
+                    style={{ opacity: reduced ? 0.08 : ghostOpacity }}
+                    className={`pointer-events-none absolute -z-10 select-none font-black leading-none tabular-nums text-input ${GHOST_POSITION[ghostSlot]} ${GHOST_SIZE[ghostSlot]}`}
+                >
+                    {step.index}
+                </motion.span>
                 <div className="flex items-center gap-3">
                     {/* Semantic glyph — same violet as the node dot; settles in
                         with the step (scale rides the latched reveal). Vertically
