@@ -23,33 +23,60 @@ const CYAN = new THREE.Color("#2dd4bf");
 // uRadius uniform so the world-Y scanline wipe maps correctly (spec §2.2).
 const GEO_RADIUS = 1.3;
 
-// --- Act-aware X drift (jc-ol1) ---------------------------------------------
-// The orb slides into a side lane per active act so it composes AROUND the
-// reading content instead of sitting dead-center under it. The returned value
-// is a FRACTION of the visible viewport width (multiplied by state.viewport.width
-// in useFrame), so 1920px and 1024px both land the orb in the same proportional
-// lane rather than a fixed world offset that reads huge on one and cramped on
-// the other. Read via useActStore.getState() inside useFrame — never a hook
-// subscription, so the Canvas subtree never re-renders (React 19 constraint,
-// same discipline as the beam segments). A plain switch, so it allocates nothing.
-function actLaneFractionX(actId: string): number {
-  switch (actId) {
-    // Approach / philosophy: copy is left-weighted, so the orb owns the RIGHT lane.
-    case "about":
-      return 0.14;
-    // Work: cards enter from the right, so the orb parks in the LEFT lane.
-    case "exp":
-      return -0.14;
-    // Contact: a subtle right bias — present but yielding to the form.
-    case "contact":
-      return 0.05;
-    // Hero ("home") and the stack climax ("skills") stay centered (0):
-    // the climax duck already darkens the orb, and the hero text sits over it.
-    case "home":
-    case "skills":
-    default:
-      return 0;
-  }
+// Group's resting depth. useFrame drives g.position.z = BASE_Z + per-act
+// depth offset, so this is also the JSX initial (single source of truth).
+const BASE_Z = -1;
+
+// --- Act-aware composition (jc-f2p, extends jc-ol1) -------------------------
+// Each act parks the orb in a DISTINCT pose so the five acts read as different
+// spaces instead of the same center-right crystal at one scale (the judges'
+// note: "nearly the same center-right position at near-identical scale in every
+// act"). All four fields below are DAMPED toward in useFrame (never snapped), so
+// act boundaries cross as a smooth stage re-block with no pop. One table, so all
+// future tuning lives in one place.
+//   x     — horizontal lane as a FRACTION of the visible viewport width
+//            (× state.viewport.width in useFrame), so the lane is proportional at
+//            1920 and 1024 alike rather than a fixed world offset that reads huge
+//            on one and cramped on the other.
+//   y     — vertical offset in world units (small; rides atop the idle bob).
+//   scale — multiplies the boot/pulse scale.
+//   z     — depth offset in world units from BASE_Z; positive pulls the orb
+//            toward the camera (bigger/closer), negative recedes it.
+// Read via useActStore.getState() inside useFrame — never a hook subscription,
+// so the Canvas subtree never re-renders (React 19 constraint, same discipline
+// as the beam segments). The lookup returns a MODULE-LEVEL object reference, so
+// it allocates nothing per frame. The prism weld in the skills act anchors to a
+// DOM element ([data-beam-anchor="prism"]), NOT this orb, so re-posing the orb
+// here never disturbs the beam head weld.
+interface ActPlacement {
+  x: number;
+  y: number;
+  scale: number;
+  z: number;
+}
+
+const ACT_PLACEMENTS: Record<string, ActPlacement> = {
+  // Hero: centered and LARGE — the system announcing itself behind the manifesto.
+  home: { x: 0.0, y: 0.0, scale: 1.14, z: 0.0 },
+  // Approach: copy is left-weighted, so the orb owns the RIGHT lane at MEDIUM size.
+  about: { x: 0.26, y: 0.05, scale: 0.88, z: -0.5 },
+  // Work: cards enter from the right, so the orb recedes SMALL into the FAR-LEFT lane.
+  exp: { x: -0.3, y: -0.06, scale: 0.68, z: -1.3 },
+  // Stack: the CLIMAX — centered and pulled FORWARD (largest/closest). The Act IV
+  // duck dims its intensity here, so a big forward crystal reads as a dark looming
+  // stage rather than a bloom competing with the split spectrum.
+  skills: { x: 0.0, y: 0.03, scale: 1.24, z: 0.55 },
+  // Contact: present but RECEDED — small, pushed back, a slight right bias that
+  // yields to the form.
+  contact: { x: 0.12, y: -0.1, scale: 0.74, z: -1.1 },
+};
+
+// Fallback pose (== hero) for any unmapped act id. Module-level constant so the
+// per-frame lookup never allocates.
+const DEFAULT_PLACEMENT: ActPlacement = ACT_PLACEMENTS.home;
+
+function actPlacement(actId: string): ActPlacement {
+  return ACT_PLACEMENTS[actId] ?? DEFAULT_PLACEMENT;
 }
 
 const vertexShader = /* glsl */ `
@@ -161,9 +188,13 @@ export default function HoloLattice({
   // stage (scroll window published by useBeamAnchors — module read inside
   // useFrame, never a subscription; React 19 Canvas constraint).
   const duck = useRef(1);
-  // Act-aware X lane the orb eases toward (world units; jc-ol1). Damped in
-  // useFrame toward `actLaneFractionX(activeAct) * viewport.width`.
-  const actDriftX = useRef(0);
+  // Act-aware pose the orb eases toward (jc-f2p). Each is damped in useFrame
+  // toward the active act's ACT_PLACEMENTS entry. Seeded to the hero pose so the
+  // very first frame renders at rest with no startup drift.
+  const actDriftX = useRef(0); // world units: placement.x * viewport.width
+  const actDriftY = useRef(ACT_PLACEMENTS.home.y);
+  const actScale = useRef(ACT_PLACEMENTS.home.scale);
+  const actDepthZ = useRef(ACT_PLACEMENTS.home.z);
   const scrollOffset = useScrollStore((s) => s.offset);
   const tiltEnabled = useTiltStore((s) => s.enabled);
 
@@ -252,16 +283,20 @@ export default function HoloLattice({
 
     if (reduced) {
       // Static LIT frame (rendered on demand only for this path). Snap — not
-      // damp — the act lane: reduced-motion frames render sparsely on scroll, so
-      // an eased follow would read as jerky steps. The composed per-act
-      // placement still lands; it just arrives without in-between animation.
+      // damp — the whole per-act pose: reduced-motion frames render sparsely on
+      // scroll, so an eased follow would read as jerky steps. The composed
+      // placement still lands per act; it just arrives without in-between
+      // animation.
       g.rotation.set(0.5, 0.6, 0);
-      g.scale.setScalar(1);
-      const rmDrift =
-        actLaneFractionX(useActStore.getState().activeActId) *
-        state.viewport.width;
-      actDriftX.current = rmDrift;
-      g.position.x = rmDrift;
+      const p = actPlacement(useActStore.getState().activeActId);
+      actDriftX.current = p.x * state.viewport.width;
+      actDriftY.current = p.y;
+      actScale.current = p.scale;
+      actDepthZ.current = p.z;
+      g.position.x = actDriftX.current;
+      g.position.y = actDriftY.current;
+      g.position.z = BASE_Z + p.z;
+      g.scale.setScalar(p.scale);
       return;
     }
 
@@ -327,28 +362,32 @@ export default function HoloLattice({
     lerped.current.x += (pointer.current.x - lerped.current.x) * 0.045;
     lerped.current.y += (pointer.current.y - lerped.current.y) * 0.045;
 
-    // Act-aware lane: ease toward the active act's target, scaled by the
+    // Act-aware pose: ease toward the active act's placement. X is scaled by the
     // visible viewport width so the lane reads proportionally the same at 1920
-    // and 1024. Lower lambda than the parallax/duck so the slide feels like a
-    // deliberate stage re-block, not a snap. Composes additively with the
-    // cursor/tilt parallax below.
-    const laneTarget =
-      actLaneFractionX(useActStore.getState().activeActId) *
-      state.viewport.width;
-    actDriftX.current = damp(actDriftX.current, laneTarget, 2, delta);
+    // and 1024. Lower lambda than the parallax/duck so the re-block feels like a
+    // deliberate camera move, not a snap — every field shares one lambda so the
+    // slide, rise, resize, and depth-shift arrive together as one gesture.
+    // Composes additively with the cursor/tilt parallax below.
+    const p = actPlacement(useActStore.getState().activeActId);
+    actDriftX.current = damp(actDriftX.current, p.x * state.viewport.width, 2, delta);
+    actDriftY.current = damp(actDriftY.current, p.y, 2, delta);
+    actScale.current = damp(actScale.current, p.scale, 2, delta);
+    actDepthZ.current = damp(actDepthZ.current, p.z, 2, delta);
 
     const s = scrollOffset * 0.0006;
     g.rotation.y = t * 0.07 + s + lerped.current.x * 0.28;
     g.rotation.x = Math.sin(t * 0.14) * 0.18 + s * 0.4 + lerped.current.y * 0.22;
     g.position.x = lerped.current.x * 0.18 + actDriftX.current;
-    g.position.y = Math.sin(t * 0.4) * 0.08 - lerped.current.y * 0.14;
-    g.scale.setScalar(pulseScale);
+    g.position.y =
+      Math.sin(t * 0.4) * 0.08 - lerped.current.y * 0.14 + actDriftY.current;
+    g.position.z = BASE_Z + actDepthZ.current;
+    g.scale.setScalar(pulseScale * actScale.current);
   });
 
   return (
     <group
       ref={groupRef}
-      position={[0, 0, -1]}
+      position={[0, 0, BASE_Z]}
       rotation={reducedMotion ? [0.5, 0.6, 0] : [0, 0, 0]}
     >
       {/* Fresnel-rim hologram body */}
