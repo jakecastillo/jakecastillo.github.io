@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check, Copy } from "lucide-react";
 import Container from "@/components/Container";
 import Beacon from "@/components/beam/Beacon";
 import EtchHeading from "@/components/beam/EtchHeading";
 import { DUR, EASE, STAGGER, scaleIn } from "@/components/motion";
 import { useBeamStore } from "@/hooks/useBeamStore";
+import { useMagnetic } from "@/hooks/useMagnetic";
 import { useReveal } from "@/hooks/useReveal";
 import { contactLinks } from "@/data/links";
 import { resumeData } from "@/data/resume";
@@ -79,10 +80,52 @@ function ContactLink({
 export default function ActContact() {
     const badge = useReveal<HTMLDivElement>();
     const intro = useReveal<HTMLParagraphElement>();
+    const portrait = useReveal<HTMLDivElement>();
     const card = useReveal<HTMLDivElement>();
 
     const primary = contactLinks.find((link) => link.primary);
     const secondary = contactLinks.filter((link) => !link.primary);
+
+    // jc-hrn: the site's biggest ask leans toward the cursor. Fine-pointer +
+    // motion-safe gated inside the hook; its arrow parallaxes a hair ahead.
+    // Both bags are spread (never member-accessed) to satisfy the no-refs rule.
+    const [emailBind, emailIconBind] = useMagnetic<HTMLDivElement>();
+
+    // jc-jmg: copy-to-clipboard affordance beside the mailto CTA (which stays
+    // the primary click). Success flips to a cyan "copied" confirmation — the
+    // reserved answer grammar — then steps back after a beat.
+    const [copied, setCopied] = useState(false);
+    const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const copyEmail = async () => {
+        const email = resumeData.email;
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(email);
+            } else {
+                // Fallback for older / non-secure contexts.
+                const ta = document.createElement("textarea");
+                ta.value = email;
+                ta.setAttribute("readonly", "");
+                ta.style.position = "absolute";
+                ta.style.left = "-9999px";
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+            }
+            setCopied(true);
+            if (copyResetRef.current) clearTimeout(copyResetRef.current);
+            copyResetRef.current = setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Silent — the mailto path is untouched and remains available.
+        }
+    };
+    useEffect(
+        () => () => {
+            if (copyResetRef.current) clearTimeout(copyResetRef.current);
+        },
+        []
+    );
 
     // The answered ask: the primary CTA (the ask) drives the beacon behind it
     // and the beam. Hover/focus warms the beacon; pointerdown (works on touch)
@@ -199,6 +242,93 @@ export default function ActContact() {
                             people rely on, end to end. Open to engineering, cloud,
                             and platform work. I read every message.
                         </motion.p>
+
+                        {/* jc-743: the operator, finally revealed. The human
+                            appeared once at 44px in the hero and never again;
+                            the closing act surfaces the person behind the
+                            system. Treated to belong to the world, not pasted
+                            on: the source is flattened to grayscale, hue-shifted
+                            to the system's violet (mix-blend color), rim-lit
+                            from the top-left (screen), and its busy garden
+                            background is sunk into the void by a radial mask +
+                            bottom gradient — so the face emerges from the dark
+                            rather than sitting in a rectangle. The site-wide
+                            film grain (.grain, z-60) already passes over it, so
+                            the portrait shares the same grain as everything
+                            else — no local dither needed. Its reveal rides the
+                            shared `reveal` variant; MotionProvider drops the y
+                            for reduced-motion users, and the treatment is pure
+                            static CSS, so the calm frame is equally covered. */}
+                        <motion.div
+                            variants={reveal}
+                            custom={0.2}
+                            {...portrait}
+                            aria-hidden="true"
+                            className="pointer-events-none mt-12 w-36 select-none sm:mt-14 sm:w-44 lg:w-48"
+                        >
+                            <div
+                                className="relative aspect-[4/5] w-full overflow-hidden"
+                                style={{
+                                    WebkitMaskImage:
+                                        "radial-gradient(115% 130% at 50% 30%, #000 45%, transparent 78%)",
+                                    maskImage:
+                                        "radial-gradient(115% 130% at 50% 30%, #000 45%, transparent 78%)",
+                                }}
+                            >
+                                <picture>
+                                    <source
+                                        srcSet="/portrait/jake-640.avif"
+                                        type="image/avif"
+                                    />
+                                    <source
+                                        srcSet="/portrait/jake-640.webp"
+                                        type="image/webp"
+                                    />
+                                    <img
+                                        src="/portrait/jake-640.jpg"
+                                        alt=""
+                                        width={640}
+                                        height={640}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="h-full w-full object-cover object-[50%_18%]"
+                                        style={{
+                                            filter: "grayscale(1) contrast(1.05) brightness(0.82)",
+                                        }}
+                                    />
+                                </picture>
+                                {/* Violet duotone hue — keeps luminance, shifts
+                                    the grayscale toward the system accent. */}
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute inset-0"
+                                    style={{
+                                        background: "var(--primary)",
+                                        mixBlendMode: "color",
+                                        opacity: 0.55,
+                                    }}
+                                />
+                                {/* Top-left violet rim-light. */}
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute inset-0"
+                                    style={{
+                                        background:
+                                            "linear-gradient(135deg, color-mix(in srgb, var(--primary-hover) 55%, transparent), transparent 45%)",
+                                        mixBlendMode: "screen",
+                                    }}
+                                />
+                                {/* Sink the busy source background into the void. */}
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute inset-0"
+                                    style={{
+                                        background:
+                                            "linear-gradient(to bottom, transparent 42%, var(--background))",
+                                    }}
+                                />
+                            </div>
+                        </motion.div>
                     </div>
 
                     {/* Readability scrim: luminance-elevated surface (subtle border +
@@ -210,55 +340,114 @@ export default function ActContact() {
                     >
                         <Beacon hot={ctaHot} askKey={askCount} />
 
-                        {/* PRIMARY CTA — dominant, filled violet */}
+                        {/* PRIMARY CTA — dominant, filled violet. Wrapped in a
+                            magnetic-lean layer (jc-hrn): the site's biggest ask
+                            leans toward the cursor. Framer drives the wrapper's
+                            `transform`; the pill keeps its own hover/active
+                            classes on `scale`/`background` (Tailwind v4 uses
+                            individual props, so the two compose, never fight).
+                            The lean is fine-pointer + motion-safe gated inside
+                            useMagnetic — coarse/reduced-motion get a static
+                            pill. */}
                         {primary ? (
-                            <a
-                                href={primary.href}
-                                target={primary.external ? "_blank" : undefined}
-                                rel={
-                                    primary.external
-                                        ? "noopener noreferrer"
-                                        : undefined
-                                }
-                                download={primary.download ? "" : undefined}
-                                onPointerEnter={() => setCtaHot(true)}
-                                onPointerLeave={() => setCtaHot(false)}
-                                onFocus={() => setCtaHot(true)}
-                                onBlur={() => setCtaHot(false)}
-                                onPointerDown={fireAsk}
-                                // Keyboard activation never emits pointerdown;
-                                // detail === 0 marks a keyboard-driven click.
-                                onClick={(e) => {
-                                    if (e.detail === 0) fireAsk();
-                                }}
-                                // ONE primary-CTA voice (jc-nc1): filled violet PILL,
-                                // sans, sentence case — same shape as the hero's
-                                // "Email me" CTA.
-                                className="group glow-primary cta-sheen flex min-h-11 items-center justify-between gap-4 rounded-full bg-primary-cta px-7 py-4 text-white transition-[background-color,transform,box-shadow] hover:bg-primary-cta-hover active:scale-[0.97]"
-                            >
-                                <span className="flex min-w-0 items-center gap-3">
-                                    <primary.icon
-                                        aria-hidden="true"
-                                        className="h-6 w-6 shrink-0"
-                                    />
-                                    <span className="flex min-w-0 flex-col">
-                                        <span className="truncate text-2xl font-semibold">
-                                            {primary.label}
-                                        </span>
-                                        <span className="line-clamp-2 break-all font-mono text-xs tracking-wide text-white/80 sm:truncate">
-                                            {primary.displayLabel}
+                            <motion.div {...emailBind} className="relative">
+                                <a
+                                    href={primary.href}
+                                    target={primary.external ? "_blank" : undefined}
+                                    rel={
+                                        primary.external
+                                            ? "noopener noreferrer"
+                                            : undefined
+                                    }
+                                    download={primary.download ? "" : undefined}
+                                    onPointerEnter={() => setCtaHot(true)}
+                                    onPointerLeave={() => setCtaHot(false)}
+                                    onFocus={() => setCtaHot(true)}
+                                    onBlur={() => setCtaHot(false)}
+                                    onPointerDown={fireAsk}
+                                    // Keyboard activation never emits pointerdown;
+                                    // detail === 0 marks a keyboard-driven click.
+                                    onClick={(e) => {
+                                        if (e.detail === 0) fireAsk();
+                                    }}
+                                    // ONE primary-CTA voice (jc-nc1): filled violet PILL,
+                                    // sans, sentence case — same shape as the hero's
+                                    // "Email me" CTA.
+                                    className="group glow-primary cta-sheen flex min-h-11 items-center justify-between gap-4 rounded-full bg-primary-cta px-7 py-4 text-white transition-[background-color,transform,box-shadow] hover:bg-primary-cta-hover active:scale-[0.97]"
+                                >
+                                    <span className="flex min-w-0 items-center gap-3">
+                                        <primary.icon
+                                            aria-hidden="true"
+                                            className="h-6 w-6 shrink-0"
+                                        />
+                                        <span className="flex min-w-0 flex-col">
+                                            <span className="truncate text-2xl font-semibold">
+                                                {primary.label}
+                                            </span>
+                                            <span className="line-clamp-2 break-all font-mono text-xs tracking-wide text-white/80 sm:truncate">
+                                                {primary.displayLabel}
+                                            </span>
                                         </span>
                                     </span>
-                                </span>
-                                <ArrowUpRight
-                                    aria-hidden="true"
-                                    // Same hover micro-language as the dock + link
-                                    // rows (jc-rdm): a 1px up-right nudge + faint
-                                    // grow, motion-safe-gated so reduced motion is
-                                    // fully static. White-on-violet, so no warm.
-                                    className="h-6 w-6 shrink-0 origin-center transition-transform motion-safe:group-hover:-translate-y-px motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]"
-                                />
-                            </a>
+                                    {/* Wrapper carries the magnetic parallax
+                                        (framer `transform`); the icon keeps its
+                                        own hover nudge on `translate`/`scale`
+                                        (jc-rdm), so the arrow leads the pill a
+                                        hair toward the cursor. */}
+                                    <motion.span
+                                        {...emailIconBind}
+                                        className="inline-flex shrink-0"
+                                    >
+                                        <ArrowUpRight
+                                            aria-hidden="true"
+                                            // Same hover micro-language as the dock + link
+                                            // rows (jc-rdm): a 1px up-right nudge + faint
+                                            // grow, motion-safe-gated so reduced motion is
+                                            // fully static. White-on-violet, so no warm.
+                                            className="h-6 w-6 origin-center transition-transform motion-safe:group-hover:-translate-y-px motion-safe:group-hover:translate-x-px motion-safe:group-hover:scale-[1.06]"
+                                        />
+                                    </motion.span>
+                                </a>
+                            </motion.div>
+                        ) : null}
+
+                        {/* jc-jmg: mailto is a dead-end without a mail handler, so
+                            offer a copy-to-clipboard escape hatch beside it. The
+                            pill above stays the primary click; this is the quiet
+                            secondary affordance. Success flips to a cyan check +
+                            "Copied" — the reserved answer grammar — announced via
+                            aria-live, then steps back after a beat. Pure state
+                            swap, no travel, so it is identical under reduced
+                            motion. 44px touch target via min-h-11. */}
+                        {primary ? (
+                            <button
+                                type="button"
+                                onClick={copyEmail}
+                                aria-live="polite"
+                                className="group -mx-2 mt-3 inline-flex min-h-11 items-center gap-2 rounded-full px-2 font-mono text-xs tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+                            >
+                                {copied ? (
+                                    <>
+                                        <Check
+                                            aria-hidden="true"
+                                            className="h-4 w-4 shrink-0 text-accent"
+                                        />
+                                        <span className="text-accent">
+                                            Copied to clipboard
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy
+                                            aria-hidden="true"
+                                            className="h-4 w-4 shrink-0 text-subtle-foreground transition-colors group-hover:text-primary"
+                                        />
+                                        <span className="text-subtle-foreground transition-colors group-hover:text-foreground">
+                                            Copy email address
+                                        </span>
+                                    </>
+                                )}
+                            </button>
                         ) : null}
 
                         {/* SECONDARY links — clearly subordinate */}
