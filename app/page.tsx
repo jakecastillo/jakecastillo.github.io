@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Cloud, GraduationCap, Github, Mail, MapPin } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Check, Cloud, Copy, GraduationCap, Github, Mail, MapPin } from "lucide-react";
 import { fadeUp, heroCascade, heroChild, heroStagger, heroTerminal } from "@/components/motion";
 import TerminalTyping from "@/components/TerminalTyping";
 import StageManager from "@/components/StageManager";
@@ -14,6 +15,7 @@ import TiltEnable from "@/components/TiltEnable";
 import Container from "@/components/Container";
 import HeroUnderline from "@/components/beam/HeroUnderline";
 import { useBeamStore } from "@/hooks/useBeamStore";
+import { useScrollStore } from "@/hooks/useScrollStore";
 import { resumeData } from "@/data/resume";
 
 const pills = [
@@ -33,6 +35,69 @@ export default function Home() {
   // reduced motion — opacity only).
   const { scrollY } = useScroll();
   const scrollCueOpacity = useTransform(scrollY, [0, 160], [1, 0]);
+
+  // Forward path INTO the journey (jc-zww): a "See the work" affordance beside
+  // the two exit CTAs (mailto + GitHub both leave the site). It flies to the
+  // Experience act using the EXACT same Lenis mechanism the dock uses
+  // (Navigation.handleNavClick) — distance-scaled duration, shared exp easing,
+  // -8px offset — so the invitation and the dock resolve to one flight grammar.
+  // Degrades to a native #exp anchor jump when JS/Lenis is unavailable.
+  const lenis = useScrollStore((s) => s.lenis);
+  const handleSeeWork = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const target = document.getElementById("exp");
+    if (!target) return; // let the native anchor resolve
+    event.preventDefault();
+    if (lenis) {
+      const distance = Math.abs(target.getBoundingClientRect().top);
+      lenis.scrollTo(target, {
+        offset: -8,
+        duration: Math.min(2.2, 0.9 + distance / 4500),
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+    } else {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+    window.history.replaceState(null, "", "#exp");
+  };
+
+  // Copy-to-clipboard for the primary CTA (jc-67x): the "Email me" pill is a raw
+  // mailto that dead-ends on handler-less machines. A split-action copy glyph
+  // sits beside it — primary click stays mailto; this lifts the address to the
+  // clipboard with a cyan-tick confirmation (cyan = the answer beat). The
+  // execCommand path is the fallback for browsers without the async Clipboard
+  // API (mirrors the terminal's own `copy email` command).
+  const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    },
+    []
+  );
+  const handleCopyEmail = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(resumeData.email);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = resumeData.email;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked (permissions/secure-context): the mailto pill remains
+      // the working primary path, so no user-facing error is needed here.
+    }
+  };
 
   return (
     <div className="relative w-full">
@@ -111,14 +176,13 @@ export default function Home() {
             {/* Hero tagline — human voice, deduped (jc-78t): the recycled
                 résumé-objective sentence (resumeData.tagline / summary) is
                 retired from the first viewport; this one line does the
-                positioning job. Facts only: cloud/AWS work, Honolulu base. */}
+                positioning job. Location stays on the pill row, not here. */}
             <motion.p
               variants={heroChild}
               initial={false}
               className="measure text-balance text-xl font-medium text-foreground sm:text-2xl"
             >
-              I architect and ship cloud solutions, end to end &mdash; from
-              Honolulu.
+              I architect and ship cloud solutions, end to end.
             </motion.p>
 
             <motion.div
@@ -156,13 +220,51 @@ export default function Home() {
               </motion.ul>
 
               <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3 pt-1">
-                <a
-                  href={`mailto:${resumeData.email}`}
-                  className="cta-sheen group inline-flex items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-[background-color,transform,box-shadow] hover:bg-primary-cta-hover active:scale-[0.97]"
-                >
-                  <Mail size={18} strokeWidth={2} aria-hidden="true" />
-                  Email me
-                </a>
+                {/* Split-action: mailto stays the primary click; the adjacent
+                    glyph copies the address so handler-less machines aren't a
+                    dead-end (jc-67x). */}
+                <div className="inline-flex items-center gap-2">
+                  <a
+                    href={`mailto:${resumeData.email}`}
+                    className="cta-sheen group inline-flex items-center gap-2 rounded-full bg-primary-cta px-6 py-3 font-medium text-primary-foreground shadow-[var(--glow-primary)] transition-[background-color,transform,box-shadow] hover:bg-primary-cta-hover active:scale-[0.97]"
+                  >
+                    <Mail size={18} strokeWidth={2} aria-hidden="true" />
+                    Email me
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleCopyEmail}
+                    aria-label="Copy email address"
+                    className="group relative inline-flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full border border-border-subtle bg-surface/60 text-muted-foreground backdrop-blur-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.92]"
+                  >
+                    {copied ? (
+                      <Check size={16} strokeWidth={2.5} aria-hidden="true" className="text-accent" />
+                    ) : (
+                      <Copy
+                        size={16}
+                        strokeWidth={2}
+                        aria-hidden="true"
+                        className="origin-center transition-transform motion-safe:group-hover:-translate-y-px motion-safe:group-hover:scale-[1.06]"
+                      />
+                    )}
+                    {/* Confirmation — cyan tick is the answer beat; the pill
+                        echoes the dock tooltip grammar. Opacity-only reveal so
+                        reduced motion needs no separate path. */}
+                    <span
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-accent shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-opacity duration-200 ${
+                        copied ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      Copied
+                    </span>
+                  </button>
+                  {/* Reliable AT announcement: text content flips empty →
+                      filled on copy, which screen readers voice. */}
+                  <span role="status" aria-live="polite" className="sr-only">
+                    {copied ? "Email address copied to clipboard" : ""}
+                  </span>
+                </div>
                 <a
                   href={resumeData.github}
                   target="_blank"
@@ -175,6 +277,25 @@ export default function Home() {
                   <ArrowUpRight size={14} aria-hidden="true" className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </a>
               </motion.div>
+
+              {/* Journey invitation (jc-zww): the only affordance that leads
+                  INTO the page rather than off it. A ghost mono link — same
+                  weight/idiom as GitHub above, never a competing pill — with a
+                  descending arrow that reads as "go down into the work". */}
+              <motion.a
+                variants={fadeUp}
+                href="#exp"
+                onClick={handleSeeWork}
+                className="link-underline group inline-flex min-h-[44px] items-center gap-2 px-2 py-3 font-mono text-sm text-muted-foreground transition-colors hover:text-primary"
+              >
+                See the work
+                <ArrowDown
+                  size={14}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                  className="transition-transform motion-safe:group-hover:translate-y-0.5"
+                />
+              </motion.a>
             </motion.div>
           </motion.div>
 
@@ -193,9 +314,32 @@ export default function Home() {
             custom={bootPlayed ? 0.65 : 0}
             initial="hidden"
             animate={heroState}
-            className="w-full lg:col-span-5 lg:self-end lg:pb-9"
+            className="flex w-full flex-col lg:col-span-5 lg:self-stretch"
           >
-            <TerminalTyping />
+            {/* HUD annotation cluster (jc-67x) — settles the upper-right void
+                above the console at lg without adding a competing element: a
+                quiet mono readout in the console's own leader-dot grammar. The
+                coordinate is Honolulu at city resolution (already disclosed on
+                the location pill — no new/identifying data); the beam-linked
+                node echoes the terminal's `link BEAM ok`. Ambient violet dot
+                (cyan stays reserved for answer beats); no motion, so reduced
+                motion needs no branch. Desktop-only: the mobile stack has no
+                void to fill. mt-auto below drops the terminal to the same CTA
+                baseline it held before (was lg:self-end + lg:pb-9). */}
+            <div
+              aria-hidden="true"
+              className="hidden font-mono text-[0.6875rem] uppercase leading-relaxed tracking-[0.2em] text-subtle-foreground lg:flex lg:flex-col lg:items-end lg:gap-1 lg:pb-8 lg:pr-1"
+            >
+              <span>21.3&deg; N &middot; 157.9&deg; W</span>
+              <span className="flex items-center gap-2">
+                <span>beam</span>
+                <span className="text-muted-foreground">linked</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_1px_rgba(139,92,246,0.55)]" />
+              </span>
+            </div>
+            <div className="lg:mt-auto lg:pb-9">
+              <TerminalTyping />
+            </div>
           </motion.div>
         </Container>
 
