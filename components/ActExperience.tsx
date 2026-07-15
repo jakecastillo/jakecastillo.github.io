@@ -20,6 +20,7 @@ import {
 import { resumeData, type Job } from "@/data/resume";
 import { sections } from "@/data/sections";
 import { DUR, EASE, fadeRight, staggerContainer } from "@/components/motion";
+import EtchHeading from "@/components/beam/EtchHeading";
 import { useReveal } from "@/hooks/useReveal";
 import { selectExpPinned, useActStore } from "@/hooks/useActStore";
 import { useScrollStore } from "@/hooks/useScrollStore";
@@ -77,6 +78,31 @@ function useImmersive() {
     }, []);
 
     return canPin && !prefersReducedMotion;
+}
+
+// Act-opener poster lockup (jc-2np). Every other act enters on a giant
+// type-display lockup; the Experience act previously entered on a lone
+// "03 — WORK" chip floating in a near-empty field before the pin. This gives
+// the act its display-tier title card in the SAME act-opener grammar as THE
+// STACK — EtchHeading is the single owner of the reveal/etch sweep AND the
+// reduced-motion path (heading just is), so no framer whileInView wrap. It
+// renders in BOTH variants and, in the immersive case, plays in the pre-pin
+// flow (outside the pinned section's useScroll target) so the pin math is
+// untouched — see ImmersiveTimeline. Serves as the act's visible <h2>, so the
+// old sr-only "Experience" heading retires in both variants.
+function ActOpener() {
+    return (
+        <EtchHeading
+            as="h2"
+            className="type-display text-7xl text-foreground sm:text-8xl"
+            eyebrow="work"
+            eyebrowClassName="text-xs label-accent mb-4"
+        >
+            THE
+            <br />
+            <span className="text-primary">WORK.</span>
+        </EtchHeading>
+    );
 }
 
 export default function ActExperience() {
@@ -138,7 +164,13 @@ function StaticTimeline({ total }: { total: number }) {
         // below md so the approach to the next act reads as one composed move,
         // not a scroll through void. md+ keeps the original reservation verbatim.
         <section ref={sectionRef} className="section-y container-page [padding-bottom:calc(4rem+env(safe-area-inset-bottom))] md:[padding-bottom:calc(8rem+env(safe-area-inset-bottom))]">
-            <h2 className="sr-only">Experience</h2>
+            {/* Display-tier opener (jc-2np): the calm static/reduced variant now
+                enters on the same poster lockup as the immersive one, so Act 3
+                reads with the act-opener grammar of every other act rather than
+                a bare roles counter. It is the section's visible <h2>. */}
+            <div className="mb-16">
+                <ActOpener />
+            </div>
             {/* Act-opener composed lockup (jc-7am). Below md the single left mono
                 line stranded the opening frame — a full viewport of grid + a stray
                 label. Recompose the SAME tokens (01 / 04 ROLES) into a centered
@@ -413,9 +445,20 @@ function ImmersiveTimeline({ total }: { total: number }) {
     }, [centers, scrollToProgress, total]);
 
     return (
-        <section ref={targetRef} className="relative h-[300vh]">
-            <h2 className="sr-only">Experience</h2>
-            <div className="sticky top-0 h-screen overflow-hidden">
+        <>
+            {/* Pre-pin poster opener (jc-2np). Deliberately OUTSIDE targetRef:
+                useScroll measures targetRef's own 300vh geometry against the
+                viewport (offset "start start" → "end end"), so the opener only
+                pushes the pin's start further down the page — scrollYProgress
+                still maps 0→1 across the same 300vh and every scrub/dwell/exit
+                offset composes unchanged. A centered ~70vh title card that
+                scrolls up and away just before the sticky section tops out and
+                the pin engages. */}
+            <div className="container-page section-y flex min-h-[70vh] flex-col justify-center">
+                <ActOpener />
+            </div>
+            <section ref={targetRef} className="relative h-[300vh]">
+                <div className="sticky top-0 h-screen overflow-hidden">
                 {/* Persistent act lockup (jc-d5d). The dock + brand wordmark yield
                     the top-left lane during the pin, so the 300vh act was
                     anonymous floating cards. A fixed mono eyebrow reclaims that
@@ -577,7 +620,8 @@ function ImmersiveTimeline({ total }: { total: number }) {
                     </div>
                 </motion.div>
             </div>
-        </section>
+            </section>
+        </>
     );
 }
 
