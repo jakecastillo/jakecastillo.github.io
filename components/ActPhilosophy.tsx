@@ -80,7 +80,13 @@ export default function ActPhilosophy() {
                     </span>
                 </ManifestoReveal>
                 <div className="mt-8 mb-7 h-px w-12 bg-border-strong" />
-                <p className="measure rounded-xl border border-border-subtle bg-surface/80 p-6 text-lg leading-relaxed text-muted-foreground backdrop-blur-sm">
+                {/* suppressHydrationWarning (jc-jtu): the summary interpolates
+                    a computed years-of-experience word; see CAREER_START in
+                    data/resume.ts for the crossing-window rationale. */}
+                <p
+                    suppressHydrationWarning
+                    className="measure rounded-xl border border-border-subtle bg-surface/80 p-6 text-lg leading-relaxed text-muted-foreground backdrop-blur-sm"
+                >
                     {resumeData.summary}
                 </p>
             </motion.div>

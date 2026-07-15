@@ -1,3 +1,39 @@
+// ——— Dynamic time anchors (jc-jtu) ———————————————————————————————————————
+// The career clock starts at the CIMP internship (Jan 2020) — the same anchor
+// the "six years" claims were hand-counted from. Durations are COMPUTED so
+// copy never goes stale at an anniversary. Renders that interpolate these on
+// SSR'd surfaces should carry suppressHydrationWarning: a visitor arriving
+// after an anniversary that the last build predates would otherwise trip a
+// hydration text mismatch (the value changes at most once a year; any
+// re-render or rebuild self-heals it).
+export const CAREER_START = new Date(2020, 0);
+
+/** Whole years elapsed since `start`, anniversary-aware. */
+export function yearsSince(start: Date, now: Date = new Date()): number {
+  const months =
+    (now.getFullYear() - start.getFullYear()) * 12 +
+    (now.getMonth() - start.getMonth());
+  return Math.max(0, Math.floor(months / 12));
+}
+
+const YEAR_WORDS = [
+  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
+  "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+  "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+];
+
+/** Years of experience as a lowercase word ("six"), numeral past twenty. */
+export function experienceYears(now: Date = new Date()): string {
+  const n = yearsSince(CAREER_START, now);
+  return YEAR_WORDS[n] ?? String(n);
+}
+
+/** Capitalized variant for sentence starts ("Six"). */
+export function experienceYearsCap(now: Date = new Date()): string {
+  const word = experienceYears(now);
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 export interface Education {
   institution: string;
   degree: string;
@@ -67,11 +103,11 @@ export const resumeData: ResumeData = {
   // places — the Act 2 belief card under "BORING WHERE IT SHOULD BE. / BOLD
   // WHERE IT COUNTS.", plus the terminal's about.md and whois. It has to hold
   // that manifesto's tone, not collapse into LinkedIn boilerplate. Every claim
-  // traces to facts elsewhere in this object (six years; gov/edu/healthcare
-  // domains; back-end + cloud focus; AWS + DevSecOps; full-stack→architect arc;
-  // CIMP-mentorship give-back origin) — no new facts, no names, no figures.
-  summary:
-    "I've spent six years on back-end and cloud systems across government, education, and healthcare — domains where a wrong call is expensive and \"it works on my machine\" doesn't ship. I started full-stack and kept moving toward the architecture, because I'd rather own why a system is shaped the way it is than just get it to pass; today that means treating security and AWS as defaults, designed in from the start instead of bolted on later. I got into this through a mentorship program that bet on me, so I build things I'd actually want to hand to whoever inherits them.",
+  // traces to facts elsewhere in this object (years computed from
+  // CAREER_START; gov/edu/healthcare domains; back-end + cloud focus; AWS +
+  // DevSecOps; full-stack→architect arc; CIMP-mentorship give-back origin) —
+  // no new facts, no names, no figures.
+  summary: `I've spent ${experienceYears()} years on back-end and cloud systems across government, education, and healthcare — domains where a wrong call is expensive and "it works on my machine" doesn't ship. I started full-stack and kept moving toward the architecture, because I'd rather own why a system is shaped the way it is than just get it to pass; today that means treating security and AWS as defaults, designed in from the start instead of bolted on later. I got into this through a mentorship program that bet on me, so I build things I'd actually want to hand to whoever inherits them.`,
   education: {
     institution: "University of Hawaii at Manoa",
     degree: "Bachelor of Science in Computer Engineering",

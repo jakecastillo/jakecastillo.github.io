@@ -16,7 +16,7 @@ import Container from "@/components/Container";
 import HeroUnderline from "@/components/beam/HeroUnderline";
 import { useBeamStore } from "@/hooks/useBeamStore";
 import { useScrollStore } from "@/hooks/useScrollStore";
-import { resumeData } from "@/data/resume";
+import { experienceYearsCap, resumeData } from "@/data/resume";
 
 const pills = [
   { label: "AWS Solutions Architect", icon: Cloud },
@@ -192,19 +192,22 @@ export default function Home() {
               animate={heroState}
               className="flex w-full flex-col items-start gap-6"
             >
-              {/* Proof paragraph (jc-78t, jc-396): concrete track record in
-                  place of the paraphrased objective — PROTECTIVE posture: no
-                  client or system names anywhere on the site (owner decision
-                  after a security review). All facts live in data/resume.ts;
-                  the span (Jan 2020 CIMP intern → present) supports "six
-                  years". No invented numbers. */}
+              {/* Proof paragraph (jc-78t, jc-396, jc-jtu): concrete track
+                  record in place of the paraphrased objective — PROTECTIVE
+                  posture: no client or system names anywhere on the site.
+                  The year count is COMPUTED from CAREER_START (Jan 2020 CIMP
+                  intern → present) so it never goes stale at an anniversary;
+                  suppressHydrationWarning covers the rare build-predates-
+                  anniversary window (self-heals on any re-render/rebuild). */}
               <motion.p
                 variants={fadeUp}
+                suppressHydrationWarning
                 className="measure text-base text-muted-foreground"
               >
-                Six years building for government, education, and healthcare
-                teams — from legacy modernization to cloud-native delivery.
-                AWS-certified architect; DevSecOps by default.
+                {experienceYearsCap()} years building for government,
+                education, and healthcare teams — from legacy modernization to
+                cloud-native delivery. AWS-certified architect; DevSecOps by
+                default.
               </motion.p>
 
               <motion.ul variants={fadeUp} className="flex flex-wrap gap-2">
