@@ -222,7 +222,7 @@ export default function ActContact() {
                             untouched. */}
                         <EtchHeading
                             as="h2"
-                            className="type-display text-7xl text-foreground sm:text-8xl"
+                            className="type-display text-[2.625rem] text-foreground sm:text-6xl md:text-7xl xl:text-8xl"
                         >
                             Let&rsquo;s build something
                             <br />

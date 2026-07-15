@@ -136,7 +136,10 @@ export default function ActSkills() {
            inside the prior act's empty padding (no card collision) and the prism
            vertex anchor is DOM-measured, so the beam re-welds automatically.
            Zero effect at md+ (original spacing). */
-        <section className="section-y relative border-t border-border overflow-hidden max-md:-mt-8">
+        // Bottom lane reserved below md (jc-eew): the fixed dock veiled the
+        // certs tail on phones — the last content now rests clear of the dock
+        // band, matching ActContact's existing reservation.
+        <section className="section-y relative border-t border-border overflow-hidden max-md:-mt-8 max-md:[padding-bottom:calc(6rem+env(safe-area-inset-bottom))]">
             {/* Background wash + single restrained violet glow blob (decorative). */}
             <div
                 aria-hidden="true"
@@ -171,7 +174,7 @@ export default function ActSkills() {
                 <div className="mb-16 grid grid-cols-1 items-center gap-8 xl:grid-cols-[18rem_minmax(0,1fr)] xl:gap-12">
                     <EtchHeading
                         as="h2"
-                        className="type-display text-7xl sm:text-8xl"
+                        className="type-display text-[2.625rem] sm:text-6xl md:text-7xl xl:text-8xl"
                         eyebrow="stack"
                         eyebrowClassName="text-xs label-accent mb-4"
                     >

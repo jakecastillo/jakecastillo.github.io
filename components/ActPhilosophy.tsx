@@ -72,7 +72,7 @@ export default function ActPhilosophy() {
                 <p className="mb-5 text-xs label-accent">
                     approach
                 </p>
-                <ManifestoReveal className="type-display text-7xl text-foreground sm:text-8xl">
+                <ManifestoReveal className="type-display text-[2.625rem] text-foreground sm:text-6xl md:text-7xl xl:text-8xl">
                     BORING WHERE IT SHOULD BE.
                     <br />
                     <span className="text-primary text-glow">
