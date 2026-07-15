@@ -63,8 +63,15 @@ export const resumeData: ResumeData = {
   email: "jakecast@hawaii.edu",
   linkedin: "https://www.linkedin.com/in/jake-castillo-00567819b/",
   github: "https://github.com/jakecastillo",
+  // First-person, opinionated voice (jc-1vb): this string renders in three
+  // places — the Act 2 belief card under "BORING WHERE IT SHOULD BE. / BOLD
+  // WHERE IT COUNTS.", plus the terminal's about.md and whois. It has to hold
+  // that manifesto's tone, not collapse into LinkedIn boilerplate. Every claim
+  // traces to facts elsewhere in this object (six years; gov/edu/healthcare
+  // domains; back-end + cloud focus; AWS + DevSecOps; full-stack→architect arc;
+  // CIMP-mentorship give-back origin) — no new facts, no names, no figures.
   summary:
-    "Computer software/hardware design and innovation specialist with a drive to give back to the community and a strong foundation in engineering principles across multiple platforms and technologies. Experienced in back-end development, testing, and debugging code with a focus on cloud development/architecture (AWS).",
+    "I've spent six years on back-end and cloud systems across government, education, and healthcare — domains where a wrong call is expensive and \"it works on my machine\" doesn't ship. I started full-stack and kept moving toward the architecture, because I'd rather own why a system is shaped the way it is than just get it to pass; today that means treating security and AWS as defaults, designed in from the start instead of bolted on later. I got into this through a mentorship program that bet on me, so I build things I'd actually want to hand to whoever inherits them.",
   education: {
     institution: "University of Hawaii at Manoa",
     degree: "Bachelor of Science in Computer Engineering",
