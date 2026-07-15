@@ -170,6 +170,16 @@ $ `;
     []
   );
 
+  // Tap-to-run command chips for coarse pointers (jc-p5g). Typing into the
+  // console is implausible on a phone, so these fire the SAME dispatcher
+  // (runCommand) as typed input — no forked logic. Fine pointers keep the
+  // typed experience (the row is `hidden coarse:flex`). Paths are absolute so
+  // each chip resolves regardless of the current working directory.
+  const touchCommands = useMemo(
+    () => ["help", "ls ~/work", "cat ~/work/readme.txt", "git log", "whois"],
+    []
+  );
+
   const [outputText, setOutputText] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -309,22 +319,27 @@ $ `;
         break;
 
       case "ls": {
-        // Support `ls -la` or just `ls`
-        // We might accept a path arg later, but keep it simple: ls [currentDir]
-        const node = getNode(currentPath);
+        // First non-flag token is the path (so `ls -la` still lists the
+        // current dir, but `ls ~/work` resolves the target — needed for the
+        // touch chips, which reuse this dispatcher).
+        const pathArg = args.slice(1).find((a) => !a.startsWith("-"));
+        const node = pathArg ? resolvePath(pathArg).node : getNode(currentPath);
+        if (pathArg && !node) {
+          appendLines([`ls: cannot access '${pathArg}': No such file or directory`]);
+          break;
+        }
+        if (node?.type === "file") {
+          // Real ls echoes the name back for a file target.
+          appendLines([pathArg ?? ""]);
+          break;
+        }
         if (node?.type === "dir") {
           const files = Object.keys(node.children);
-          // If -la or -a, maybe add hidden?
-          // We'll just list them all for now, maybe color directories
           const formatted = files.map((f) => {
             const isDir = node.children[f].type === "dir";
             return isDir ? `${f}/` : f;
           });
-          if (formatted.length === 0) {
-            appendLines(["(empty)"]);
-          } else {
-            appendLines(["  " + formatted.join("  ")]);
-          }
+          appendLines([formatted.length === 0 ? "(empty)" : "  " + formatted.join("  ")]);
         }
         break;
       }
@@ -663,20 +678,54 @@ $ `;
               />
             </form>
 
+            {/* Tap-to-run command chips (jc-p5g) — coarse pointers only, so the
+                desktop typed experience is untouched (`hidden coarse:flex`).
+                Each chip fires the SAME runCommand dispatcher as typed input.
+                stopPropagation keeps the panel's click-to-focus handler from
+                pulling focus into the input (and popping the iOS keyboard) — the
+                keyboard appears only when the visitor taps the input itself.
+                Own overflow-x container so the row scrolls without widening the
+                card; 44px min target height for touch. */}
+            <div
+              role="group"
+              aria-label="Quick commands"
+              className="hidden coarse:flex items-center gap-2 mt-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {touchCommands.map((cmd) => (
+                <button
+                  key={cmd}
+                  type="button"
+                  aria-label={`Run command: ${cmd}`}
+                  onClick={(e) => {
+                    // Do not focus the input — running the command should not
+                    // pop the keyboard (see comment above).
+                    e.stopPropagation();
+                    void runCommand(cmd);
+                  }}
+                  className="shrink-0 inline-flex items-center min-h-[44px] px-3 rounded-md border border-border bg-[color:var(--surface-overlay)] text-[color:var(--muted-foreground)] text-xs whitespace-nowrap transition-colors duration-200 hover:text-[color:var(--foreground)] hover:border-border-strong active:text-[color:var(--foreground)] active:border-[color:var(--primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)]"
+                >
+                  <span aria-hidden="true" className="mr-1.5 font-semibold text-[color:var(--primary-hover)]">$</span>
+                  {cmd}
+                </button>
+              ))}
+            </div>
+
             {/* Persistent system readout — a live signal indicator plus a
                 standing hint at the genuinely fun command set, so the discovery
                 surface is always visible without any input. */}
             <div className="mt-1.5 flex items-center justify-between gap-3 text-[0.6875rem] label select-none">
               {/* Both readout spans are decorative for AT — the input's
                   placeholder already carries the 'help' hint accessibly. */}
-              <span aria-hidden="true" className="flex items-center gap-1.5">
+              <span aria-hidden="true" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_1px_rgba(45,212,191,0.6)]" />
                 signal: live
               </span>
               {/* Arrow-key history has no touch equivalent, so the hint is
                   fine-pointer only (coarse:hidden) — it never advertises an
-                  affordance a phone user can't reach. */}
-              <span aria-hidden="true" className="truncate coarse:hidden">
+                  affordance a phone user can't reach. min-w-0 lets THIS segment
+                  be the one that truncates, so at 320-430px the signal readout
+                  holds one line instead of wrapping into it (jc-37q). */}
+              <span aria-hidden="true" className="min-w-0 truncate coarse:hidden">
                 type &lsquo;help&rsquo; &middot; &uarr; history
               </span>
             </div>
