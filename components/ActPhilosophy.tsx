@@ -72,7 +72,12 @@ export default function ActPhilosophy() {
                 <p className="mb-5 text-xs label-accent">
                     approach
                 </p>
-                <ManifestoReveal className="type-display text-[2.625rem] text-foreground sm:text-6xl md:text-7xl xl:text-8xl">
+                {/* One full tier below the other act openers (jc-o5l): this
+                    lockup is two long sentences — at the shared opener ramp it
+                    rendered 96px against the hero's measured 58px and read as
+                    a second, louder hero. Chapter-title scale keeps the
+                    aphorism's edge and restores the volume hierarchy. */}
+                <ManifestoReveal className="type-display text-4xl text-foreground sm:text-5xl md:text-6xl xl:text-7xl">
                     BORING WHERE IT SHOULD BE.
                     <br />
                     <span className="text-primary text-glow">

@@ -206,10 +206,15 @@ function MagneticButton({
                 {/* Touch micro-label (jc-2cx): every chip, active or not, gets a
                     tiny mono caption under the icon on coarse pointers — decorative
                     only (the span above already carries the accessible name), so
-                    this one is aria-hidden to avoid double-announcing to AT. */}
+                    this one is aria-hidden to avoid double-announcing to AT.
+                    The ACTIVE chip hides it at lg+ (jc-o5l): a coarse pointer on
+                    a wide viewport (iPad landscape) otherwise renders both this
+                    caption AND the inline text label — a doubled "About/ABOUT". */}
                 <span
                     aria-hidden="true"
-                    className="hidden whitespace-nowrap text-[9px] font-mono uppercase leading-none tracking-[0.04em] text-current coarse:block"
+                    className={`hidden whitespace-nowrap text-[9px] font-mono uppercase leading-none tracking-[0.04em] text-current coarse:block ${
+                        isActive ? "lg:coarse:hidden" : ""
+                    }`}
                 >
                     {label}
                 </span>

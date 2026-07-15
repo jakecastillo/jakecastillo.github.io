@@ -107,7 +107,10 @@ export const resumeData: ResumeData = {
   // CAREER_START; gov/edu/healthcare domains; back-end + cloud focus; AWS +
   // DevSecOps; full-stack→architect arc; CIMP-mentorship give-back origin) —
   // no new facts, no names, no figures.
-  summary: `I've spent ${experienceYears()} years on back-end and cloud systems across government, education, and healthcare — domains where a wrong call is expensive and "it works on my machine" doesn't ship. I started full-stack and kept moving toward the architecture, because I'd rather own why a system is shaped the way it is than just get it to pass; today that means treating security and AWS as defaults, designed in from the start instead of bolted on later. I got into this through a mentorship program that bet on me, so I build things I'd actually want to hand to whoever inherits them.`,
+  // The credential census (years + domain list) lives in the HERO proof
+  // paragraph alone (jc-o5l) — this opens at the philosophy so acts 01 and
+  // 02 stop telling the same story twice in consecutive viewports.
+  summary: `I build back-end and cloud systems for domains where a wrong call is expensive and "it works on my machine" doesn't ship. I started full-stack and kept moving toward the architecture, because I'd rather own why a system is shaped the way it is than just get it to pass; today that means treating security and AWS as defaults, designed in from the start instead of bolted on later. I got into this through a mentorship program that bet on me, so I build things I'd actually want to hand to whoever inherits them.`,
   education: {
     institution: "University of Hawaii at Manoa",
     degree: "Bachelor of Science in Computer Engineering",
