@@ -18,6 +18,7 @@ import PrismBands, { bandColor, bandColorA } from "@/components/beam/PrismBands"
 import { DUR, EASE, STAGGER } from "@/components/motion";
 import { useReveal } from "@/hooks/useReveal";
 import { TechIcon } from "@/components/TechIcon";
+import { usePointerTilt } from "@/hooks/useTiltStore";
 import { resumeData } from "@/data/resume";
 
 // --- Band-arrival reveal vocabulary -----------------------------------------
@@ -245,17 +246,20 @@ export default function ActSkills() {
     );
 }
 
-/** Credential CLASS chip, derived from the AWS cert name — a decorative,
+/** Credential CLASS + RANK, derived from the AWS cert name — a decorative,
     factual label (no invented claim, no metric). Foundational/Associate cover
     the two certs today; Professional/Specialty are wired for future rungs so
-    the two cards always read as matched, tiered credentials. */
-function certTier(name: string): string {
+    the two cards always read as matched, tiered credentials. `rank` drives the
+    visible outranking (jc-t34): a Foundational seal must never read as heavy as
+    an Associate one. Rank feeds the medallion glow depth, the tier chip weight,
+    and the rank pips — all in the system's own violet, no new vocabulary. */
+function certTierMeta(name: string): { label: string; rank: number } {
     const n = name.toLowerCase();
-    if (n.includes("practitioner")) return "FOUNDATIONAL";
-    if (n.includes("professional")) return "PROFESSIONAL";
-    if (n.includes("specialty")) return "SPECIALTY";
-    if (n.includes("associate")) return "ASSOCIATE";
-    return "CERTIFIED";
+    if (n.includes("practitioner")) return { label: "FOUNDATIONAL", rank: 1 };
+    if (n.includes("associate")) return { label: "ASSOCIATE", rank: 2 };
+    if (n.includes("professional")) return { label: "PROFESSIONAL", rank: 3 };
+    if (n.includes("specialty")) return { label: "SPECIALTY", rank: 3 };
+    return { label: "CERTIFIED", rank: 1 };
 }
 
 /** Certifications as beam terminals: the recolored ribbon's rail runs the full
@@ -304,115 +308,152 @@ function CertTerminals() {
                 />
 
                 <div className="relative mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
-                    {resumeData.certifications.map((cert) => {
-                        const tier = certTier(cert.name);
-                        return (
-                            <motion.article
-                                key={cert.name}
-                                variants={certSeal}
-                                className="group surface-2 relative overflow-hidden rounded-xl p-8 transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)]"
-                            >
-                                {/* Violet hairline etch (EtchHeading language). */}
-                                <span
-                                    aria-hidden="true"
-                                    className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-primary/70 via-primary/25 to-transparent"
-                                />
-                                <div className="relative flex items-start gap-5">
-                                    {/* Credential MEDALLION: a layered violet ring — a
-                                        1px minted outer edge with faint concentric
-                                        guilloché lines and a soft glow, an inset disc the
-                                        AWS mark is seated on. Static (no pulse) → its
-                                        resting composition is identical under reduced
-                                        motion. */}
-                                    <span
-                                        className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full"
-                                        style={{
-                                            // Minted double-edge on the system's own violet
-                                            // glow (--glow-primary) — no bespoke bloom or
-                                            // banknote guilloche; austere like the rest of the act.
-                                            backgroundImage:
-                                                "radial-gradient(circle at 50% 38%, rgba(139,92,246,0.22), rgba(139,92,246,0.05) 58%, transparent 72%)",
-                                            boxShadow:
-                                                "0 0 0 1px rgba(139,92,246,0.5), var(--glow-primary), inset 0 1px 0 rgba(255,255,255,0.05)",
-                                        }}
-                                    >
-                                        {/* Inset disc — the seated field; its inner
-                                            hairline ring gives the medallion its minted
-                                            double edge. */}
-                                        <span
-                                            aria-hidden="true"
-                                            className="absolute inset-[3px] rounded-full bg-surface"
-                                            style={{
-                                                boxShadow:
-                                                    "inset 0 0 0 1px rgba(139,92,246,0.22), inset 0 2px 6px -3px rgba(0,0,0,0.7)",
-                                            }}
-                                        />
-                                        <TechIcon
-                                            name="AWS"
-                                            className="relative h-7 w-7 text-primary"
-                                        />
-                                    </span>
-                                    <div className="min-w-0">
-                                        {/* Tier chip — decorative credential class,
-                                            derived from the cert name. */}
-                                        <div className="mb-3">
-                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[0.6875rem] font-medium leading-none label-accent">
-                                                <span
-                                                    aria-hidden="true"
-                                                    className="h-1 w-1 shrink-0 rotate-45 bg-primary"
-                                                />
-                                                {/* [copy — owner approval pending] */}
-                                                {tier}
-                                            </span>
-                                        </div>
-                                        <h4 className="mb-1.5 text-balance text-lg font-bold leading-snug tracking-tight">
-                                            {cert.name}
-                                        </h4>
-                                        <p className="mb-4 text-sm text-muted-foreground">
-                                            {cert.issuer}
-                                        </p>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] label">
-                                            <span className="text-primary">
-                                                ISSUED {cert.issued.toUpperCase()}
-                                            </span>
-                                            <span
-                                                aria-hidden="true"
-                                                className="h-1 w-1 shrink-0 rotate-45 bg-primary/40"
-                                            />
-                                            {/* [copy — owner approval pending] */}
-                                            <span className="text-muted-foreground">
-                                                VALID THROUGH{" "}
-                                                {cert.expires.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* Credential hover SHEEN (jc-ddj): one slow violet light
-                                    pass glancing across the face on hover. Fine-pointer +
-                                    motion ONLY — coarse (touch) and reduced-motion render
-                                    nothing (display:none → element removed, zero travel).
-                                    The transition lives only in the hover state, so the
-                                    band snaps back on leave (the .cta-sheen grammar); the
-                                    card's overflow-hidden clips it. Transform only; timing
-                                    from the shared DUR/EASE tokens. */}
-                                <span
-                                    aria-hidden="true"
-                                    className="pointer-events-none absolute inset-y-0 -inset-x-4 -translate-x-[130%] transition-none group-hover:translate-x-[130%] group-hover:transition-transform motion-reduce:hidden coarse:hidden"
-                                    style={{
-                                        background:
-                                            "linear-gradient(105deg, transparent 42%, rgba(139,92,246,0.20) 50%, transparent 58%)",
-                                        // Matches the .cta-sheen instrument exactly (0.55s
-                                        // var(--ease-beam)) so both sheens read as one gesture.
-                                        transitionDuration: "0.55s",
-                                        transitionTimingFunction: `cubic-bezier(${EASE.join(", ")})`,
-                                    }}
-                                />
-                            </motion.article>
-                        );
-                    })}
+                    {resumeData.certifications.map((cert) => (
+                        <CertCard key={cert.name} cert={cert} />
+                    ))}
                 </div>
             </motion.div>
         </div>
+    );
+}
+
+/** One credential seal. Tier (jc-t34) is legible at a glance: an Associate
+    outranks a Foundational via a deeper medallion glow, a heavier tier chip,
+    a resting violet ring, and rank pips. The medallion also carries a
+    pointer-tracked 3D lean (usePointerTilt) — fine-pointer + motion-safe only;
+    on touch/reduced-motion it stays perfectly flat. */
+function CertCard({ cert }: { cert: (typeof resumeData.certifications)[number] }) {
+    const { label: tier, rank } = certTierMeta(cert.name);
+    const tilt = usePointerTilt();
+
+    // Rank → medallion depth. The ring firms and an extra violet bloom layers
+    // onto the system's own --glow-primary as the tier climbs; every value is
+    // the same violet, only its intensity carries the rank (no new color).
+    const ringAlpha = 0.45 + rank * 0.08;
+    const glowBoost =
+        rank >= 2
+            ? `, 0 0 ${8 + rank * 6}px rgba(139,92,246,${0.06 + rank * 0.05})`
+            : "";
+    const medallionShadow = `0 0 0 1px rgba(139,92,246,${ringAlpha}), var(--glow-primary)${glowBoost}, inset 0 1px 0 rgba(255,255,255,0.05)`;
+    const topTier = rank >= 2;
+
+    return (
+        <motion.article
+            variants={certSeal}
+            onPointerMove={tilt.onPointerMove}
+            onPointerLeave={tilt.onPointerLeave}
+            className={`group surface-2 relative overflow-hidden rounded-xl p-8 transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-primary hover:shadow-[var(--glow-primary)] ${
+                topTier ? "ring-1 ring-primary/20" : ""
+            }`}
+        >
+            {/* Violet hairline etch (EtchHeading language) — brighter for the
+                higher tier so the seal's crown reads as heavier. */}
+            <span
+                aria-hidden="true"
+                className={`absolute inset-x-8 top-0 h-px bg-gradient-to-r to-transparent ${
+                    topTier
+                        ? "from-primary/90 via-primary/40"
+                        : "from-primary/70 via-primary/25"
+                }`}
+            />
+            <div className="relative flex items-start gap-5">
+                {/* Credential MEDALLION: a layered violet ring seated on the
+                    system's own glow, holding the AWS mark. Springed pointer
+                    lean (transformPerspective) — capped and inert unless
+                    fine-pointer + motion-safe, so its resting composition is
+                    identical under reduced motion. */}
+                <motion.span
+                    className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full"
+                    style={{
+                        rotateX: tilt.rotateX,
+                        rotateY: tilt.rotateY,
+                        transformPerspective: 600,
+                        // Minted double-edge on --glow-primary; ring + bloom
+                        // scale with the credential rank (see medallionShadow).
+                        backgroundImage:
+                            "radial-gradient(circle at 50% 38%, rgba(139,92,246,0.22), rgba(139,92,246,0.05) 58%, transparent 72%)",
+                        boxShadow: medallionShadow,
+                    }}
+                >
+                    {/* Inset disc — the seated field; its inner hairline ring
+                        gives the medallion its minted double edge. */}
+                    <span
+                        aria-hidden="true"
+                        className="absolute inset-[3px] rounded-full bg-surface"
+                        style={{
+                            boxShadow:
+                                "inset 0 0 0 1px rgba(139,92,246,0.22), inset 0 2px 6px -3px rgba(0,0,0,0.7)",
+                        }}
+                    />
+                    <TechIcon
+                        name="AWS"
+                        className="relative h-7 w-7 text-primary"
+                    />
+                </motion.span>
+                <div className="min-w-0">
+                    {/* Tier chip — decorative credential class, derived from the
+                        cert name. Weight + rank pips scale with the tier so an
+                        Associate visibly outranks a Foundational. */}
+                    <div className="mb-3">
+                        <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.6875rem] font-medium leading-none label-accent ${
+                                topTier
+                                    ? "border-primary/60 bg-primary/[0.16]"
+                                    : "border-primary/30 bg-primary/10"
+                            }`}
+                        >
+                            {/* Rank pips — one diamond per tier rung. */}
+                            {Array.from({ length: rank }).map((_, i) => (
+                                <span
+                                    key={i}
+                                    aria-hidden="true"
+                                    className="h-1 w-1 shrink-0 rotate-45 bg-primary"
+                                />
+                            ))}
+                            {/* [copy — owner approval pending] */}
+                            {tier}
+                        </span>
+                    </div>
+                    <h4 className="mb-1.5 text-balance text-lg font-bold leading-snug tracking-tight">
+                        {cert.name}
+                    </h4>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                        {cert.issuer}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] label">
+                        <span className="text-primary">
+                            ISSUED {cert.issued.toUpperCase()}
+                        </span>
+                        <span
+                            aria-hidden="true"
+                            className="h-1 w-1 shrink-0 rotate-45 bg-primary/40"
+                        />
+                        {/* [copy — owner approval pending] */}
+                        <span className="text-muted-foreground">
+                            VALID THROUGH {cert.expires.toUpperCase()}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {/* Credential hover SHEEN (jc-ddj): one slow violet light pass
+                glancing across the face on hover. Fine-pointer + motion ONLY —
+                coarse (touch) and reduced-motion render nothing (display:none →
+                element removed, zero travel). The transition lives only in the
+                hover state, so the band snaps back on leave (the .cta-sheen
+                grammar); the card's overflow-hidden clips it. */}
+            <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 -inset-x-4 -translate-x-[130%] transition-none group-hover:translate-x-[130%] group-hover:transition-transform motion-reduce:hidden coarse:hidden"
+                style={{
+                    background:
+                        "linear-gradient(105deg, transparent 42%, rgba(139,92,246,0.20) 50%, transparent 58%)",
+                    // Matches the .cta-sheen instrument exactly (0.55s
+                    // var(--ease-beam)) so both sheens read as one gesture.
+                    transitionDuration: "0.55s",
+                    transitionTimingFunction: `cubic-bezier(${EASE.join(", ")})`,
+                }}
+            />
+        </motion.article>
     );
 }
 
@@ -450,7 +491,28 @@ function SkillGroup({
         setIsHot(hot);
     };
     return (
-        <motion.div variants={landGroup} {...group} className={className}>
+        <motion.div
+            variants={landGroup}
+            {...group}
+            className={`relative isolate ${className ?? ""}`}
+        >
+            {/* Depth wash (jc-00r): the spectrum LANDING, not a spec-sheet cell.
+                A quiet top-lit gradient in THIS group's band color pools down
+                from under its band border and fades to nothing — so each cell
+                reads as its prism leg touching down on the panel. Keyed to the
+                same violet→cyan ramp as the fan (bandColorA), so it introduces
+                no new color; alpha is low enough that legibility is untouched.
+                Static and non-interactive; -z-10 inside the group's own
+                isolate context keeps it above the panel surface but under the
+                content, and it needs no reveal (it is the stage the content
+                lands on). */}
+            <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-x-4 -top-4 bottom-0 -z-10 rounded-xl"
+                style={{
+                    background: `linear-gradient(180deg, ${bandColorA(t, 0.07)} 0%, ${bandColorA(t, 0.022)} 34%, ${bandColorA(t, 0)} 72%)`,
+                }}
+            />
             {/* The band lands here: a 1px top border in this group's band
                 color, drawn left-to-right as the block reveals. Its glow
                 steps up (0.45 → 0.8 alpha) while the group is hot. */}
