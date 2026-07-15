@@ -25,19 +25,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
+          cache: 'npm'
 
+      # npm is this project's package manager — package-lock.json is the
+      # lockfile every build is developed and verified against. The stale
+      # yarn.lock was removed so the two managers can never disagree again.
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Lint
-        run: yarn lint
+        run: npm run lint
 
       - name: Typecheck
-        run: yarn typecheck
+        run: npm run typecheck
 
       - name: Build
-        run: yarn build
+        run: npm run build
 
       - name: Disable Jekyll
         run: touch out/.nojekyll
