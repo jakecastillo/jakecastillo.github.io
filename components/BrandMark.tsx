@@ -72,6 +72,26 @@ export default function BrandMark() {
                 aria-hidden="true"
                 className="pointer-events-none fixed inset-x-0 top-0 z-30 h-8 bg-gradient-to-b from-background to-transparent"
             />
+            {/* Top-left corner exclusion scrim (jc-3c3): the frosted pill alone
+                could not knock down 95px violet display glyphs ("COUNTS.")
+                scrolling under it — backdrop-blur softens but doesn't dim a
+                bright source. A feathered --background corner wash, painted
+                BEHIND the header (z-30 < z-40) so the pill's backdrop-blur then
+                samples an already-darkened region, guarantees passing display
+                type reads as "behind glass," never optically merged. Gated on
+                `scrolled` (same swap as the pill) so the hero top-left stays
+                perfectly clear — no permanent bar. */}
+            <motion.div
+                aria-hidden="true"
+                initial={false}
+                animate={{ opacity: scrolled ? 1 : 0 }}
+                transition={pillTransition}
+                className="pointer-events-none fixed left-0 top-0 z-30 h-28 w-72"
+                style={{
+                    background:
+                        "radial-gradient(120% 120% at 0% 0%, var(--background) 0%, color-mix(in srgb, var(--background) 55%, transparent) 42%, transparent 72%)",
+                }}
+            />
             <header className="fixed left-5 top-5 z-40">
                 <a
                     href="#home"
@@ -88,7 +108,7 @@ export default function BrandMark() {
                         initial={false}
                         animate={{ opacity: scrolled ? 1 : 0 }}
                         transition={pillTransition}
-                        className="pointer-events-none absolute inset-0 rounded-full border border-border bg-surface-overlay/80 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+                        className="pointer-events-none absolute inset-0 rounded-full border border-border bg-surface-overlay/90 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-xl"
                     />
                     {/* `relative` so the glyph + wordmark paint ABOVE the absolute
                         pill (positioned siblings paint in source order). */}

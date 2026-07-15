@@ -192,7 +192,24 @@ export default function SolutionColumn() {
 
             {/* [copy — owner approval pending] — the framing lane; grid gap owns
                 the spacing from the diagram (stacked below lg, beside it above). */}
-            <figcaption className="min-w-0">
+            <figcaption className="relative min-w-0">
+                {/* Text-over-holo veil (jc-3c3): the caption lane overlaps the
+                    act's drifting orb, and over the orb's bright core the small
+                    copy dropped below its contrast floor. A feathered
+                    --background scrim — the exact jc-l14 pattern the belief
+                    manifesto uses — dims the orb locally behind the text without
+                    a hard bordered panel that would compete with the diagram
+                    cards, keeping the airy two-lane composition intact.
+                    Decorative only; the figure's aria-label carries the reading. */}
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-x-6 -inset-y-7 -z-10 rounded-[var(--radius-panel)]"
+                    style={{
+                        background:
+                            "color-mix(in srgb, var(--background) 92%, transparent)",
+                        filter: "blur(28px)",
+                    }}
+                />
                 <p className="text-[0.7rem] label-accent">
                     the whole column
                 </p>
