@@ -1,0 +1,91 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# Static export outputs
+*.html
+__next.*
+*.txt
+!README.md
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Beads / Dolt issue tracker (local; synced via Dolt remote, not this repo)
+.dolt/
+*.db
+.beads-credential-key
+.beads/
+
+# AI agent / assistant tooling + local config (not part of the site)
+.agent
+.agents/
+.claude/
+.codex/
+.kilo/
+.superpowers/
+AGENTS.md
+CLAUDE.md
+
+# Superpowers design docs (specs/plans) — kept local, not versioned
+docs/superpowers/
+
+# Other AI assistants — future-proofing (ignored if they ever appear here)
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.continue/
+.roo/
+.roomodes
+.aider*
+.gemini/
+GEMINI.md
+.opencode/
+.crush/
+.mcp.json
+
+# Audit & asset-generation tooling + generated artifacts (local only)
+/scripts/
+
+# Ad-hoc review screenshots & MCP browser output (scratch, never versioned)
+/.playwright-mcp/
+/*.jpeg
+/*.jpg
+/*.png

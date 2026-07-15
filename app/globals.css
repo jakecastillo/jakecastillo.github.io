@@ -1,0 +1,727 @@
+@import "tailwindcss";
+
+/* Pointer-capability variant — visibility keyed to whether the primary
+   pointer can hover, NOT to viewport width. `coarse:` = touch devices where
+   hover is impossible. Used so the dock surfaces a persistent visible label
+   on touch (where tooltips never appear) without leaking onto desktop. */
+@custom-variant coarse (@media (hover: none));
+
+/* =========================================================================
+   VOID & LASER — design system
+   Near-monochrome void base + a single dominant violet accent ("laser"),
+   with cyan reserved as a rare mono "signal" tint. Depth from luminance
+   elevation + ambient glow, never black drop-shadows. Fluid, rem-anchored
+   type so text survives browser zoom. Motion respects reduced-motion.
+   ========================================================================= */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Void: layered near-blacks (each ~5-7% lighter than the one below) -- */
+  --background: #060608;      /* near-black, not pure #000 (avoids halation) */
+  --surface: #0c0c10;         /* base card */
+  --surface-elevated: #14141a;/* elevated card */
+  --surface-overlay: #1c1c24; /* nested / hover / overlay */
+  --foreground: #ededf2;      /* off-white body (not pure #fff) */
+  --muted: #16161c;
+  --muted-foreground: #a7a7b4;/* secondary text — clears 4.5:1 on --background */
+  --subtle-foreground: #8a8a98;
+
+  /* ---- Laser: the single dominant accent (violet) --------------------- */
+  --primary: #8b5cf6;         /* violet 500 — accents, links, focus, hairlines */
+  --primary-hover: #a78bfa;   /* lighter for dark-mode hover (less vibration) */
+  --primary-cta: #6d28d9;     /* violet 700 — filled buttons: white text clears 4.5:1 */
+  --primary-cta-hover: #7c3aed;
+  --primary-foreground: #ffffff;
+  --primary-muted: rgba(139, 92, 246, 0.16);
+
+  /* ---- Signal: rare secondary tint (cyan) — labels / mono accents ----- */
+  --accent: #2dd4bf;          /* slightly desaturated teal-cyan for dark mode */
+  --accent-hover: #5eead4;
+  --accent-foreground: #04110f;
+  --accent-muted: rgba(45, 212, 191, 0.14);
+
+  /* ---- Lines: low-opacity light strokes, never solid dark lines ------- */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.06);   /* used by faint watermark numerals */
+  --terminal-border: rgba(255, 255, 255, 0.12);
+
+  /* ---- Ambient depth: glows + radial atmosphere (no black shadows) ----- */
+  --gradient-hero: radial-gradient(120% 90% at 50% -10%, rgba(139, 92, 246, 0.16) 0%, rgba(6, 6, 8, 0) 55%);
+  --shadow-elev-1: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 8px 24px -18px rgba(0, 0, 0, 0.5);
+  --shadow-elev-2: 0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 18px 48px -28px rgba(0, 0, 0, 0.55), 0 0 60px -30px rgba(139, 92, 246, 0.25);
+  --glow-primary: 0 0 40px -8px rgba(139, 92, 246, 0.45);
+  --glow-accent: 0 0 40px -10px rgba(45, 212, 191, 0.35);
+
+  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans);
+  /* Display face (Archivo) — aliases the raw next/font var (--font-archivo,
+     set on <html>) to the design token, mirroring the sans/mono indirection.
+     Two distinct names avoid a self-referential :root cycle. */
+  --font-display: var(--font-archivo);
+
+  /* ---- System vocabulary (jc-nc1) ------------------------------------- */
+  /* ONE easing grammar: the brand expo-out. Every CSS transition, framer
+     tween (components/motion.ts EASE) and GSAP tween (CustomEase "beam",
+     registered in EtchHeading) resolves to this same curve. */
+  --ease-beam: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Radius ladder — the only three corner voices on the page. Derived from
+     the existing rounded-3xl / rounded-xl / rounded-full values in use. */
+  --radius-panel: 1.5rem;   /* act panels, hero card */
+  --radius-card: 0.75rem;   /* cards, rows, tooltips-as-cards */
+  --radius-control: 9999px; /* pills, buttons, chips, dock */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-cta: var(--primary-cta);
+  --color-primary-cta-hover: var(--primary-cta-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-muted: var(--primary-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-muted: var(--accent-muted);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  /* Display face token — feeds off the raw --font-archivo var next/font sets
+     on <html>. Named distinctly from --font-archivo so `@theme inline` can emit
+     it to :root without a self-referential cycle (a same-name alias loses the
+     cascade to Tailwind's later :root block and computes invalid). Drives both
+     the `font-display` utility and the .type-display recipe below. */
+  --font-display: var(--font-archivo);
+
+  /* One timing grammar for every transition utility: Tailwind's Material
+     default (150ms cubic-bezier(0.4,0,0.2,1)) is replaced by the brand
+     expo-out at 200ms, so hover chrome across the page shares one curve
+     family with the framer/GSAP reveals (jc-nc1). */
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: var(--ease-beam);
+
+  /* Fluid, rem-anchored display scale (min @ ~360px, max @ ~1440px).
+     rem min/max means Cmd/Ctrl+ zoom still enlarges the text. Existing
+     Tailwind classes (text-4xl … text-9xl) pick these up automatically. */
+  /* One modular scale — max end steps by a constant ~1.25 ratio; min end a
+     gentler ~1.16 (compressed for small screens). rem-anchored so zoom works. */
+  --text-3xl: clamp(1.5rem, 1.28rem + 1.0vw, 2rem);
+  --text-3xl--line-height: 1.2;
+  --text-4xl: clamp(1.75rem, 1.45rem + 1.4vw, 2.5rem);
+  --text-4xl--line-height: 1.15;
+  --text-5xl: clamp(2.05rem, 1.6rem + 2.0vw, 3.05rem);
+  --text-5xl--line-height: 1.1;
+  --text-6xl: clamp(2.4rem, 1.7rem + 3.1vw, 3.8rem);
+  --text-6xl--line-height: 1.05;
+  /* Display steps carry a SECOND slope for the 1920 stage (jc-wpd): below
+     1536px the inner min() reproduces the original curve exactly (the first
+     slope caps near ~1000px); past 1536px the gentler outer term takes over
+     and keeps scaling to a new ceiling at ~1920px, so judges at 1920+ see the
+     composition grow instead of floating in void. */
+  --text-7xl: clamp(2.8rem, max(min(1.7rem + 4.9vw, 4.75rem), 0.75rem + 4.17vw), 5.75rem);
+  --text-7xl--line-height: 1.02;
+  --text-8xl: clamp(3.2rem, max(min(1.6rem + 7.1vw, 5.95rem), 0.95rem + 5.21vw), 7.2rem);
+  --text-8xl--line-height: 0.98;
+  --text-9xl: clamp(3.6rem, max(min(1.4rem + 9.8vw, 7.45rem), 1.25rem + 6.46vw), 9rem);
+  --text-9xl--line-height: 0.94;
+
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+/* ----------------------------------------------------------------------- */
+/*                               Base                                       */
+/* ----------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+  /* Keep content clear of the fixed bottom dock when scrolled/anchored to. */
+  scroll-padding-bottom: 7rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.5; /* 24px on 16px base — snaps to the 8pt baseline grid */
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Large display headings must never force horizontal scroll at 320px. */
+h1, h2, h3 {
+  overflow-wrap: break-word;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.38);
+  color: #fff;
+}
+/* Cyan-tinted selection inside the terminal/mono surfaces (jc-lv0) — the
+   signature "signal" tint replaces the site-wide violet highlight only where
+   the mono voice already owns the frame, so selecting terminal text answers
+   in the system's own accent instead of the ambient claim color. Scoped via
+   .terminal-shell (the console's root wrapper in TerminalTyping.tsx) rather
+   than a bare font-mono selector, so ordinary mono labels/eyebrows elsewhere
+   keep the standard violet selection. */
+.terminal-shell ::selection {
+  background: rgba(45, 212, 191, 0.35);
+  color: var(--accent-foreground);
+}
+
+/* Slim, on-brand scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ----------------------------------------------------------------------- */
+/*                       Accessibility primitives                          */
+/* ----------------------------------------------------------------------- */
+
+/* Wrapped in @layer base (jc-lv0): these were plain/unlayered rules, which in
+   a cascade-layers world outranks EVERY layered rule (Tailwind's own
+   utilities included) regardless of specificity or class order — so a
+   component reaching for a more specific focus-visible treatment could never
+   actually win against this default. @layer base sits below Tailwind's
+   utilities layer, restoring the normal expectation: a component-level
+   focus-visible utility overrides the site default when it needs to. */
+@layer base {
+  /* Global keyboard focus ring (>=3:1, never removed without replacement).
+     border-radius dropped: a hardcoded 4px fought the radius ladder on every
+     pill/control the ring landed on (rounded-full buttons, chips, the dock) —
+     the ring now traces the focused element's own corner without opinion. */
+  :focus-visible {
+    outline: 2px solid var(--primary-hover);
+    outline-offset: 3px;
+  }
+  /* Don't show the ring for mouse users that trigger :focus only */
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* Skip-to-content link */
+  .skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    background: var(--surface-overlay);
+    color: var(--foreground);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-card);
+    font-family: var(--font-mono), monospace;
+    font-size: 0.875rem;
+    transform: translateY(-150%);
+    transition: transform 0.2s var(--ease-beam);
+  }
+  .skip-link:focus { transform: translateY(0); }
+}
+
+/* ----------------------------------------------------------------------- */
+/*                              Utilities                                   */
+/* ----------------------------------------------------------------------- */
+
+/* Consistent vertical rhythm between major acts (8pt-derived, fluid). */
+.section-y { padding-block: clamp(5rem, 4rem + 5vw, 8rem); }
+
+/* Constrain body copy to a readable 45–75ch measure */
+.measure { max-width: 66ch; }
+.measure-narrow { max-width: 52ch; }
+.measure-wide { max-width: 74ch; }
+
+/* Display tier — the broadcast-grade act-opener lockup face (jc-cbx). Archivo
+   variable at expanded width (wdth ~125) + near-black weight, uppercase, tight
+   tracking and a sub-1 leading so the multi-line lockups stack as one dense
+   block. `font-weight` drives the wght axis; `font-variation-settings` carries
+   only wdth so the two never fight. `text-wrap: balance` evens the lines.
+   Defined here only — components adopt it in later lanes. */
+.type-display {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  font-variation-settings: "wdth" 125;
+  font-weight: 880;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* Label tier — the mono "system label" voice (jc-lv0): section eyebrows,
+   rail indices, badges, credential tiers. Consolidates 12+ ad-hoc recipes
+   (seven sizes, eight trackings, six colors) into exactly two: this one
+   (muted, secondary) and .label-accent (primary, the claim voice) below.
+   Font-size is deliberately NOT baked in here, mirroring .type-display's own
+   choice to leave font-size to a paired Tailwind class: these are plain,
+   unlayered rules, so anything they DID set as a fixed value could never be
+   overridden by a component's own Tailwind utility (unlayered always outranks
+   Tailwind's layered utilities, regardless of specificity or class order).
+   Pair with `text-xs` (0.75rem, the default) or the type-floor `text-[0.6875rem]`
+   size-down where 0.75rem is genuinely too tight (dock chips, credential
+   dates) — never smaller. Do NOT apply to interactive elements whose color
+   changes on hover/focus (that color tween would silently lose to this
+   class's baked color) or to literal data (emails, URLs, names) where a
+   forced uppercase would misrepresent the value. */
+.label {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--muted-foreground);
+}
+.label-accent {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--primary);
+}
+
+/* Shared page container + outer gutters (keeps gutters consistent per act) */
+.container-page {
+  width: 100%;
+  max-width: 80rem; /* 1280px */
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 0.5rem + 3vw, 4rem);
+}
+/* 1920 stage (jc-wpd): the 80rem cap left ~640px of dead void at 1920+.
+   Widen the stage with proportional gutters so the composition keeps its
+   ratio instead of floating. */
+@media (min-width: 1536px) {
+  .container-page {
+    max-width: 90rem; /* 1440px */
+    padding-inline: clamp(1.25rem, 0.5rem + 3vw, 5rem);
+  }
+}
+
+/* Luminance elevation surfaces (replace black drop-shadows on dark) */
+.surface-1 { background: var(--surface); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-elev-1); }
+.surface-2 { background: var(--surface-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-elev-2); }
+
+/* Readable content panel over the living background. Keeps body copy legible
+   over the animated holo/aurora while still letting the backdrop glow through —
+   mostly-opaque surface so text stays >= 4.5:1 even if backdrop-filter is a
+   no-op (forced-colors, older engines). One class so the look tunes in one place. */
+.panel {
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-elev-1);
+}
+.glow-primary { box-shadow: var(--glow-primary); }
+.glow-accent { box-shadow: var(--glow-accent); }
+
+.text-glow { text-shadow: 0 0 24px rgba(139, 92, 246, 0.35); }
+.text-glow-accent { text-shadow: 0 0 24px rgba(45, 212, 191, 0.3); }
+
+/* Unified film grain (jc-53t) — ONE static monochrome film over the WHOLE
+   frame so DOM surfaces (cards, panels, dock, contact card) carry the same
+   human-made grain the WebGL layer already has, instead of two worlds in one
+   frame. A single fixed, pointer-events-none ::after at z-70 sits ABOVE all
+   content + chrome (content z-10, BrandMark/StageManager z-40, dock z-50,
+   progress z-60) yet BELOW the boot overlay (z-99/100), so mix-blend-mode
+   overlay blends the tiled noise over BOTH the near-black void AND card
+   interiors — not just the void it used to sit under at z-1.
+   MONOCHROME: the tile is opaque grayscale — feColorMatrix broadcasts one
+   fractalNoise channel to R=G=B (values row0-2 = "1 0 0 0 0", alpha row =
+   "0 0 0 0 1"), so there is no third colour, unlike the old bare feTurbulence
+   whose independent RGB channels speckled colour.
+   NO ANIMATION + background-attachment: fixed pins the film to the viewport
+   plane (like real film grain and the WebGL noise pass): it never moves on
+   scroll → zero shimmer, and the reduced-motion path is the identical static
+   end state (the old `.grain::after { display:none }` reduced-motion rule is
+   dropped so every user sees the same film).
+   SINGLE COMPOSITED LAYER: one fixed GPU layer; the page already recomposites
+   every rAF (WebGL demand loop + Lenis), so the added overlay blend is one
+   marginal GPU pass, not a new main-thread paint → no scroll jank.
+   ASSET: the data-URI SVG below is ~0.33 KB (<< 2 KB cap).
+   CONTRAST-SAFE: fractalNoise is centred on mid-gray (~0.5); overlay with 0.5
+   is the identity, so at opacity 0.03 the worst-case luminance shift on both
+   the #060608 void and #ededf2 body text is < ~0.0004 (normalised) → every
+   text/background pair keeps its AA ratio. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  background-attachment: fixed;
+}
+.vignette::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 120% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Animated gradient text for the hero accent line */
+.text-laser {
+  background: linear-gradient(110deg, var(--primary-hover) 0%, #c4b5fd 40%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Affordance underline for text links — 1px violet hairline that wipes in from
+   the leading edge. transform-only (compositor-cheap); the global reduced-motion
+   transition cap turns it into a near-instant state swap. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.2s var(--ease-beam);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* Group-driven variant: underline reveals when the ANCESTOR .group is hovered
+   (for links where the hover target is a wrapping anchor, not the text span). */
+.link-underline-onhover {
+  position: relative;
+}
+.link-underline-onhover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.2s var(--ease-beam);
+}
+.group:hover .link-underline-onhover::after,
+.group:focus-visible .link-underline-onhover::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* One-shot specular sweep for the single filled violet CTA. Hover-triggered,
+   never looping. 0.32-alpha white at 0.55s: bright + fast enough to actually
+   read mid-sweep over the violet fill (0.18/0.7s spent itself below the
+   perceptual threshold — adversarial-motion #16a). Gated to hover-capable
+   pointers; the global reduced-motion cap shortens it harmlessly. */
+.cta-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.cta-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+}
+@media (hover: hover) {
+  .cta-sheen:hover::before {
+    transform: translateX(120%);
+    transition: transform 0.55s var(--ease-beam);
+  }
+}
+
+/* ----------------------------------------------------------------------- */
+/*                          Lenis (smooth scroll)                          */
+/* ----------------------------------------------------------------------- */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }
+
+/* ----------------------------------------------------------------------- */
+/*                              Keyframes                                   */
+/* ----------------------------------------------------------------------- */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Ambient aurora — slow drifting violet/cyan glows for a living backdrop.
+   Renders at first paint (pure CSS, no WebGL), GPU-composited transform/opacity;
+   frozen under reduced-motion. Visible on mobile/low-end where WebGL is gated. */
+.aurora { position: absolute; inset: 0; overflow: hidden; }
+.aurora-blob {
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  max-width: 760px;
+  max-height: 760px;
+  border-radius: 9999px;
+  filter: blur(90px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.aurora-blob--violet { background: radial-gradient(circle, rgba(139, 92, 246, 0.55), transparent 68%); }
+.aurora-blob--cyan { background: radial-gradient(circle, rgba(45, 212, 191, 0.42), transparent 68%); }
+/* 1920 stage (jc-wpd): let the glows scale with the wider viewport so the
+   void above each act's fold stays lit edge-to-edge instead of collapsing
+   into flat-black bands between corner blobs. */
+@media (min-width: 1536px) {
+  .aurora-blob {
+    max-width: 1100px;
+    max-height: 1100px;
+    filter: blur(110px);
+  }
+}
+.aurora-1 { top: -16%; left: -10%; opacity: 0.16; animation: aurora-drift-1 34s ease-in-out infinite; }
+.aurora-2 { bottom: -20%; right: -12%; opacity: 0.13; animation: aurora-drift-2 46s ease-in-out infinite; }
+.aurora-3 { top: 26%; right: 24%; opacity: 0.10; animation: aurora-drift-3 39s ease-in-out infinite; }
+
+@keyframes aurora-drift-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(12%, 9%, 0) scale(1.18); }
+  66% { transform: translate3d(-9%, 17%, 0) scale(0.92); }
+}
+@keyframes aurora-drift-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-15%, -11%, 0) scale(1.22); }
+}
+@keyframes aurora-drift-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  40% { transform: translate3d(11%, -13%, 0) scale(1.12); }
+  75% { transform: translate3d(-7%, 7%, 0) scale(0.95); }
+}
+
+/* Holo canvas fade-in on mount — masks the first-frame shader-compile hitch.
+   Pure CSS (runs on mount) so no React state updates inside the R3F commit
+   (an onCreated->setState fade crashes React 19's dev reconciler). */
+.holo-canvas-fade { animation: holo-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes holo-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ----------------------------------------------------------------------- */
+/*           prefers-reduced-motion — designed calm fallback               */
+/*   Kill looping keyframe animations + transform motion, but PRESERVE     */
+/*   short opacity/colour transitions so the UI still feels alive.         */
+/* ----------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  /* Stop perpetual keyframe loops (float / bounce / pulse / spin). */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  /* Cap any transition so transform-based motion can't sweep, while a
+     150ms opacity/colour fade still reads as a calm, intentional change. */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 150ms !important;
+  }
+  /* Grain is a STATIC film (no animation, no travel), so reduced-motion keeps
+     the identical end state — hiding it would give reduced-motion users a
+     different, flatter frame (jc-53t). */
+  .animate-bounce,
+  .animate-pulse { animation: none !important; }
+}
+
+/* ----------------------------------------------------------------------- */
+/*        High-contrast / forced-colors graceful support (WCAG)            */
+/* ----------------------------------------------------------------------- */
+@media (prefers-contrast: more) {
+  :root {
+    --muted-foreground: #c4c4cf;
+    --subtle-foreground: #b0b0bd;
+    --border: rgba(255, 255, 255, 0.22);
+    --border-subtle: rgba(255, 255, 255, 0.14);
+  }
+}
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid CanvasText; }
+  .surface-1, .surface-2 { border: 1px solid CanvasText; }
+}
+
+/* ---- THE BEAM: boot ignition overlay ---------------------------------- */
+/* Pre-hydration static cover: paints the same background color from the very
+   first paint on genuine first visits, bridging paint→hydration so the SSR
+   hero never flashes before BootIgnition mounts. z-99 sits BELOW the animated
+   overlay (z-100) so BootIgnition paints over it seamlessly. Removed by an
+   inline script on repeat/reduced-motion, and by BootIgnition once mounted. */
+#boot-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: var(--background);
+}
+/* Relay timeline (one continuous light, overlay mount = t0):
+   spark 0→0.4s · line draws out of the spark center-out 0.35→0.85s · veil
+   dissolves 0.8→1.1s · spark RIDES the line as it lands on the hero
+   underline's measured rect (--land-*) 0.85→1.2s · land's animationend fires
+   finish() → hero cascade starts 1.35s and the name rises to MEET the landed
+   line · boot line opacity-crossfades 1:1 into HeroUnderline 1.6→1.85s at the
+   same rect · the overlay unmounts ~2.0s. The veil (boot proper) is gone at
+   1.1s; everything after is the page absorbing the light. */
+.boot-ignition {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  /* The container never intercepts (skip listens on window); the veil child
+     shields blind clicks while opaque. No opacity animation lives here, so
+     the skip path's transition below fires reliably (a running animation on
+     the same property would suppress it — measured under jc-t8x). */
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+}
+.boot-ignition--leaving { opacity: 0; }
+.boot-ignition--leaving .boot-ignition__veil { pointer-events: none; }
+/* Self-clearing veil: a compositor-driven fade at the scripted time so a
+   saturated main thread (delayed animationend/watchdog) can never hold the
+   visual veil hostage. `visibility: hidden` at the end also releases pointer
+   interception even before React unmounts the overlay — the landed hairline
+   that outlives it belongs to a pointer-events:none container. */
+.boot-ignition__veil {
+  position: absolute;
+  inset: 0;
+  background: var(--background);
+  pointer-events: auto;
+  animation: boot-veil-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+}
+/* Spark ignites, then rides the landing line (same --land-* target, dying
+   into the underline) — the head never becomes a second, orphaned light. */
+.boot-ignition__spark {
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: var(--primary-hover);
+  box-shadow: 0 0 24px 6px rgba(139, 92, 246, 0.9), 0 0 80px 20px rgba(139, 92, 246, 0.45);
+  animation: beam-spark 0.4s cubic-bezier(0.16, 1, 0.3, 1) both,
+             beam-spark-ride 0.35s cubic-bezier(0.7, 0, 0.2, 1) 0.85s forwards;
+}
+/* Draw (scaleX from center — the spark visibly becomes the line), then land
+   (translate + scaleX onto the underline rect; `forwards`, NOT `both`: a
+   backwards fill would clamp transform to the land's `from` during its delay
+   and erase the draw), then handoff (opacity only — crossfades 1:1 with
+   HeroUnderline fading in at the same rect, keyed off bootDone). */
+.boot-ignition__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary) 20%, var(--primary-hover) 50%, var(--primary) 80%, transparent);
+  box-shadow: 0 0 18px 2px rgba(139, 92, 246, 0.7);
+  transform: scaleX(0);
+  animation: beam-line 0.5s cubic-bezier(0.33, 1, 0.68, 1) 0.35s both,
+             beam-line-land 0.35s cubic-bezier(0.7, 0, 0.2, 1) 0.85s forwards,
+             beam-line-handoff 0.25s ease-out 1.6s forwards;
+}
+/* Caption must die WITH the veil (0.8s) — it can't outlive the boot into the
+   crossfade tail, so it breathes 0.3→1.05s. */
+.boot-ignition__skip {
+  position: absolute;
+  bottom: clamp(2rem, 6vh, 3.5rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  opacity: 0;
+  animation: boot-skip-in 0.35s ease-out 0.3s both,
+             boot-skip-out 0.25s ease-out 0.85s forwards;
+}
+@keyframes beam-spark {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(2.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes beam-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes beam-line-land {
+  from { transform: translate(0, 0) scaleX(1); }
+  to { transform: translate(var(--land-x, 0px), var(--land-y, -54vh)) scaleX(var(--land-scale, 0.25)); }
+}
+@keyframes beam-spark-ride {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  60% { opacity: 0.85; }
+  100% { transform: translate(var(--land-x, 0px), var(--land-y, -54vh)) scale(0.4); opacity: 0; }
+}
+@keyframes beam-line-handoff { to { opacity: 0; } }
+@keyframes boot-veil-fade { to { opacity: 0; visibility: hidden; } }
+@keyframes boot-skip-in { to { opacity: 0.55; } }
+@keyframes boot-skip-out { to { opacity: 0; } }
+
+/* ---- Terminal console: idle block caret -------------------------------- */
+/* A blinking violet block shown at the live prompt before focus, so the
+   console reads as interactive without any input. CSS-driven so
+   prefers-reduced-motion holds it static (still visible, just calm). */
+.terminal-caret {
+  display: inline-block;
+  width: 0.5rem;
+  height: 1.05rem;
+  border-radius: 1px;
+  background: var(--primary-hover);
+  box-shadow: 0 0 8px 0 rgba(139, 92, 246, 0.5);
+  animation: terminal-caret-blink 1.1s steps(1) infinite;
+}
+@keyframes terminal-caret-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .terminal-caret { animation: none; opacity: 0.9; }
+}
+
+/* ---- THE BEAM: prism vertex pulse -------------------------------------- */
+/* CSS-driven (not SMIL) so prefers-reduced-motion actually gates it. */
+.prism-vertex {
+  animation: prism-vertex-pulse 2.4s ease-in-out infinite;
+}
+@keyframes prism-vertex-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prism-vertex {
+    animation: none;
+    opacity: 1; /* lit end-state: vertex reads as struck, just not pulsing */
+  }
+}
