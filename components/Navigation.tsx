@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+    AnimatePresence,
     motion,
     useMotionValue,
     useReducedMotion,
@@ -9,6 +10,7 @@ import {
     useTransform,
 } from "framer-motion";
 import Link from "next/link";
+import { ChevronsDown } from "lucide-react";
 import { navSections } from "@/data/sections";
 import { useScrollStore } from "@/hooks/useScrollStore";
 import { selectExpPinned, useActStore } from "@/hooks/useActStore";
@@ -71,6 +73,16 @@ function MagneticButton({
     // between two frames coalesce into ONE transform write per frame.
     const pointer = useRef({ x: 0, y: 0 });
     const frame = useRef<number | null>(null);
+
+    // One-shot press ring (jc-16m): a violet ring pings out from the pressed
+    // chip on every activation (tap OR click — not fine-pointer-gated like the
+    // magnetic pull, since touch users get it too). `pulseId` increments per
+    // press; changing the key remounts the ring so framer replays initial→animate
+    // from scratch on every press, and `onAnimationComplete` unmounts it again so
+    // no stale ring nodes accumulate. Reduced-motion never increments the id, so
+    // the ring never mounts — only the existing active-state change survives.
+    const prefersReducedMotion = useReducedMotion();
+    const [pulseId, setPulseId] = useState(0);
 
     // Motion values update the transform OFF the React render path (no re-render
     // of this fixed dock per mousemove). Springs add the heavy/premium glide.
@@ -135,6 +147,11 @@ function MagneticButton({
         };
     }, [enableMotion, mvX, mvY]);
 
+    const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        if (!prefersReducedMotion) setPulseId((id) => id + 1);
+        onClick?.(event);
+    };
+
     return (
         <motion.div style={{ x, y }} className="group relative">
             {/* Tooltip — visible on hover AND keyboard focus for discoverability.
@@ -150,41 +167,79 @@ function MagneticButton({
             <Link
                 ref={ref}
                 href={href}
-                onClick={onClick}
+                onClick={handleClick}
                 onMouseEnter={handleEnter}
                 onMouseMove={handleMove}
                 onMouseLeave={reset}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay ${
+                // coarse: overrides restack the chip icon-over-label (jc-2cx) —
+                // every dock item (not just the active one) gets a legible touch
+                // label, since coarse pointers never see the hover tooltip above.
+                // The chip grows past the 44px floor rather than clipping the
+                // label; min-h/min-w keep the touch target itself never shrinking
+                // under 44px.
+                className={`relative flex h-11 min-h-[44px] items-center justify-center gap-2 rounded-full transition-colors active:scale-[0.92] focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent hover:bg-surface-overlay coarse:h-auto coarse:flex-col coarse:justify-center coarse:gap-0.5 coarse:py-1.5 ${
                     isActive
-                        ? "bg-primary-muted px-3 text-primary hover:bg-primary-muted lg:px-4"
-                        : "w-11 min-w-[44px] text-muted-foreground hover:text-primary"
+                        ? "bg-primary-muted px-3 text-primary hover:bg-primary-muted lg:px-4 coarse:px-2"
+                        : "w-11 min-w-[44px] text-muted-foreground hover:text-primary coarse:w-auto coarse:min-w-[44px] coarse:px-2"
                 }`}
             >
                 <motion.span style={{ x: iconX, y: iconY }} className="inline-flex">
                     {children}
                 </motion.span>
                 {/* Single label span = the link's accessible name. Visually hidden
-                    except on the ACTIVE item, where it surfaces as the dock's
-                    leading text segment on touch (coarse pointers, which never see
-                    the hover tooltip) and on desktop (lg+). The visible text always
-                    matches the accessible name (WCAG 2.5.3). */}
+                    except on the ACTIVE item on desktop (lg+), where it surfaces as
+                    the dock's inline leading text segment. Touch gets its OWN
+                    always-visible micro-label below (next span) instead of this one,
+                    since flex-row inline text doesn't fit the icon-over-label coarse
+                    layout. The visible text always matches the accessible name
+                    (WCAG 2.5.3). */}
                 <span
                     className={
                         isActive
-                            ? "sr-only whitespace-nowrap text-sm font-medium coarse:not-sr-only lg:not-sr-only"
+                            ? "sr-only whitespace-nowrap text-sm font-medium lg:not-sr-only"
                             : "sr-only"
                     }
                 >
                     {label}
                 </span>
-                {/* Active indicator dot beneath the icon. */}
+                {/* Touch micro-label (jc-2cx): every chip, active or not, gets a
+                    tiny mono caption under the icon on coarse pointers — decorative
+                    only (the span above already carries the accessible name), so
+                    this one is aria-hidden to avoid double-announcing to AT. */}
                 <span
                     aria-hidden="true"
-                    className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity ${
+                    className="hidden whitespace-nowrap text-[9px] font-mono uppercase leading-none tracking-[0.04em] text-current coarse:block"
+                >
+                    {label}
+                </span>
+                {/* Active indicator dot beneath the icon. Coarse drops it — the
+                    tinted chip + colored micro-label above already carry the active
+                    state there, so a second dot under the label would just be
+                    visual noise stacked below the text. */}
+                <span
+                    aria-hidden="true"
+                    className={`absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary transition-opacity coarse:hidden ${
                         isActive ? "opacity-100" : "opacity-0"
                     }`}
                 />
+                {/* One-shot press ring (jc-16m): pings violet from the pressed chip.
+                    AnimatePresence removes it again once the animation completes, so
+                    presses never accumulate stale nodes. */}
+                <AnimatePresence>
+                    {pulseId > 0 && (
+                        <motion.span
+                            key={pulseId}
+                            aria-hidden="true"
+                            initial={{ scale: 0.7, opacity: 0.6 }}
+                            animate={{ scale: 1.7, opacity: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                            onAnimationComplete={() => setPulseId(0)}
+                            className="pointer-events-none absolute inset-0 rounded-full border-2 border-[color:var(--primary)]"
+                        />
+                    )}
+                </AnimatePresence>
             </Link>
         </motion.div>
     );
@@ -198,6 +253,18 @@ export default function Navigation() {
     // bottom-center lane with the act's own progress row. Yield: slide down +
     // fade so the progress bar / hot head own that lane, then breathe back in.
     const pinned = useActStore(selectExpPinned);
+
+    // Escape hatch (jc-42a): the pin runs the Experience act for ~300vh with
+    // the dock yielded, so a visitor who wants OUT has no wayfinding for the
+    // whole scrub. The next act in nav order (not hardcoded — reads the same
+    // navSections list the dock renders) gets a standing skip affordance that
+    // lives ONLY while pinned, in the top-right corner: clear of the pin's own
+    // bottom-center progress row (the exact collision the dock's own yield was
+    // built to avoid), so nothing new re-introduces it.
+    const nextSection = useMemo(() => {
+        const expIndex = navSections.findIndex((s) => s.id === "exp");
+        return expIndex === -1 ? undefined : navSections[expIndex + 1];
+    }, []);
 
     const handleNavClick =
         (href: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -235,9 +302,10 @@ export default function Navigation() {
         };
 
     return (
-        // De-gated from the boot sequence: the dock mounts immediately and
-        // fades/lifts in on its own, so navigation is available before (and
-        // independent of) the terminal boot animation finishing.
+        <>
+        {/* De-gated from the boot sequence: the dock mounts immediately and
+            fades/lifts in on its own, so navigation is available before (and
+            independent of) the terminal boot animation finishing. */}
         <motion.nav
             aria-label="Primary"
             // React 19 `inert` fully removes the yielded dock from pointer + tab
@@ -284,5 +352,42 @@ export default function Navigation() {
                 ))}
             </ul>
         </motion.nav>
+
+        {nextSection && (
+            <motion.div
+                // Inverse of the dock's inert/pointer-events swap above: this
+                // affordance is a no-op (and out of the tab order) except
+                // during the exact window it exists for.
+                inert={pinned ? undefined : true}
+                initial={false}
+                animate={{ opacity: pinned ? 1 : 0, scale: pinned ? 1 : 0.85 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className={`fixed right-5 top-5 z-40 ${
+                    pinned ? "pointer-events-auto" : "pointer-events-none"
+                }`}
+            >
+                <Link
+                    href={`#${nextSection.id}`}
+                    onClick={handleNavClick(`#${nextSection.id}`)}
+                    aria-label={`Skip to ${nextSection.navLabel}`}
+                    tabIndex={pinned ? 0 : -1}
+                    className="group relative flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full border border-border bg-surface-overlay/80 text-muted-foreground shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-xl transition-colors hover:bg-surface-overlay hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary-hover)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.92]"
+                >
+                    <span
+                        role="tooltip"
+                        className="pointer-events-none absolute -bottom-9 right-0 whitespace-nowrap rounded-full border border-border bg-surface-overlay px-2.5 py-1 text-xs font-medium leading-none tracking-wide text-foreground opacity-0 translate-y-[-4px] shadow-[0_1px_0_0_rgba(255,255,255,0.05)_inset,0_8px_24px_-18px_rgba(0,0,0,0.5)] transition-all group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0 coarse:hidden"
+                    >
+                        Skip to {nextSection.navLabel}
+                    </span>
+                    <ChevronsDown
+                        size={18}
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                        className="origin-center transition-transform motion-safe:group-hover:translate-y-px motion-safe:group-hover:scale-[1.06]"
+                    />
+                </Link>
+            </motion.div>
+        )}
+        </>
     );
 }

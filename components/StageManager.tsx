@@ -85,9 +85,10 @@ export default function StageManager() {
         stageSections.find((act) => act.id === activeId) ?? stageSections[0];
 
     return (
-        // Nudged down from top-12 to clear the fixed header brand mark that now
-        // sits at top-5 left-5; this keeps the act indicator from colliding with
-        // it while staying aligned to the left gutter.
+        <>
+        {/* Nudged down from top-12 to clear the fixed header brand mark that now
+            sits at top-5 left-5; this keeps the act indicator from colliding with
+            it while staying aligned to the left gutter. */}
         <motion.div
             inert={pinned ? true : undefined}
             animate={{ opacity: pinned ? 0 : 1, x: pinned ? -12 : 0 }}
@@ -138,5 +139,42 @@ export default function StageManager() {
                 </div>
             </div>
         </motion.div>
+
+        {/* Compact position indicator (jc-2cx): the rail above is lg-only, so
+            below that breakpoint tablet/mobile visitors lost ALL sense of "which
+            act, how many left" — the dock's active label names the current act,
+            but never the count. A minimal numeral + step-dot chip in the
+            opposite top corner from BrandMark (top-5 left-5) answers both without
+            adding a second full rail. Purely decorative (the dock's own
+            aria-current links + each act's sr-only heading already carry this
+            for assistive tech), so the whole chip is aria-hidden. Fades with the
+            same pinned signal as the lg rail: the Experience pin's escape-hatch
+            affordance (Navigation.tsx, jc-42a) claims this exact corner while
+            scrubbed, so the two are never on-screen together. */}
+        <motion.div
+            aria-hidden="true"
+            animate={{ opacity: pinned ? 0 : 1 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed right-5 top-5 z-40 flex lg:hidden"
+        >
+            <div className="flex items-center gap-2 rounded-full border border-border bg-surface-overlay/80 px-3 py-2 shadow-[0_1px_0_0_rgba(255,255,255,0.06)_inset,0_18px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+                <span className="font-mono text-xs tabular-nums text-primary">
+                    {currentAct.stageLabel}
+                </span>
+                <span className="flex items-center gap-1">
+                    {stageSections.map((act) => (
+                        <span
+                            key={act.id}
+                            className={`h-1 rounded-full transition-all duration-300 ${
+                                act.id === activeId
+                                    ? "w-3 bg-primary"
+                                    : "w-1 bg-border-strong"
+                            }`}
+                        />
+                    ))}
+                </span>
+            </div>
+        </motion.div>
+        </>
     );
 }
