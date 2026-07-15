@@ -5,8 +5,14 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useBeamStore } from "@/hooks/useBeamStore";
 import { useScrollStore } from "@/hooks/useScrollStore";
+import { useActStore } from "@/hooks/useActStore";
 import { getBeamAnchorFrame } from "@/hooks/useBeamAnchors";
+import { stageSections } from "@/data/sections";
 import { damp } from "./anim";
+
+// The hero is the FIRST stage act — the only place the idle attractor beckons
+// (the cursor-heat field it advertises lives up here, undiscovered until moved).
+const HERO_ACT_ID = stageSections[0].id;
 
 // Relay hold: the ribbon is the LAST leg of the boot relay (spark → line →
 // underline → ribbon). It stays dark until the boot-line→underline crossfade
@@ -44,6 +50,19 @@ const BOW_PX = 2.5;
 const BOW_PULSE_MS = 520;
 const BOW_PULSE_GAIN = 1.6;
 const BOW_PULSE_ATTACK = 0.18; // fraction of the window spent rising to the peak
+// Idle beam attractor: once the hero act has owned the reading zone for
+// ATTRACTOR_IDLE_MS with NO pointer move / scroll / touch, the ribbon self-fires
+// a subtle recurring pulse at the head — REUSING the BOW_PULSE envelope above —
+// to advertise the (otherwise-undiscoverable) cursor-heat field: it parks a
+// phantom pointer just off the head and runs a heat + bow beat, exactly the
+// gesture a real hover makes, at reduced strength. It cancels on the first real
+// input, re-arms after renewed idleness, and NEVER fires under reduced motion.
+// Cyan stays the same sanctioned cursor-heat cyan (this IS that interaction,
+// previewed), held well under a real hover so the cue reads as a faint beckon.
+const ATTRACTOR_IDLE_MS = 6000; // still, hero-owned time before the first beat
+const ATTRACTOR_GAP_MS = 2600; // quiet beat between recurring pulses (heartbeat)
+const ATTRACTOR_HEAT_PEAK = 0.5; // peak uHeatGain vs. 1.0 on a real hover
+const ATTRACTOR_LEAN = 0.4; // phantom pointer offset as a fraction of the heat radius
 // Curve proximity taps sampled at geometry-build time so the per-frame path can
 // detect the pointer entering the heat radius via an early-out scan (first tap
 // inside the radius wins) — no distance-to-curve solve per frame.
@@ -281,6 +300,17 @@ export default function BeamRibbon({
     const curveSamples = useRef<Float32Array | null>(null);
     const insideHeat = useRef(false);
     const bowPulseStart = useRef(0);
+    // Idle beam attractor bookkeeping (refs only, mutated in useFrame): whether
+    // this is a fine pointer at all (no beckon on touch — there is no cursor-heat
+    // to advertise), the timestamp of the last real input (pointer move / scroll
+    // / touch), the last scrolled Y (scroll = input, detected via a per-frame
+    // delta — no extra listener), the in-flight pulse start (0 = idle), and the
+    // earliest time the next recurring pulse may begin.
+    const finePointer = useRef(false);
+    const lastInputAt = useRef(0);
+    const lastAttractScrollY = useRef(0);
+    const attractPulseStart = useRef(0);
+    const attractNextAt = useRef(0);
     // The answered ask — timestamps only; consumed inside useFrame.
     const lastAskAt = useRef(0);
     const shimmerStart = useRef(0);
@@ -302,11 +332,17 @@ export default function BeamRibbon({
     useEffect(() => {
         // Fine pointers only: cursor heat is a desktop interaction by nature —
         // never ship a dead pointermove→uniform loop on touch devices.
-        if (!window.matchMedia("(pointer: fine)").matches) return;
+        const fine = window.matchMedia("(pointer: fine)").matches;
+        finePointer.current = fine;
+        if (!fine) return;
         const onMove = (e: PointerEvent) => {
             pointerPx.current.x = e.clientX;
             pointerPx.current.y = e.clientY;
             pointerPx.current.active = true;
+            // A real pointer move is input — resets the idle attractor's clock so
+            // its beckon cancels on the very next frame and re-arms only after a
+            // fresh stretch of stillness.
+            lastInputAt.current = performance.now();
             // Reduced motion renders on demand only (no continuous loop) —
             // ask for a frame so the instant heat step is actually visible.
             if (reducedMotion) invalidate();
@@ -315,11 +351,18 @@ export default function BeamRibbon({
             pointerPx.current.active = false;
             if (reducedMotion) invalidate(); // render the heat-off step
         };
+        // Touch is input too (the attractor must cancel on it), even on a hybrid
+        // fine+touch device where pointermove may not fire for a stationary tap.
+        const onTouch = () => {
+            lastInputAt.current = performance.now();
+        };
         window.addEventListener("pointermove", onMove, { passive: true });
+        window.addEventListener("touchstart", onTouch, { passive: true });
         document.documentElement.addEventListener("pointerleave", onLeave);
         window.addEventListener("blur", onLeave);
         return () => {
             window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("touchstart", onTouch);
             document.documentElement.removeEventListener(
                 "pointerleave",
                 onLeave,
@@ -574,6 +617,88 @@ export default function BeamRibbon({
             }
             m.uniforms.uBowAmp.value =
                 restBowAmp.current * (1 + env * BOW_PULSE_GAIN);
+
+            // --- Idle beam attractor -----------------------------------------
+            // After ATTRACTOR_IDLE_MS of no input while the hero act owns the
+            // reading zone, self-fire a recurring pulse at the head to advertise
+            // the cursor-heat field. Every branch is imperative (refs + uniforms,
+            // no React state, no Canvas re-render) and allocates nothing.
+            //
+            // Input clock: a real pointer move / touch stamps lastInputAt (in the
+            // listeners above); scroll is caught here via a per-frame Y delta — no
+            // extra listener — and both cancel any in-flight pulse.
+            if (lastInputAt.current === 0) {
+                lastInputAt.current = now; // first tick — arm from now, not epoch
+                lastAttractScrollY.current = scrollY;
+            }
+            if (scrollY !== lastAttractScrollY.current) {
+                lastAttractScrollY.current = scrollY;
+                lastInputAt.current = now;
+                attractPulseStart.current = 0; // scroll cancels instantly
+            }
+            // Only beckon on a fine pointer that is currently ABSENT (never moved
+            // in, or left the window), while the hero act is live and the ribbon
+            // has actually revealed — never over the undrawn boot tube.
+            const canAttract =
+                finePointer.current &&
+                !ptr.active &&
+                m.uniforms.uReveal.value > 0.9 &&
+                useActStore.getState().activeActId === HERO_ACT_ID &&
+                now - lastInputAt.current > ATTRACTOR_IDLE_MS;
+            if (canAttract) {
+                if (
+                    attractPulseStart.current === 0 &&
+                    now >= attractNextAt.current
+                ) {
+                    attractPulseStart.current = now; // begin one beat
+                }
+                if (attractPulseStart.current > 0) {
+                    const at =
+                        (now - attractPulseStart.current) / BOW_PULSE_MS;
+                    if (at >= 1) {
+                        attractPulseStart.current = 0; // beat done
+                        attractNextAt.current = now + ATTRACTOR_GAP_MS; // rest
+                    } else {
+                        // Same envelope shape as the first-contact bow pulse.
+                        let aEnv;
+                        if (at < BOW_PULSE_ATTACK) {
+                            aEnv = at / BOW_PULSE_ATTACK;
+                        } else {
+                            const decay =
+                                1 -
+                                (at - BOW_PULSE_ATTACK) / (1 - BOW_PULSE_ATTACK);
+                            aEnv = decay * decay;
+                        }
+                        // Park a phantom pointer just off the head sample (leaned
+                        // toward viewport centre so the bow reads as a lean, not a
+                        // pinch) — the taps are untranslated local space, exactly
+                        // what the shader compares vertices against.
+                        if (sbuf) {
+                            let idx = Math.round(
+                                m.uniforms.uHead.value * (BOW_SAMPLES - 1),
+                            );
+                            if (idx < 0) idx = 0;
+                            else if (idx > BOW_SAMPLES - 1) idx = BOW_SAMPLES - 1;
+                            const sx = sbuf[idx * 2];
+                            const off = m.uniforms.uHeatR.value * ATTRACTOR_LEAN;
+                            m.uniforms.uPointer.value.set(
+                                sx + (sx > 0 ? -off : off),
+                                sbuf[idx * 2 + 1],
+                            );
+                        }
+                        // Drive the heat (subtle) + bow overshoot for this beat.
+                        m.uniforms.uHeatGain.value = aEnv * ATTRACTOR_HEAT_PEAK;
+                        m.uniforms.uBowAmp.value =
+                            restBowAmp.current * (1 + aEnv * BOW_PULSE_GAIN);
+                        // Demand loop: keep frames coming while the beat plays,
+                        // then fall silent (the gap coasts on LoopDriver's
+                        // hero-visible ticks).
+                        invalidate();
+                    }
+                }
+            } else if (attractPulseStart.current !== 0) {
+                attractPulseStart.current = 0; // input arrived mid-beat — drop it
+            }
         }
 
         // The answered ask: latch each new askAt (getState() — never a
