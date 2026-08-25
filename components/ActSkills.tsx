@@ -423,16 +423,9 @@ function CertCard({ cert }: { cert: (typeof resumeData.certifications)[number] }
                     <p className="mb-4 text-sm text-muted-foreground">
                         {cert.issuer}
                     </p>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.6875rem] label">
-                        <span className="text-primary">
-                            ISSUED {cert.issued.toUpperCase()}
-                        </span>
-                        <span
-                            aria-hidden="true"
-                            className="h-1 w-1 shrink-0 rotate-45 bg-primary/40"
-                        />
+                    <div className="text-[0.6875rem] label">
                         {/* [copy — owner approval pending] */}
-                        <span className="text-muted-foreground">
+                        <span className="text-primary">
                             VALID THROUGH {cert.expires.toUpperCase()}
                         </span>
                     </div>

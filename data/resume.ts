@@ -196,13 +196,13 @@ export const resumeData: ResumeData = {
       name: "AWS Certified Cloud Practitioner",
       issuer: "Amazon Web Services",
       issued: "Aug 2023",
-      expires: "Sep 2026",
+      expires: "Apr 2029",
     },
     {
       name: "AWS Certified Solutions Architect – Associate",
       issuer: "Amazon Web Services",
       issued: "Sep 2023",
-      expires: "Sep 2026",
+      expires: "Aug 2027",
     },
   ],
   skills: {
