@@ -178,12 +178,25 @@ try {
   );
   assert.equal(await phonePage.locator(".mobile-system").isVisible(), false);
   assert.equal(await phonePage.locator("body.compact").count(), 0);
-  assert.equal(
-    await phonePage
-      .locator("canvas")
-      .evaluate((canvas) => canvas.width <= canvas.clientWidth + 1),
-    true,
-    "Mobile render buffer must cap pixel density at 1x",
+  const initialBuffer = await phonePage
+    .locator("canvas")
+    .evaluate((canvas) => ({
+      width: canvas.width,
+      height: canvas.height,
+      cssWidth: canvas.clientWidth,
+      cssHeight: canvas.clientHeight,
+    }));
+  assert.ok(
+    initialBuffer.width >= initialBuffer.cssWidth * 2,
+    "High-density phones should render above CSS resolution",
+  );
+  assert.ok(
+    initialBuffer.width <= initialBuffer.cssWidth * 2.5 + 1,
+    "Phone rendering should stay within the 2.5x density ceiling",
+  );
+  assert.ok(
+    initialBuffer.width * initialBuffer.height <= 900_000,
+    "Phone drawing buffer must stay within its pixel budget",
   );
   const scrollChapter = async (page, progress) => {
     await page.evaluate(
@@ -311,7 +324,10 @@ try {
         scene.bottom <= dock.top &&
         document.documentElement.scrollWidth <= innerWidth &&
         scene.height >= 180 &&
-        dock.bottom <= innerHeight + 1
+        dock.bottom <= innerHeight + 1 &&
+        document.querySelector("canvas.webgl-system").width *
+          document.querySelector("canvas.webgl-system").height <=
+          900_000
       );
     });
     assert.equal(layout, true, `Mobile scene layout at ${width}x${height}`);
