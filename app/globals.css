@@ -3403,3 +3403,83 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
   max-width: 560px;
   color: var(--muted);
 }
+
+/* SVG keeps the chapter animation available without WebGL on mobile GPUs. */
+.mobile-system {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+.mobile-scene .mobile-system,
+.css-fallback .mobile-system {
+  display: block;
+}
+.mobile-scene .system-camera,
+.css-fallback .system-camera {
+  display: none;
+}
+.mobile-scene .system-theater,
+.css-fallback .system-theater {
+  perspective: none;
+}
+@media (max-width: 560px), (pointer: coarse) and (max-width: 1024px) {
+  /* A static illustration is present even before the enhancement loads. */
+  .mobile-system {
+    display: block;
+  }
+  .system-camera {
+    display: none;
+  }
+  .system-theater {
+    perspective: none;
+  }
+  .compact .cinema-stage,
+  .cinema-stage {
+    display: grid;
+    gap: 16px;
+    height: auto;
+    min-height: 0;
+    padding: calc(var(--header) + 24px) 6% 24px;
+  }
+  .compact .scene-meta,
+  .scene-meta,
+  .compact .cinema-copy,
+  .cinema-copy,
+  .compact .system-theater,
+  .system-theater,
+  .compact .cinema-bottom,
+  .cinema-bottom {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    margin: 0;
+  }
+  .compact .cinema-copy,
+  .cinema-copy {
+    display: grid;
+    height: auto;
+  }
+  .scene-copy {
+    position: relative;
+    grid-area: 1 / 1;
+  }
+  .compact .system-theater,
+  .system-theater {
+    height: clamp(230px, 66vw, 300px);
+  }
+  .compact .cinema-bottom,
+  .cinema-bottom {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .compact:not(.is-reading) .scroll-prompt {
+    display: flex;
+  }
+  .scene-copy[data-scene="0"] .scene-footnote,
+  .chapter-proof {
+    display: none;
+  }
+  .scroll-line {
+    display: none;
+  }
+}

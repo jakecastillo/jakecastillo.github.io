@@ -37,7 +37,7 @@ The static preview is at `http://127.0.0.1:4174`. A Next.js server is not requir
 - `public/`: only assets intentionally served to visitors.
 - `tooling/`: export preview, privacy guard, browser verification, and branded-asset generation.
 
-Text, links, work history, and native disclosures render before JavaScript. The scene uses a single scroll clock, renders only when needed, and falls back to SVG/CSS if WebGL fails. Reduced motion skips initial WebGL loading. There is no boot gate, custom wheel interception, analytics, contact-form backend, or perpetual graphics loop. Fonts are self-hosted through `next/font`.
+Text, links, work history, and native disclosures render before JavaScript. Desktop WebGL follows native scrolling. Phones and small touch screens use a server-rendered SVG scene with short, interruptible chapter transitions, so animation does not require GPU support. The same SVG also covers desktop WebGL failure. Both paths render only when needed. Reduced motion skips initial WebGL loading. There is no boot gate, custom wheel interception, analytics, contact-form backend, or perpetual graphics loop. Fonts are self-hosted through `next/font`.
 
 ## Public content and private inputs
 
