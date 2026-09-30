@@ -128,40 +128,56 @@ try {
   console.log(
     "Navigation, responsive, accessibility, and GPU fallback checks passed.",
   );
-  // Android-sized touch viewport with WebGL unavailable: the scene must still animate.
+  // Mobile keeps the real 3D scene and follows native scrolling in both directions.
   const phone = await browser.newContext({
     viewport: { width: 393, height: 851 },
     isMobile: true,
     hasTouch: true,
     deviceScaleFactor: 3,
   });
-  await phone.addInitScript(() => {
-    const getContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-      if (/webgl/.test(type)) return null;
-      return getContext.call(this, type, ...args);
-    };
-  });
   const phonePage = await phone.newPage();
   phonePage.on("pageerror", (error) => errors.push(error.message));
   await phonePage.goto(origin);
-  await phonePage.locator("body.mobile-scene.compact").waitFor();
-  assert.equal(await phonePage.locator("canvas.webgl-system").count(), 0);
-  assert.equal(await phonePage.locator(".mobile-system").isVisible(), true);
-  for (let i = 1; i < 5; i++) {
-    await phonePage.locator(".chapter-navigation a").nth(i).tap();
-    await phonePage.waitForFunction((index) => {
-      const p = Number(
-        document.querySelector(".mobile-system").dataset.progress,
-      );
-      return p > (index - 1) / 4 && p < index / 4;
-    }, i);
-    await phonePage.waitForFunction(
-      (index) =>
-        document.querySelector(".mobile-system").dataset.progress ===
-        (index / 4).toFixed(3),
-      i,
+  await phonePage.locator("body.webgl-ready").waitFor();
+  assert.equal(
+    await phonePage.locator("canvas.webgl-system").getAttribute("data-quality"),
+    "mobile",
+  );
+  assert.equal(await phonePage.locator(".mobile-system").isVisible(), false);
+  assert.equal(await phonePage.locator("body.compact").count(), 0);
+  assert.equal(
+    await phonePage
+      .locator("canvas")
+      .evaluate((canvas) => canvas.width <= canvas.clientWidth + 1),
+    true,
+    "Mobile render buffer must cap pixel density at 1x",
+  );
+  const scrollChapter = async (page, progress) => {
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
     );
+    await page.evaluate((p) => {
+      const track = document.querySelector(".scroll-track");
+      const stage = document.querySelector(".cinema-stage");
+      const start = track.getBoundingClientRect().top + scrollY;
+      scrollTo({
+        top: start + (track.offsetHeight - stage.offsetHeight) * p,
+        behavior: "instant",
+      });
+    }, progress);
+    await page.waitForFunction(
+      (p) =>
+        Math.abs(
+          Number(document.querySelector(".mobile-system").dataset.progress) - p,
+        ) < 0.005,
+      progress,
+    );
+  };
+  for (const i of [0, 1, 2, 3, 4, 3, 2, 1, 0]) {
+    await scrollChapter(phonePage, i / 4);
     assert.equal(
       await phonePage.locator(".scene-copy.current").getAttribute("data-scene"),
       String(i),
@@ -170,40 +186,98 @@ try {
       await phonePage.locator(".scene-copy:not(.current):not([inert])").count(),
       0,
     );
+    assert.equal(
+      await phonePage
+        .locator(".cinema-stage")
+        .evaluate((stage) => getComputedStyle(stage).position),
+      "sticky",
+    );
+  }
+  await scrollChapter(phonePage, 0.5);
+  await phonePage.waitForFunction(
+    () =>
+      Math.abs(
+        Number(document.querySelector("canvas.webgl-system").dataset.progress) -
+          0.385,
+      ) < 0.01,
+  );
+  console.log(
+    "Mobile rendering:",
+    await phonePage.locator("canvas").evaluate((canvas) => ({
+      quality: canvas.dataset.quality,
+      drawCalls: canvas.dataset.drawCalls,
+      triangles: canvas.dataset.triangles,
+      width: canvas.width,
+      cssWidth: canvas.clientWidth,
+    })),
+  );
+  for (const [width, height] of [
+    [360, 740],
+    [320, 640],
+    [851, 393],
+    [393, 751],
+    [393, 851],
+  ]) {
+    await phonePage.setViewportSize({ width, height });
+    await scrollChapter(phonePage, 0.5);
     const layout = await phonePage.evaluate(() => {
       const text = document
         .querySelector(".scene-copy.current")
         .getBoundingClientRect();
       const scene = document
-        .querySelector(".mobile-system")
+        .querySelector(".system-theater")
         .getBoundingClientRect();
       const dock = document
         .querySelector(".chapter-navigation")
         .getBoundingClientRect();
       return (
-        text.bottom <= scene.top &&
+        (text.bottom <= scene.top || text.right <= scene.left) &&
         scene.bottom <= dock.top &&
-        document.documentElement.scrollWidth <= innerWidth
+        document.documentElement.scrollWidth <= innerWidth &&
+        scene.height > 100
       );
     });
-    assert.equal(layout, true, "Phone text, scene, and dock must not overlap");
+    assert.equal(layout, true, `Mobile scene layout at ${width}x${height}`);
   }
-  await phonePage.locator(".chapter-navigation a").nth(0).tap();
-  await phonePage.locator(".chapter-navigation a").nth(2).tap();
+  await phonePage.getByRole("link", { name: "Work", exact: true }).click();
   await phonePage.waitForFunction(
-    () => document.querySelector(".mobile-system").dataset.progress === "0.500",
+    () =>
+      document
+        .querySelector(".work-group")
+        .style.getPropertyValue("--area-progress") !== "",
   );
-  await phonePage.setViewportSize({ width: 851, height: 393 });
-  assert.equal(await phonePage.locator(".mobile-system").isVisible(), true);
-  assert.equal(await phonePage.locator("canvas.webgl-system").count(), 0);
-  await phonePage.setViewportSize({ width: 360, height: 740 });
+  await phonePage
+    .getByRole("link", { name: "Work history", exact: true })
+    .click();
+  await phonePage.waitForFunction(
+    () =>
+      document
+        .querySelector(".career-timeline")
+        .style.getPropertyValue("--career-progress") !== "",
+  );
   await phonePage.emulateMedia({ reducedMotion: "reduce" });
   await phonePage.locator("body.is-reading").waitFor();
-  assert.equal(await phonePage.locator(".mobile-system").isVisible(), true);
-  await phonePage.waitForFunction(
-    () => document.querySelector(".mobile-system").dataset.progress === "0.000",
-  );
   await phone.close();
+  const unavailable = await browser.newContext({
+    viewport: { width: 393, height: 851 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  await unavailable.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      return /webgl/.test(type) ? null : original.call(this, type, ...args);
+    };
+  });
+  const unavailablePage = await unavailable.newPage();
+  await unavailablePage.goto(origin);
+  await unavailablePage.locator("body.css-fallback").waitFor();
+  assert.equal(
+    await unavailablePage.locator(".mobile-system").isVisible(),
+    true,
+  );
+  await scrollChapter(unavailablePage, 0.75);
+  await unavailable.close();
   const phonePlain = await browser.newContext({
     javaScriptEnabled: false,
     viewport: { width: 360, height: 740 },
@@ -218,7 +292,7 @@ try {
   );
   await phonePlain.close();
   console.log(
-    "Mobile SVG, touch transitions, rotation, reduced motion, and no-JS fallback passed.",
+    "Mobile WebGL, forward/reverse scroll, rotation, record animations, and GPU/no-JS fallback passed.",
   );
   const reduced = await browser.newContext({ reducedMotion: "reduce" });
   const reducedPage = await reduced.newPage();

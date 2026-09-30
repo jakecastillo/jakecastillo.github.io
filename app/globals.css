@@ -1188,68 +1188,6 @@ details p + p {
     font-size: 10px;
   }
 }
-/* Short screens use a compact, unpinned scene with explicit chapter controls. */
-.compact .scroll-track {
-  height: auto !important;
-}
-.compact .cinema-stage {
-  position: relative !important;
-  height: 880px;
-  min-height: 0;
-}
-.compact .scene-meta {
-  top: calc(var(--header) + 15px);
-}
-.compact .cinema-copy {
-  top: calc(var(--header) + 55px);
-}
-.compact .system-theater {
-  top: 48%;
-  bottom: 14%;
-}
-.compact .cinema-bottom {
-  bottom: 20px;
-}
-.compact .chapter-navigation {
-  display: flex;
-}
-.compact.is-reading .chapter-navigation {
-  display: none;
-}
-@media (max-height: 600px) and (min-width: 600px) {
-  .compact .cinema-stage {
-    height: 650px;
-  }
-  .compact .cinema-copy {
-    width: 49%;
-    left: 4%;
-    top: 160px;
-  }
-  .compact .scene-copy h1,
-  .compact .scene-copy h2 {
-    font-size: 52px;
-  }
-  .compact .scene-description {
-    font-size: 15px;
-  }
-  .compact .system-theater {
-    top: 120px;
-    bottom: 100px;
-    left: 51%;
-    right: 0;
-  }
-  .compact .hero-actions {
-    gap: 6px;
-  }
-  .compact .scene-link,
-  .compact .reading-link {
-    font-size: 12px;
-  }
-  .compact .cinema-bottom {
-    left: 4%;
-    right: 4%;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   *,
   *:before,
@@ -2230,10 +2168,6 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
     top: 45%;
     bottom: 10%;
   }
-  .compact .system-theater {
-    top: 46%;
-    bottom: 11%;
-  }
   .now-card {
     padding: 25px;
   }
@@ -2581,11 +2515,6 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
 @media (max-width: 560px) {
   .scene-copy h1.positioning-heading {
     font-size: clamp(32px, 9vw, 50px);
-  }
-}
-@media (max-width: 360px) {
-  .compact .system-theater {
-    top: 56%;
   }
 }
 
@@ -3097,9 +3026,6 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
     0 12px 36px #0003,
     inset 0 1px 0 #e6f7c60a;
 }
-.compact:not(.is-reading) .chapter-navigation {
-  display: grid;
-}
 .chapter-navigation a {
   position: relative;
   display: flex;
@@ -3404,28 +3330,31 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
   color: var(--muted);
 }
 
-/* SVG keeps the chapter animation available without WebGL on mobile GPUs. */
+/* SVG is a loading/error illustration; mobile still uses the real 3D scene. */
 .mobile-system {
   display: none;
   width: 100%;
   height: 100%;
 }
-.mobile-scene .mobile-system,
 .css-fallback .mobile-system {
   display: block;
 }
-.mobile-scene .system-camera,
-.css-fallback .system-camera {
+.css-fallback .system-camera,
+.css-fallback .webgl-system {
   display: none;
 }
-.mobile-scene .system-theater,
 .css-fallback .system-theater {
   perspective: none;
 }
+.cinematic .cinema-stage {
+  top: 0;
+}
 @media (max-width: 560px), (pointer: coarse) and (max-width: 1024px) {
-  /* A static illustration is present even before the enhancement loads. */
   .mobile-system {
     display: block;
+  }
+  .webgl-ready .mobile-system {
+    display: none;
   }
   .system-camera {
     display: none;
@@ -3433,28 +3362,25 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
   .system-theater {
     perspective: none;
   }
-  .compact .cinema-stage,
+  .cinematic .scroll-track {
+    height: calc(var(--scene-height, 100svh) + 260svh);
+  }
   .cinema-stage {
     display: grid;
-    gap: 16px;
+    gap: 14px;
     height: auto;
-    min-height: 0;
-    padding: calc(var(--header) + 24px) 6% 24px;
+    min-height: 100svh;
+    padding: calc(var(--header) + 20px) 6% 20px;
   }
-  .compact .scene-meta,
   .scene-meta,
-  .compact .cinema-copy,
   .cinema-copy,
-  .compact .system-theater,
   .system-theater,
-  .compact .cinema-bottom,
   .cinema-bottom {
     position: relative;
     inset: auto;
     width: 100%;
     margin: 0;
   }
-  .compact .cinema-copy,
   .cinema-copy {
     display: grid;
     height: auto;
@@ -3463,16 +3389,14 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
     position: relative;
     grid-area: 1 / 1;
   }
-  .compact .system-theater,
   .system-theater {
-    height: clamp(230px, 66vw, 300px);
+    height: clamp(190px, 29svh, 290px);
   }
-  .compact .cinema-bottom,
   .cinema-bottom {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
-  .compact:not(.is-reading) .scroll-prompt {
+  .scroll-prompt {
     display: flex;
   }
   .scene-copy[data-scene="0"] .scene-footnote,
@@ -3481,5 +3405,106 @@ body:not(.cinematic):not(.is-reading) .chapter-navigation {
   }
   .scroll-line {
     display: none;
+  }
+}
+
+/* Keep chapter copy visible on short phones, without changing the scroll interaction. */
+@media (max-width: 560px) and (max-height: 740px) {
+  .cinema-stage {
+    gap: 8px;
+    padding-top: calc(var(--header) + 12px);
+    padding-bottom: 12px;
+  }
+  .scene-copy h1.positioning-heading,
+  .scene-copy h2 {
+    font-size: clamp(30px, 9vw, 38px);
+  }
+  .scene-copy .eyebrow {
+    margin-bottom: 10px;
+  }
+  .scene-description {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .system-theater {
+    height: 150px;
+  }
+}
+@media (min-width: 600px) and (max-height: 600px) {
+  :root {
+    --header: 60px;
+  }
+  .cinema-header {
+    display: flex;
+    padding: 0 4%;
+    gap: 16px;
+  }
+  .cinema-header nav {
+    margin-left: auto;
+    gap: 12px;
+  }
+  .cinema-stage {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+    height: auto;
+    min-height: 100svh;
+    padding: calc(var(--header) + 12px) 4% 12px;
+  }
+  .scene-meta,
+  .cinema-copy,
+  .system-theater,
+  .cinema-bottom {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+  }
+  .scene-meta {
+    grid-column: 1 / -1;
+  }
+  .cinema-copy {
+    display: grid;
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .scene-copy {
+    position: relative;
+    grid-area: 1 / 1;
+  }
+  .scene-copy h1.positioning-heading,
+  .scene-copy h2 {
+    font-size: 34px;
+  }
+  .scene-copy .eyebrow {
+    font-size: 9px;
+    margin-bottom: 10px;
+  }
+  .scene-description {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .system-theater {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 180px;
+  }
+  .cinema-bottom {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: center;
+  }
+  .scene-footnote,
+  .scene-copy[data-scene="0"] .scene-footnote,
+  .chapter-proof {
+    display: none;
+  }
+  .scroll-prompt {
+    display: flex;
+  }
+  .cinematic .scroll-track {
+    height: calc(var(--scene-height, 100svh) + 260svh);
   }
 }
