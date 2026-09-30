@@ -1,62 +1,56 @@
-# jakecastillo.github.io
+# Jake Castillo — Software & Systems
 
-Personal portfolio site built with Next.js (App Router) and statically exported for GitHub Pages.
+A statically exported Next.js portfolio for [jakecastillo.github.io](https://jakecastillo.github.io), with a progressively enhanced Three.js introduction and a complete HTML reading experience.
 
-- Live site: `https://jakecastillo.github.io`
-- Framework: Next.js static export (`output: "export"`)
-- Styling/UX: Tailwind CSS v4, Framer Motion animations, dark/light theme toggle
+## Develop
 
-## What’s in here
+Use Node.js 22 LTS and npm. The lockfile is authoritative.
 
-- Pages: Home, About, Experience, Skills, Contact (`app/`)
-- Shared UI: `Header`, `Footer`, `ScrollProgress`, `Section` (`components/`)
-- Terminal-style hero: interactive “terminal” typing + command handling (`components/TerminalTyping.tsx`)
-- Content source-of-truth: resume/skills/experience data in `data/resume.ts`
-- SEO basics: Open Graph metadata (`app/layout.tsx`) + sitemap/robots via `next-sitemap`
-
-## Getting Started
-
-Install deps, then run the dev server:
-
-```bash
-yarn install
-yarn dev
+```sh
+npm ci
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Validate the release
 
-## Scripts
+```sh
+npm run format:check
+npm run check
+npx playwright install chromium
+npm run test:e2e
+npm run preview
+```
 
-- `yarn dev`: run locally
-- `yarn build`: build + static export to `out/` (also runs `next-sitemap` via `postbuild`)
-- `yarn lint`: lint
-- `yarn typecheck`: TypeScript check
-- `yarn format`: prettier format
+`check` runs the privacy guard, lint with zero warnings, TypeScript, calendar-boundary tests, and a production static export. The browser verification runs against that export and covers chapter navigation, hidden-caption focus, native disclosures, deep links, five viewport sizes, WCAG-tagged axe checks, reduced motion, no-JavaScript reading, and WebGL failure. These checks do not replace physical-device or assistive-technology testing.
 
-## Project Structure
+The static preview is at `http://127.0.0.1:4174`. A Next.js server is not required in production. `next start` is intentionally not used for the exported site.
 
-- `app/`: routes + layout (`app/layout.tsx` sets global metadata and shells)
-- `components/`: reusable UI (nav, footer, scroll progress, terminal hero)
-- `data/resume.ts`: edit this to update copy, experience, skills, and contact info
-- `public/`: static assets (portrait, icons, generated `robots.txt`/`sitemap.xml`)
+## Structure
 
-## Deploying
+- `app/`: page composition, metadata, sitemap, robots, 404, and styles.
+- `components/portfolio/`: server-rendered editorial sections. This is the authoritative source for approved **public** website copy.
+- `components/portfolio/PortfolioMotion.tsx`: the single client enhancement boundary.
+- `lib/portfolio/runtime.js`: native-scroll chapter control and anchor restoration.
+- `lib/portfolio/records.js`: reading-section interactions, timeline, and clipboard feedback.
+- `lib/portfolio/scene*.js`: lazy-loaded graphics and geometry, using the npm Three.js package.
+- `lib/portfolio/lifecycle.js`: abortable subscriptions and frame cleanup.
+- `public/`: only assets intentionally served to visitors.
+- `tooling/`: export preview, privacy guard, browser verification, and branded-asset generation.
 
-This repo is configured to deploy to GitHub Pages via `.github/workflows/deploy.yml`:
+Text, links, work history, and native disclosures render before JavaScript. The scene uses a single scroll clock, renders only when needed, and falls back to SVG/CSS if WebGL fails. Reduced motion skips initial WebGL loading. There is no boot gate, custom wheel interception, analytics, contact-form backend, or perpetual graphics loop. Fonts are self-hosted through `next/font`.
 
-- On push to `master`, GitHub Actions installs deps, lints, typechecks, builds, and uploads `out/` to Pages.
-- `out/.nojekyll` is created during the workflow to avoid GitHub Pages Jekyll processing.
+## Public content and private inputs
 
-## Customization Checklist
+Anything rendered on this public site is public, including its HTML and application assets. Keep private documents, raw source material, credentials, internal notes, and full source photographs outside the repository. Never use `public/` as a staging folder for private inputs.
 
-- Update content: `data/resume.ts`
-- Update metadata/OG: `app/layout.tsx`
-- Update theme tokens: `app/globals.css` (`--background`, `--primary`, terminal colors, etc.)
-- Update hero image: `public/jake-portrait.jpeg` (referenced by `app/page.tsx`)
+The ignore rules and `npm run check:privacy` reject private document paths, recognized secret formats, old generated bundles, and source maps. This is a defense in depth check, not a guarantee that arbitrary text is safe to publish. Review content changes before committing. Deleting a previously tracked file does **not** erase earlier Git history.
 
-## Notes
+Only the approved site copy belongs in the section components. There is no source-document download or hidden career database. Public portrait derivatives contain no EXIF, XMP, or IPTC metadata. Brand assets can be regenerated with `npm run assets`; then review the resulting images before committing them. Third-party artwork licenses are in `public/licenses/`.
 
-- This site is a static export; Pages are pre-rendered and served as static files (no server runtime).
-- If you add client-only features, keep them compatible with static hosting (no API routes unless you use a third-party backend).
+## Branch review and GitHub Pages
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Feature branch pushes and pull requests run validation. They cannot deploy: the deployment job and upload step are restricted to `refs/heads/master` and excluded from pull-request events. Actions are pinned to commit SHAs; Pages write permissions exist only on the deployment job.
+
+After an approved merge to `master`, the workflow builds `out/`, uploads that directory as the Pages artifact, and deploys with GitHub's official Pages action. Repository Settings → Pages must use **GitHub Actions** as the source. Do not commit `out/`, `_next/`, or compiled HTML to Git.
+
+For a rollback, revert the production merge on `master` and let the same validation and deployment workflow run. Feature branches do not change the live site.

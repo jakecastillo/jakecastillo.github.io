@@ -1,11 +1,10 @@
 {
-  "name": "Jake Castillo — Software Engineer",
+  "name": "Jake Castillo — Software & Systems",
   "short_name": "Jake Castillo",
-  "description": "Software engineer in Honolulu building reliable solutions across cloud, web, and platform systems.",
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#060608",
-  "theme_color": "#060608",
+  "display": "browser",
+  "background_color": "#07110f",
+  "theme_color": "#07110f",
   "icons": [
     {
       "src": "/icons/icon-192.png",
