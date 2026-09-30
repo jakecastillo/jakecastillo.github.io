@@ -121,12 +121,104 @@ try {
   await page.waitForFunction(
     () => !document.body.classList.contains("webgl-ready"),
   );
-  assert.equal(await page.locator(".system-camera").isVisible(), true);
+  assert.equal(await page.locator(".mobile-system").isVisible(), true);
   assert.deepEqual(errors, [], "Unexpected browser exceptions");
 
   await context.close();
   console.log(
     "Navigation, responsive, accessibility, and GPU fallback checks passed.",
+  );
+  // Android-sized touch viewport with WebGL unavailable: the scene must still animate.
+  const phone = await browser.newContext({
+    viewport: { width: 393, height: 851 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 3,
+  });
+  await phone.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      if (/webgl/.test(type)) return null;
+      return getContext.call(this, type, ...args);
+    };
+  });
+  const phonePage = await phone.newPage();
+  phonePage.on("pageerror", (error) => errors.push(error.message));
+  await phonePage.goto(origin);
+  await phonePage.locator("body.mobile-scene.compact").waitFor();
+  assert.equal(await phonePage.locator("canvas.webgl-system").count(), 0);
+  assert.equal(await phonePage.locator(".mobile-system").isVisible(), true);
+  for (let i = 1; i < 5; i++) {
+    await phonePage.locator(".chapter-navigation a").nth(i).tap();
+    await phonePage.waitForFunction((index) => {
+      const p = Number(
+        document.querySelector(".mobile-system").dataset.progress,
+      );
+      return p > (index - 1) / 4 && p < index / 4;
+    }, i);
+    await phonePage.waitForFunction(
+      (index) =>
+        document.querySelector(".mobile-system").dataset.progress ===
+        (index / 4).toFixed(3),
+      i,
+    );
+    assert.equal(
+      await phonePage.locator(".scene-copy.current").getAttribute("data-scene"),
+      String(i),
+    );
+    assert.equal(
+      await phonePage.locator(".scene-copy:not(.current):not([inert])").count(),
+      0,
+    );
+    const layout = await phonePage.evaluate(() => {
+      const text = document
+        .querySelector(".scene-copy.current")
+        .getBoundingClientRect();
+      const scene = document
+        .querySelector(".mobile-system")
+        .getBoundingClientRect();
+      const dock = document
+        .querySelector(".chapter-navigation")
+        .getBoundingClientRect();
+      return (
+        text.bottom <= scene.top &&
+        scene.bottom <= dock.top &&
+        document.documentElement.scrollWidth <= innerWidth
+      );
+    });
+    assert.equal(layout, true, "Phone text, scene, and dock must not overlap");
+  }
+  await phonePage.locator(".chapter-navigation a").nth(0).tap();
+  await phonePage.locator(".chapter-navigation a").nth(2).tap();
+  await phonePage.waitForFunction(
+    () => document.querySelector(".mobile-system").dataset.progress === "0.500",
+  );
+  await phonePage.setViewportSize({ width: 851, height: 393 });
+  assert.equal(await phonePage.locator(".mobile-system").isVisible(), true);
+  assert.equal(await phonePage.locator("canvas.webgl-system").count(), 0);
+  await phonePage.setViewportSize({ width: 360, height: 740 });
+  await phonePage.emulateMedia({ reducedMotion: "reduce" });
+  await phonePage.locator("body.is-reading").waitFor();
+  assert.equal(await phonePage.locator(".mobile-system").isVisible(), true);
+  await phonePage.waitForFunction(
+    () => document.querySelector(".mobile-system").dataset.progress === "0.000",
+  );
+  await phone.close();
+  const phonePlain = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 360, height: 740 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const phonePlainPage = await phonePlain.newPage();
+  await phonePlainPage.goto(origin);
+  assert.equal(
+    await phonePlainPage.locator(".mobile-system").isVisible(),
+    true,
+  );
+  await phonePlain.close();
+  console.log(
+    "Mobile SVG, touch transitions, rotation, reduced motion, and no-JS fallback passed.",
   );
   const reduced = await browser.newContext({ reducedMotion: "reduce" });
   const reducedPage = await reduced.newPage();

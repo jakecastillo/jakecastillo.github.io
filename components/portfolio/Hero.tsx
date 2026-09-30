@@ -1,3 +1,4 @@
+import { MobileScene } from "./MobileScene";
 import { Compass, Sprout, Blocks, ScanEye, UsersRound } from "lucide-react";
 
 export function Hero() {
@@ -149,6 +150,7 @@ export function Hero() {
           </article>
         </div>
         <div className="system-theater" aria-hidden="true">
+          <MobileScene />
           <div className="system-camera">
             <div className="system-orbit orbit-a"></div>
             <div className="system-orbit orbit-b"></div>
