@@ -137,8 +137,41 @@ try {
   });
   const phonePage = await phone.newPage();
   phonePage.on("pageerror", (error) => errors.push(error.message));
-  await phonePage.goto(origin);
+  let releaseScripts;
+  const scriptGate = new Promise((resolve) => {
+    releaseScripts = resolve;
+  });
+  await phonePage.route("**/*.js", async (route) => {
+    await scriptGate;
+    await route.continue();
+  });
+  await phonePage.goto(origin, { waitUntil: "commit" });
+  await phonePage.locator("h1").waitFor();
+  await phonePage.evaluate(() => document.fonts.ready);
+  await phonePage.locator(".scene-loader").waitFor();
+  assert.equal(
+    await phonePage.locator(".mobile-system").isVisible(),
+    false,
+    "The fallback must not flash before the scene loads",
+  );
+  const initialScene = await phonePage.locator(".system-theater").boundingBox();
+  const initialStage = await phonePage.locator(".cinema-stage").boundingBox();
+  releaseScripts();
   await phonePage.locator("body.webgl-ready").waitFor();
+  const loadedScene = await phonePage.locator(".system-theater").boundingBox();
+  const loadedStage = await phonePage.locator(".cinema-stage").boundingBox();
+  assert.deepEqual(
+    loadedScene,
+    initialScene,
+    "Loading must not move or resize the visual slot",
+  );
+  assert.deepEqual(
+    loadedStage,
+    initialStage,
+    "Enhancement must not shift the hero",
+  );
+  await phonePage.locator(".scene-loader").waitFor({ state: "hidden" });
+  await phonePage.unroute("**/*.js");
   assert.equal(
     await phonePage.locator("canvas.webgl-system").getAttribute("data-quality"),
     "mobile",
@@ -211,7 +244,50 @@ try {
       cssWidth: canvas.clientWidth,
     })),
   );
+  // A browser toolbar can change height without rotating the device. The
+  // sticky composition and its scroll range should remain exactly unchanged.
+  await scrollChapter(phonePage, 0.03);
+  const stableLayout = async () =>
+    phonePage.evaluate(() => ({
+      scroll: scrollY,
+      stage: document
+        .querySelector(".cinema-stage")
+        .getBoundingClientRect()
+        .toJSON(),
+      scene: document
+        .querySelector(".system-theater")
+        .getBoundingClientRect()
+        .toJSON(),
+      track: document.querySelector(".scroll-track").offsetHeight,
+      progress: document.querySelector(".mobile-system").dataset.progress,
+    }));
+  const beforeToolbar = await stableLayout();
+  await phonePage.setViewportSize({ width: 393, height: 920 });
+  await phonePage.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+  assert.deepEqual(
+    await stableLayout(),
+    beforeToolbar,
+    "Toolbar collapse must not pull down the page or jump the scroll animation",
+  );
+  await phonePage.setViewportSize({ width: 393, height: 851 });
+  await phonePage.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+  assert.deepEqual(
+    await stableLayout(),
+    beforeToolbar,
+    "Toolbar expansion must preserve the scene",
+  );
   for (const [width, height] of [
+    [412, 915],
     [360, 740],
     [320, 640],
     [851, 393],
@@ -234,7 +310,8 @@ try {
         (text.bottom <= scene.top || text.right <= scene.left) &&
         scene.bottom <= dock.top &&
         document.documentElement.scrollWidth <= innerWidth &&
-        scene.height > 100
+        scene.height >= 180 &&
+        dock.bottom <= innerHeight + 1
       );
     });
     assert.equal(layout, true, `Mobile scene layout at ${width}x${height}`);
@@ -278,6 +355,31 @@ try {
   );
   await scrollChapter(unavailablePage, 0.75);
   await unavailable.close();
+  const stalled = await browser.newContext({
+    viewport: { width: 393, height: 851 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const stalledPage = await stalled.newPage();
+  await stalledPage.route("**/*.js", (route) => route.abort());
+  await stalledPage.goto(origin);
+  await stalledPage.locator(".scene-loader").waitFor();
+  const stalledScene = await stalledPage
+    .locator(".system-theater")
+    .boundingBox();
+  await stalledPage.locator(".mobile-system").waitFor({ timeout: 12000 });
+  assert.equal(
+    await stalledPage.locator(".scene-loader").isVisible(),
+    false,
+    "Loading feedback must be bounded even if all JavaScript fails",
+  );
+  assert.deepEqual(
+    await stalledPage.locator(".system-theater").boundingBox(),
+    stalledScene,
+  );
+  await stalledPage.getByRole("link", { name: "Work", exact: true }).click();
+  assert.equal(await stalledPage.locator("#work").isVisible(), true);
+  await stalled.close();
   const phonePlain = await browser.newContext({
     javaScriptEnabled: false,
     viewport: { width: 360, height: 740 },

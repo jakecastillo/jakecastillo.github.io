@@ -12,7 +12,8 @@ export function PortfolioMotion() {
         if (!disposed) cleanup = enhancePortfolio();
       })
       .catch(() => {
-        /* Native links, disclosures and the static illustration remain usable. */
+        // Stop loading feedback immediately when the enhancement cannot start.
+        if (!disposed) document.body.classList.add("css-fallback");
       });
     return () => {
       disposed = true;
