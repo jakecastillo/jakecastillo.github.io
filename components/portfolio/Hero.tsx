@@ -150,6 +150,17 @@ export function Hero() {
           </article>
         </div>
         <div className="system-theater" aria-hidden="true">
+          <div className="scene-loader">
+            <span className="scene-loader-mark">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="mono">Preparing the scene</span>
+          </div>
+          <noscript>
+            <style>{`.scene-loader { display: none !important; } .mobile-system { visibility: visible !important; animation: none !important; }`}</style>
+          </noscript>
           <MobileScene />
           <div className="system-camera">
             <div className="system-orbit orbit-a"></div>
