@@ -32,6 +32,12 @@ try {
   await page.locator("body.cinematic").waitFor();
   await page.locator(".webgl-system").waitFor();
   assert.equal(await page.locator("h1").count(), 1);
+  assert.equal(
+    new URL(page.url()).hash,
+    "",
+    "Fresh visits must retain a clean homepage URL",
+  );
+  assert.equal(await page.evaluate(() => scrollY), 0);
   for (let i = 0; i < 5; i++) {
     await page.locator(".chapter-navigation a").nth(i).click();
     await page.waitForFunction(
@@ -49,6 +55,32 @@ try {
       0,
     );
   }
+  await page.getByRole("link", { name: "Jake Castillo, introduction" }).click();
+  assert.equal(
+    new URL(page.url()).hash,
+    "",
+    "Returning home must not add #surface",
+  );
+  assert.equal(await page.evaluate(() => scrollY), 0);
+  await page.goBack();
+  await page.waitForURL("**/#handoff");
+  await page.waitForFunction(
+    () => document.querySelector(".scene-copy.current").dataset.scene === "4",
+  );
+  await page.goForward();
+  await page.waitForFunction(
+    () =>
+      !location.hash &&
+      scrollY === 0 &&
+      document.querySelector(".scene-copy.current").dataset.scene === "0",
+  );
+  await page.goto(origin + "/#home");
+  await page.waitForFunction(
+    () =>
+      document.body.classList.contains("cinematic") &&
+      !location.hash &&
+      scrollY === 0,
+  );
   await page.getByRole("link", { name: "Work", exact: true }).click();
   await page.locator("#architecture-detail summary").press("Enter");
   await page.locator("#architecture-detail[open]").waitFor();
@@ -145,7 +177,9 @@ try {
     await scriptGate;
     await route.continue();
   });
-  await phonePage.goto(origin, { waitUntil: "commit" });
+  await phonePage.goto(origin + "/?entry=mobile#surface", {
+    waitUntil: "commit",
+  });
   await phonePage.locator("h1").waitFor();
   await phonePage.evaluate(() => document.fonts.ready);
   await phonePage.locator(".scene-loader").waitFor();
@@ -154,10 +188,17 @@ try {
     false,
     "The fallback must not flash before the scene loads",
   );
+  assert.equal(
+    await phonePage.evaluate(() => scrollY),
+    0,
+    "The legacy intro anchor must start at the page top even before JavaScript loads",
+  );
   const initialScene = await phonePage.locator(".system-theater").boundingBox();
   const initialStage = await phonePage.locator(".cinema-stage").boundingBox();
   releaseScripts();
   await phonePage.locator("body.webgl-ready").waitFor();
+  await phonePage.waitForURL(origin + "/?entry=mobile");
+  assert.equal(await phonePage.evaluate(() => scrollY), 0);
   const loadedScene = await phonePage.locator(".system-theater").boundingBox();
   const loadedStage = await phonePage.locator(".cinema-stage").boundingBox();
   assert.deepEqual(
@@ -415,8 +456,18 @@ try {
   );
   await reducedPage.emulateMedia({ reducedMotion: "no-preference" });
   await reducedPage.locator("canvas.webgl-system").waitFor();
+  assert.equal(
+    new URL(reducedPage.url()).hash,
+    "",
+    "Enabling motion at the intro must not add a fragment",
+  );
   await reducedPage.emulateMedia({ reducedMotion: "reduce" });
   await reducedPage.locator("body.is-reading").waitFor();
+  assert.equal(
+    new URL(reducedPage.url()).hash,
+    "",
+    "Reducing motion at the intro must keep the homepage URL",
+  );
   await reduced.close();
   const plain = await browser.newContext({ javaScriptEnabled: false });
   const plainPage = await plain.newPage();

@@ -1,3 +1,4 @@
+import Link from "next/link";
 export function Contact() {
   return (
     <footer className="cinema-footer" id="contact">
@@ -76,9 +77,9 @@ export function Contact() {
           <a href="https://www.linkedin.com/in/jake-castillo-00567819b/">
             LinkedIn ↗
           </a>
-          <a href="#surface" data-jump="0">
+          <Link href="/" data-jump="0" prefetch={false}>
             Back to the beginning ↑
-          </a>
+          </Link>
         </div>
       </div>
     </footer>

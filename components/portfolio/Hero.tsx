@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MobileScene } from "./MobileScene";
 import { Compass, Sprout, Blocks, ScanEye, UsersRound } from "lucide-react";
 
@@ -7,6 +8,7 @@ export function Hero() {
       <span id="home" className="legacy-anchor" aria-hidden="true" />
       <section
         className="cinema-stage"
+        id="surface"
         aria-label="A journey through how I build systems"
       >
         <div className="scene-environment" aria-hidden="true">
@@ -32,7 +34,7 @@ export function Hero() {
           </span>
         </div>
         <div className="cinema-copy">
-          <article className="scene-copy current" data-scene="0" id="surface">
+          <article className="scene-copy current" data-scene="0">
             <p className="eyebrow">Jake Castillo / Software Engineer</p>
             <h1 className="positioning-heading">
               Complex systems.
@@ -283,7 +285,7 @@ export function Hero() {
             </span>
           </div>
           <nav className="chapter-navigation" aria-label="Jump to a chapter">
-            <a href="#surface" data-jump="0" aria-current="step">
+            <Link href="/" data-jump="0" aria-current="step" prefetch={false}>
               <Compass
                 className="chapter-icon"
                 aria-hidden="true"
@@ -293,7 +295,7 @@ export function Hero() {
                 00
               </span>
               <b>Intro</b>
-            </a>
+            </Link>
             <a href="#people-record" data-jump="1">
               <Sprout
                 className="chapter-icon"

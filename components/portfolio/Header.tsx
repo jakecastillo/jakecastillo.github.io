@@ -1,11 +1,13 @@
+import Link from "next/link";
 export function Header() {
   return (
     <header className="cinema-header">
-      <a
+      <Link
         className="brand"
-        href="#surface"
+        href="/"
         data-jump="0"
         aria-label="Jake Castillo, introduction"
+        prefetch={false}
       >
         <img
           className="brand-mark"
@@ -18,7 +20,7 @@ export function Header() {
           <b>Jake Castillo</b>
           <small>Software &amp; systems</small>
         </span>
-      </a>
+      </Link>
       <nav aria-label="Main navigation">
         <a href="#experience">Overview</a>
         <a href="#work">Work</a>
