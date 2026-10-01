@@ -351,6 +351,163 @@ try {
   await phonePage.emulateMedia({ reducedMotion: "reduce" });
   await phonePage.locator("body.is-reading").waitFor();
   await phone.close();
+  // A delayed reflection asset must not delay native navigation. Once ready,
+  // the scene joins the current scroll position instead of resetting the intro.
+  const pending = await browser.newContext({
+    viewport: { width: 393, height: 851 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const pendingPage = await pending.newPage();
+  pendingPage.on("pageerror", (error) => errors.push(error.message));
+  let releaseEnvironment;
+  const environmentGate = new Promise((resolve) => {
+    releaseEnvironment = resolve;
+  });
+  await pendingPage.route("**/environment/*.bin.gz", async (route) => {
+    await environmentGate;
+    await route.continue();
+  });
+  await pendingPage.goto(origin);
+  await pendingPage.locator("body.cinematic").waitFor();
+  await scrollChapter(pendingPage, 0.5);
+  assert.equal(
+    await pendingPage.locator(".scene-copy.current").getAttribute("data-scene"),
+    "2",
+  );
+  assert.equal(await pendingPage.locator("canvas.webgl-system").count(), 0);
+  releaseEnvironment();
+  await pendingPage.locator("body.webgl-ready").waitFor();
+  assert.equal(
+    await pendingPage
+      .locator("canvas.webgl-system")
+      .getAttribute("data-progress"),
+    "0.385",
+  );
+  await pending.close();
+
+  // Hold shader readiness pending, even if the driver has cached the programs.
+  for (const cancellation of ["reduced-motion", "pagehide", "context-loss"]) {
+    const pendingCompile = await browser.newContext();
+    await pendingCompile.addInitScript(() => {
+      window.liveGraphicsWorkers = 0;
+      const NativeWorker = window.Worker;
+      window.Worker = class extends NativeWorker {
+        constructor(...args) {
+          super(...args);
+          window.liveGraphicsWorkers++;
+        }
+        terminate() {
+          if (!this.stopped) window.liveGraphicsWorkers--;
+          this.stopped = true;
+          super.terminate();
+        }
+      };
+      const original = WebGL2RenderingContext.prototype.getProgramParameter;
+      const getExtension = WebGL2RenderingContext.prototype.getExtension;
+      WebGL2RenderingContext.prototype.getExtension = function (name) {
+        if (name === "KHR_parallel_shader_compile")
+          return { COMPLETION_STATUS_KHR: 0x91b1 };
+        return getExtension.call(this, name);
+      };
+      window.shaderChecks = 0;
+      window.holdShaders = true;
+      WebGL2RenderingContext.prototype.getProgramParameter = function (
+        program,
+        parameter,
+      ) {
+        if (parameter === 0x91b1) {
+          window.shaderChecks++;
+          return !window.holdShaders;
+        }
+        return original.call(this, program, parameter);
+      };
+    });
+    const preparing = await pendingCompile.newPage();
+    preparing.on("pageerror", (error) => errors.push(error.message));
+    await preparing.goto(origin);
+    await preparing.waitForFunction(() => window.shaderChecks > 0);
+    if (cancellation === "reduced-motion")
+      await preparing.emulateMedia({ reducedMotion: "reduce" });
+    else if (cancellation === "pagehide")
+      await preparing.evaluate(() =>
+        dispatchEvent(new PageTransitionEvent("pagehide")),
+      );
+    else
+      await preparing
+        .locator("canvas.webgl-system")
+        .evaluate((canvas) =>
+          canvas.dispatchEvent(
+            new Event("webglcontextlost", { cancelable: true }),
+          ),
+        );
+    await preparing.waitForFunction(
+      () => !document.querySelector("canvas.webgl-system"),
+    );
+    assert.equal(
+      await preparing.evaluate(() => window.liveGraphicsWorkers),
+      0,
+      "Graphics warmup workers must be released",
+    );
+    const stoppedChecks = await preparing.evaluate(() => window.shaderChecks);
+    await preparing.waitForTimeout(60);
+    assert.equal(
+      await preparing.evaluate(() => window.shaderChecks),
+      stoppedChecks,
+      `Shader polling must stop after ${cancellation}`,
+    );
+    if (cancellation === "reduced-motion") {
+      await preparing.evaluate(() => {
+        window.holdShaders = false;
+      });
+      await preparing.emulateMedia({ reducedMotion: "no-preference" });
+      await preparing.locator("body.webgl-ready").waitFor();
+      assert.equal(await preparing.locator("canvas.webgl-system").count(), 1);
+    }
+    await pendingCompile.close();
+  }
+  // Worker startup and parallel compilation are optional optimizations.
+  // A browser without either must retain the complete WebGL scene.
+  const serial = await browser.newContext();
+  await serial.addInitScript(() => {
+    window.Worker = class {
+      constructor() {
+        throw new Error("Workers unavailable");
+      }
+    };
+    const original = WebGL2RenderingContext.prototype.getExtension;
+    WebGL2RenderingContext.prototype.getExtension = function (name) {
+      return name === "KHR_parallel_shader_compile"
+        ? null
+        : original.call(this, name);
+    };
+  });
+  const serialPage = await serial.newPage();
+  serialPage.on("pageerror", (error) => errors.push(error.message));
+  await serialPage.goto(origin);
+  await serialPage.locator("body.webgl-ready").waitFor();
+  assert.equal(
+    await serialPage
+      .locator("canvas.webgl-system")
+      .getAttribute("data-quality"),
+    "full",
+  );
+  await serial.close();
+  const missingEnvironment = await browser.newContext();
+  const missingPage = await missingEnvironment.newPage();
+  missingPage.on("pageerror", (error) => errors.push(error.message));
+  await missingPage.route("**/environment/*.bin.gz", (route) =>
+    route.fulfill({ status: 404, body: "" }),
+  );
+  await missingPage.goto(origin);
+  await missingPage.locator("body.css-fallback").waitFor();
+  assert.equal(await missingPage.locator("canvas.webgl-system").count(), 0);
+  await missingPage.getByRole("link", { name: "Work", exact: true }).click();
+  assert.equal(await missingPage.locator("#work").isVisible(), true);
+  await missingEnvironment.close();
+  console.log(
+    "Delayed startup, current-scroll reveal, shader cancellation, and missing-environment fallback passed.",
+  );
   const unavailable = await browser.newContext({
     viewport: { width: 393, height: 851 },
     isMobile: true,

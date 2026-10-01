@@ -37,7 +37,18 @@ The static preview is at `http://127.0.0.1:4174`. A Next.js server is not requir
 - `public/`: only assets intentionally served to visitors.
 - `tooling/`: export preview, privacy guard, browser verification, and branded-asset generation.
 
-Text, links, work history, and native disclosures render before JavaScript. WebGL follows native scrolling on desktop and mobile. Phones retain the same 3D layers and chapter effects with a 1× pixel-density cap, no multisample antialiasing or glass transmission, smaller reflection textures, and fewer geometry segments. Rendering only runs when needed. SVG is a loading/no-JavaScript illustration and a fallback for actual WebGL failure. Reduced motion skips initial WebGL loading. There is no boot gate, custom wheel interception, analytics, contact-form backend, or perpetual graphics loop. Fonts are self-hosted through `next/font`.
+Text, links, work history, and native disclosures render before JavaScript. WebGL follows native scrolling on desktop and mobile. Phones retain the same 3D layers and chapter effects with the existing mobile materials and geometry, no multisample antialiasing or glass transmission, and smaller reflection textures. Drawing buffers retain a 2.5× density ceiling and budgets of 900,000 pixels on mobile and 4,000,000 on desktop. Rendering only runs when needed. SVG is a loading/no-JavaScript illustration and a fallback for actual WebGL failure. Reduced motion skips initial WebGL loading. There is no boot gate, custom wheel interception, analytics, contact-form backend, or perpetual graphics loop. Fonts are self-hosted through `next/font`.
+
+The fixed studio reflections are baked into losslessly compressed half-float CubeUV textures in `public/environment/`. The original 64px mobile and 256px desktop face resolutions, material settings, and animation formulas are preserved. Startup loads the matching texture while a temporary worker warms the browser’s graphics backend with a 1px offscreen context. The worker is released when the original scene canvas is created; animation stays on its existing render path. Shader compilation yields between browser turns before the scene is revealed, with serial preparation when parallel compilation is unavailable. Blocked workers fall back to ordinary WebGL initialization. Loading and compilation are cancelled on teardown or a reduced-motion switch; a missing texture keeps the readable SVG fallback. Unchanged chapter text is left intact during frame updates.
+
+Regenerate the reflection assets only when the studio recipe or Three.js version changes:
+
+```sh
+npx playwright install chromium
+npm run assets:environment
+```
+
+The recipe is in `tooling/generate-environment.mjs`. Update the versioned asset names in the generator and `lib/portfolio/scene-environment.js` when upgrading Three.js, and visually review all five chapters on desktop and mobile after regeneration. The checked-in assets are used directly during ordinary builds; GPU baking is not a deployment prerequisite.
 
 ## Public content and private inputs
 
